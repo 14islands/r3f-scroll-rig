@@ -1,0 +1,4 @@
+{
+  "src/**/*.js": ["npm run staged:lint"],
+  "src/**/*.{js,jsx,css,scss,md,json}": ["npm run staged:format"]
+}

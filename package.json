@@ -1,0 +1,57 @@
+{
+  "name": "r3f-scroll-rig",
+  "version": "1.0.0",
+  "description": "Progressively enhance any React website with WebGL using react-three-fiber",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint --ignore-path .gitignore 'src/**/*.js'",
+    "staged:format": "prettier --write",
+    "staged:lint": "eslint --ignore-path .gitignore --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/14islands/r3f-scroll-rig.git"
+  },
+  "keywords": [
+    "react-three-fiber",
+    "webgl",
+    "react",
+    "three"
+  ],
+  "author": "@14islands",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/14islands/r3f-scroll-rig/issues"
+  },
+  "homepage": "https://github.com/14islands/r3f-scroll-rig#readme",
+  "dependencies": {},
+  "devDependencies": {
+    "babel-eslint": "^10.1.0",
+    "eslint": "^7.3.1",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-config-standard": "^14.1.1",
+    "eslint-plugin-babel": "^5.3.0",
+    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-jest": "^23.17.1",
+    "eslint-plugin-jsx-a11y": "^6.3.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^3.1.4",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-react": "^7.20.1",
+    "eslint-plugin-standard": "^4.0.1",
+    "husky": "^4.2.5",
+    "lint-staged": "^10.2.11",
+    "prettier": "^2.0.5",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "react-three-fiber": "^4.2.12",
+    "three": "^0.118.3"
+  },
+  "peerDependencies": {
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "react-three-fiber": "^4.2.12",
+    "three": "^0.118.3"
+  }
+}
