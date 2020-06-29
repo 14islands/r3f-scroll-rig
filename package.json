@@ -25,7 +25,9 @@
     "url": "https://github.com/14islands/r3f-scroll-rig/issues"
   },
   "homepage": "https://github.com/14islands/r3f-scroll-rig#readme",
-  "dependencies": {},
+  "dependencies": {
+    "react-three-fiber": "^4.2.12"
+  },
   "devDependencies": {
     "babel-eslint": "^10.1.0",
     "eslint": "^7.3.1",
@@ -51,7 +53,6 @@
   "peerDependencies": {
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
-    "react-three-fiber": "^4.2.12",
     "three": "^0.118.3"
   }
 }
