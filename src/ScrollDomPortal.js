@@ -6,8 +6,10 @@ import { Math as MathUtils } from 'three'
 import { useViewportScroll } from 'framer-motion'
 import { useWindowHeight } from '@react-hook/window-size'
 
-import { config, useCanvasStore } from 'components/three/scroll-rig'
-import { requestIdleCallback, cancelIdleCallback } from 'lib/requestIdleCallback'
+import { requestIdleCallback, cancelIdleCallback } from './hooks/requestIdleCallback'
+
+import config from './config'
+import { useCanvasStore } from './store'
 
 // Linear interpolation from last position - high performance easing
 const LAYOUT_LERP = 0.1

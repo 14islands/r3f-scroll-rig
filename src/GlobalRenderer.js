@@ -1,8 +1,11 @@
 import React, { Suspense, Fragment, useLayoutEffect, useMemo, useRef } from 'react'
+import PropTypes from 'prop-types'
 import { useThree, useFrame } from 'react-three-fiber'
-import { sRGBEncoding, WebGLRenderTarget } from 'three'
+import { sRGBEncoding, WebGLRenderTarget, NoToneMapping } from 'three'
 
-import { useScrollRig, utils, config, useCanvasStore } from 'components/three/scroll-rig'
+import * as utils from './utils'
+import config from './config'
+import { useCanvasStore } from './store'
 
 // Flag that we need global rendering (full screen)
 export const renderFullscreen = (layers = [0]) => {
@@ -11,6 +14,7 @@ export const renderFullscreen = (layers = [0]) => {
 }
 
 export const renderScissor = (gl, scene, camera, left, top, width, height, layer = 0) => {
+  if (!scene || !camera) return
   config.hasRenderQueue = true
   config.scissorQueue.push(() => {
     // console.log('SCISSOR RENDER', layer)
@@ -24,13 +28,14 @@ export const renderScissor = (gl, scene, camera, left, top, width, height, layer
 }
 
 export const renderViewport = (gl, scene, camera, left, top, width, height, layer = 0, size) => {
+  if (!scene || !camera) return
   config.hasRenderQueue = true
   config.viewportQueue.push(() => {
     // console.log('VIEWPORT RENDER', layer)
     gl.setViewport(left, top, width, height)
     gl.setScissor(left, top, width, height)
     gl.setScissorTest(true)
-    camera.layers.set(layer)
+    // camera.layers.set(layer)
     gl.clearDepth()
     gl.render(scene, camera)
     gl.setScissorTest(false)
@@ -39,6 +44,7 @@ export const renderViewport = (gl, scene, camera, left, top, width, height, laye
 }
 
 export const preloadScene = (gl, scene, camera, layer = 0, callback) => {
+  if (!scene || !camera) return
   config.preloadQueue.push(() => {
     gl.setScissorTest(false)
     utils.setAllCulled(scene, false)
@@ -75,7 +81,7 @@ const useFBO = () => {
 /**
  * Global render loop to avoid double renders on the same frame
  */
-const GlobalRenderer = ({ children }) => {
+const GlobalRenderer = ({ useScrollRig, children }) => {
   const scene = useRef()
   const { gl } = useThree()
   const canvasChildren = useCanvasStore((state) => state.canvasChildren)
@@ -85,10 +91,11 @@ const GlobalRenderer = ({ children }) => {
 
   useLayoutEffect(() => {
     gl.outputEncoding = sRGBEncoding
-    gl.getContext().disable(gl.getContext().DEPTH_TEST)
+    // gl.getContext().disable(gl.getContext().DEPTH_TEST)
     gl.autoClear = false // we do our own rendering
     gl.setClearColor(null, 0)
     gl.debug.checkShaderErrors = config.debug
+    gl.toneMapping = NoToneMapping
   }, [])
 
   // GLOBAL RENDER LOOP
@@ -101,7 +108,7 @@ const GlobalRenderer = ({ children }) => {
     gl.clear()
 
     // Render viewport scissors first
-    config.viewportQueue.forEach((render) => render())
+    // config.viewportQueue.forEach((render) => render())
 
     if (config.globalRender) {
       // console.log('GLOBAL RENDER')
@@ -129,6 +136,9 @@ const GlobalRenderer = ({ children }) => {
       config.scissorQueue.forEach((render) => render())
     }
 
+    // Render viewport scissors last
+    config.viewportQueue.forEach((render) => render())
+
     config.preloadQueue = []
     config.scissorQueue = []
     config.viewportQueue = []
@@ -154,6 +164,10 @@ const GlobalRenderer = ({ children }) => {
       </Suspense>
     </scene>
   )
+}
+
+GlobalRenderer.propTypes = {
+  useScrollRig: PropTypes.func.required,
 }
 
 export default GlobalRenderer

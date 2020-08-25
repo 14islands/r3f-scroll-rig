@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useThree } from 'react-three-fiber'
 import {
   Math as MathUtils,
@@ -6,14 +6,10 @@ import {
   LinearFilter,
   CanvasTexture,
   ImageBitmapLoader,
+  TextureLoader,
   RGBFormat,
   RGBAFormat,
 } from 'three'
-
-// polyfill createImageBitmap for browsers that don't support it
-if (typeof window !== 'undefined') {
-  require('lib/polyfills/createImageBitmap')
-}
 
 /**
  *  Reasons for why this exists:
@@ -29,8 +25,7 @@ if (typeof window !== 'undefined') {
  *
  */
 
-// keep track if we should try to pass options to createImageBitmap or not
-let optionsAreSupported = true
+const useImageBitmap = typeof createImageBitmap !== 'undefined' && /Firefox/.test(navigator.userAgent) === false
 
 // Override fetch to prefer cached images by default
 if (typeof window !== 'undefined') {
@@ -43,7 +38,6 @@ function isPowerOfTwo(dimensions = { width: -1, height: -1 }) {
 }
 
 export const useTextureLoader = (url, dimensions, { disableMipmaps = false } = {}) => {
-  const hasPreviousError = useRef(false)
   const [texture, setTexture] = useState()
   const [imageBitmap, setImageBitmap] = useState()
   const { gl } = useThree()
@@ -56,22 +50,29 @@ export const useTextureLoader = (url, dimensions, { disableMipmaps = false } = {
   }, [imageBitmap])
 
   const loadTexture = (url) => {
-    const texture = new CanvasTexture()
-    const loader = new ImageBitmapLoader()
+    let loader
+    if (useImageBitmap) {
+      loader = new ImageBitmapLoader()
+      // Flip if texture is powerOf2
+      if (!isPowerOfTwo(dimensions)) {
+        loader.setOptions({
+          imageOrientation: 'flipY',
+          premultiplyAlpha: 'none',
+        })
+      }
+    } else {
+      loader = new TextureLoader()
+    }
     loader.setCrossOrigin('anonymous')
 
-    // Flip if options are supported (not FF) and texture is powerOf2
-    if (optionsAreSupported && isPowerOfTwo(dimensions)) {
-      loader.setOptions({
-        imageOrientation: 'flipY',
-      })
-    }
-
+    console.log('load url', url)
     loader.load(
       url,
-      (imageBitmap) => {
-        setImageBitmap(imageBitmap)
-        texture.image = imageBitmap
+      (texture) => {
+        if (useImageBitmap) {
+          setImageBitmap(imageBitmap)
+          texture = new CanvasTexture(texture)
+        }
 
         // max quality
         texture.anisotropy = gl.capabilities.getMaxAnisotropy()
@@ -92,11 +93,7 @@ export const useTextureLoader = (url, dimensions, { disableMipmaps = false } = {
       },
       null,
       (err) => {
-        optionsAreSupported = false
-        if (!hasPreviousError.current) {
-          loadTexture(url)
-          hasPreviousError.current = err
-        }
+        console.error('err', err)
       },
     )
   }

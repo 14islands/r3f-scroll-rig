@@ -1,6 +1,6 @@
 import create from 'zustand'
-import { requestIdleCallback } from 'lib/requestIdleCallback'
-import { config } from 'components/three/scroll-rig'
+import { requestIdleCallback } from './hooks/requestIdleCallback'
+import config from './config'
 
 const [useCanvasStore, canvasStoreApi] = create((set) => ({
   // //////////////////////////////////////////////////////////////////////////
@@ -62,8 +62,10 @@ const [useCanvasStore, canvasStoreApi] = create((set) => ({
     set((state) => {
       // if VirtualScrollbar is active, it triggers `triggerReflowCompleted` instead
       if (!config.hasVirtualScrollbar) {
+        console.log('has hasVirtualScrollbar')
         requestIdleCallback(state.triggerReflowCompleted, { timeout: 100 })
       }
+      console.log('return pageReflow', state.pageReflow, '->', state.pageReflow + 1)
       return { pageReflow: state.pageReflow + 1 }
     })
   },

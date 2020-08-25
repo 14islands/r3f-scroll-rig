@@ -4,8 +4,11 @@ import { Math as MathUtils } from 'three'
 import { useFrame, useThree } from 'react-three-fiber'
 import { useViewportScroll } from 'framer-motion'
 
-import requestIdleCallback from 'lib/requestIdleCallback'
-import { config, useCanvasStore, useScrollRig } from 'components/three/scroll-rig'
+import requestIdleCallback from './hooks/requestIdleCallback'
+
+import config from './config'
+import { useCanvasStore } from './store'
+import useScrollRig from './useScrollRig'
 
 /**
  * Generic THREE.js Scene that tracks the dimensions and position of a DOM element while scrolling
@@ -20,27 +23,19 @@ let ScrollScene = ({
   children,
   renderOrder,
   margin = 14, // Margin outside viewport to avoid clipping vertex displacement (px)
+  inViewportMargin, // Margin outside viewport to avoid clipping vertex displacement (px)
   visible = true,
-  getOffset = () => {},
+  layoutOffset = () => {},
   layoutLerp = 0.1,
-  live = false,
   scissor = true,
   debug = false,
-  softDirection = false,
+  softDirection = false, // experimental
   setInViewportProp = false,
+  updateLayout = 0,
   ...props
 }) => {
   const scene = useRef()
   const group = useRef()
-
-  // transient state
-  const state = useRef({
-    mounted: false,
-    isFirstRender: true,
-    bounds: { top: 0, left: 0, width: 0, height: 0, centerOffset: -1, x: 0, inViewport: false, progress: 0 },
-    prevBounds: { y: 0, x: 0, direction: 1, directionTime: 0 },
-    transitionIn: 0,
-  }).current
 
   const [inViewport, setInViewport] = useState(false)
   const [scale, setScale] = useState({ width: 1, height: 1 })
@@ -49,6 +44,27 @@ let ScrollScene = ({
   const { requestFrame, renderScissor, renderFullscreen } = useScrollRig()
 
   const pageReflowCompleted = useCanvasStore((state) => state.pageReflowCompleted)
+
+  // transient state
+  const state = useRef({
+    mounted: false,
+    isFirstRender: true,
+    bounds: {
+      top: 0,
+      left: 0,
+      width: 0,
+      height: 0,
+      centerOffset: -1,
+      x: 0,
+      inViewport: false,
+      progress: 0,
+      viewport: 0,
+      visibility: 0,
+      window: size,
+      velocity: 0,
+    },
+    prevBounds: { y: 0, x: 0, direction: 1, directionTime: 0 },
+  }).current
 
   useEffect(() => {
     state.mounted = true
@@ -81,13 +97,15 @@ let ScrollScene = ({
     bounds.centerOffset = size.height * 0.5 - height * 0.5
 
     setScale({ width, height })
+    bounds.window = size
 
     // place horizontally
     bounds.x = left - size.width * 0.5 + width * 0.5
     scene.current.position.x = bounds.x
 
+    // prevents ghost lerp on first render
     if (state.isFirstRender) {
-      prevBounds.y = top - bounds.centerOffset + state.transitionIn
+      prevBounds.y = top - bounds.centerOffset
       prevBounds.x = bounds.x
       state.isFirstRender = false
     }
@@ -98,21 +116,22 @@ let ScrollScene = ({
   // Find bounding box & scale mesh on resize
   useLayoutEffect(() => {
     updateSizeAndPosition()
-  }, [pageReflowCompleted, live])
+  }, [pageReflowCompleted, updateLayout])
 
   // RENDER FRAME
   useFrame(({ gl, camera, clock }) => {
     const { bounds, prevBounds } = state
+    // const clockDelta = clock.getDelta()
     const time = clock.getElapsedTime()
 
-    const offsetX = bounds.x + ((live && getOffset()?.x) || 0)
-    const offsetY = (live && getOffset()?.y) || 0
+    const layoutOffsetX = bounds.x + (layoutOffset(bounds)?.x || 0)
+    const layoutOffsetY = layoutOffset(bounds)?.y || 0
 
     // Find new Y based on cached position and scroll
-    const y = bounds.top - scrollY.get() - bounds.centerOffset + offsetY
+    const y = bounds.top - scrollY.get() - bounds.centerOffset + layoutOffsetY
 
-    // if currently hidden, update previous position to not get ghost easing when made visible
-    if (!scene.current.visible) {
+    // if previously hidden and now visible, update previous position to not get ghost easing when made visible
+    if (scene.current.visible && !bounds.inViewport) {
       prevBounds.y = y
     }
 
@@ -126,27 +145,29 @@ let ScrollScene = ({
     }
 
     // adjust lerp if direction changed - soft change
-    let fLerp = lerp
+    let yLerp = lerp
     if (softDirection) {
       const t = MathUtils.clamp(time - prevBounds.directionTime, 0, 1.0)
-      fLerp = MathUtils.lerp(softDirection, lerp, t)
+      yLerp = MathUtils.lerp(softDirection, lerp, t)
     }
 
     // frame delta
-    const delta = Math.abs(prevBounds.y - y) + Math.abs(prevBounds.x - offsetX)
+    const delta = Math.abs(prevBounds.y - y) + Math.abs(prevBounds.x - layoutOffsetX)
 
     // Lerp the distance to simulate easing
-    const lerpY = MathUtils.lerp(prevBounds.y, y, fLerp + lerpOffset)
-    const lerpX = MathUtils.lerp(prevBounds.x, offsetX, layoutLerp)
+    const lerpY = MathUtils.lerp(prevBounds.y, y, yLerp + lerpOffset)
+    const lerpX = MathUtils.lerp(prevBounds.x, layoutOffsetX, layoutLerp)
 
     // Abort if element not in screen
-    const scrollMargin = size.height * 0.33
+    const scrollMargin = inViewportMargin || size.height * 0.33
     const isOffscreen =
       lerpY + size.height * 0.5 + bounds.height * 0.5 < -scrollMargin ||
       lerpY + size.height * 0.5 - bounds.height * 0.5 > size.height + scrollMargin
 
     // store top value for next frame
     bounds.inViewport = !isOffscreen
+    // const velocity = MathUtils.clamp((prevBounds.y - lerpY) / clockDelta / 1000 / 1000 / 100, -1, 1)
+    // bounds.velocity = MathUtils.lerp(bounds.velocity, velocity, 0.05)
     setInViewportProp && requestIdleCallback(() => state.mounted && setInViewport(!isOffscreen))
     prevBounds.y = lerpY
     prevBounds.x = lerpX
@@ -191,25 +212,24 @@ let ScrollScene = ({
   }, config.PRIORITY_SCISSORS)
 
   // Clear scene from canvas on unmount
-  useEffect(() => {
-    state.transitionIn = 0 // clear load transition after first render
-    return () => {
-      // gl.clear()
-    }
-  }, [])
+  // useEffect(() => {
+  //   return () => {
+  //     gl.clear()
+  //   }
+  // }, [])
 
   // meshBasicMaterial shaders are excluded from prod build
-  // const renderDebugMesh = () => (
-  //   <mesh>
-  //     <planeBufferGeometry attach="geometry" args={[config.planeSize, config.planeSize, 1, 1]} />
-  //     <meshBasicMaterial color="pink" attach="material" transparent opacity={0.5} />
-  //   </mesh>
-  // )
+  const renderDebugMesh = () => (
+    <mesh>
+      <planeBufferGeometry attach="geometry" args={[scale.width, scale.height, 1, 1]} />
+      <meshBasicMaterial color="pink" attach="material" transparent opacity={0.5} />
+    </mesh>
+  )
 
   return (
     <scene ref={scene} visible={state.bounds.inViewport && visible}>
-      <group scale={[scale.width, scale.height, 1]} renderOrder={renderOrder}>
-        {/* {(!children || debug) && renderDebugMesh()} */}
+      <group renderOrder={renderOrder}>
+        {(!children || debug) && renderDebugMesh()}
         {children &&
           children({
             // inherited props
@@ -219,13 +239,12 @@ let ScrollScene = ({
             layoutLerp,
             renderOrder,
             visible,
-            getOffset,
+            layoutOffset,
             margin,
-            live,
             // new props
             scale,
             state,
-            scene,
+            scene: scene.current,
             inViewport,
             // tunnel the rest
             ...props,
@@ -244,9 +263,8 @@ ScrollScene.propTypes = {
   layoutLerp: PropTypes.number, // lerp ratio used when translating offset or layout changes
   renderOrder: PropTypes.number, // threejs render order
   visible: PropTypes.bool, // threejs render order,
-  getOffset: PropTypes.func, // {x,y} to translate
+  layoutOffset: PropTypes.func, // {x,y} to translate
   margin: PropTypes.number, // custom margin around scissor to impact clipping
-  live: PropTypes.bool, // use `getOffset()` and trigger recalc of layout
   scissor: PropTypes.bool, // render using scissor test for better peformance
   debug: PropTypes.bool, // show debug mesh
   setInViewportProp: PropTypes.bool, // update inViewport property on child (might cause lag)
@@ -266,6 +284,7 @@ ScrollScene.childPropTypes = {
       height: PropTypes.number,
       inViewport: PropTypes.bool,
       progress: PropTypes.number,
+      visibility: PropTypes.number,
     }),
   }),
   scene: PropTypes.object, // Parent scene,

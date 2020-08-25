@@ -1,8 +1,8 @@
 import { useLayoutEffect, useMemo } from 'react'
 import { uuid } from 'uuidv4'
 
-import requestIdleCallback from 'lib/requestIdleCallback'
-import useCanvasStore from 'components/three/scroll-rig/store'
+import requestIdleCallback from './hooks/requestIdleCallback'
+import { useCanvasStore } from './store'
 
 /**
  * Adds THREE.js object to the GlobalCanvas while the component is mounted

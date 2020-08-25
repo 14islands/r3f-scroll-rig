@@ -1,7 +1,8 @@
 import { useEffect } from 'react'
 import { useThree } from 'react-three-fiber'
 
-import { config, useCanvasStore } from 'components/three/scroll-rig'
+import config from './config'
+import { useCanvasStore } from './store'
 
 const PerformanceMonitor = () => {
   const { size } = useThree()

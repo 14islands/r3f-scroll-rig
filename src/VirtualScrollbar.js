@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState, useLayoutEffect } from 'react'
 import PropTypes from 'prop-types'
 
-import { config, useCanvasStore } from 'components/three/scroll-rig'
+import config from './config'
+import useCanvasStore from './store'
 
 const DEFAULT_LERP = 0.1
 
@@ -238,6 +239,10 @@ FakeScroller.propTypes = {
 const VirtualScrollbar = ({ disabled, children, ...rest }) => {
   const ref = useRef()
   const [active, setActive] = useState(false)
+
+  // FakeScroller wont trigger resize without this here.. whyyyy?
+  // eslint-disable-next-line no-unused-vars
+  const pageReflow = useCanvasStore((state) => state.pageReflow)
 
   const setVirtualScrollbar = useCanvasStore((state) => state.setVirtualScrollbar)
 

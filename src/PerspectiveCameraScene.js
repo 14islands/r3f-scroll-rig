@@ -1,11 +1,14 @@
 import React, { useRef, useState, useEffect, useLayoutEffect } from 'react'
 import PropTypes from 'prop-types'
-import { Math as MathUtils } from 'three'
-import { useFrame, useThree } from 'react-three-fiber'
+import { Math as MathUtils, Scene } from 'three'
+import { useFrame, useThree, createPortal } from 'react-three-fiber'
 import { useViewportScroll } from 'framer-motion'
 
-import requestIdleCallback from 'lib/requestIdleCallback'
-import { config, useCanvasStore, useScrollRig } from 'components/three/scroll-rig'
+import requestIdleCallback from './hooks/requestIdleCallback'
+
+import config from './config'
+import { useCanvasStore } from './store'
+import useScrollRig from './useScrollRig'
 
 // Camera layer to not affect global scene
 const LAYER = 2
@@ -22,21 +25,16 @@ let PerspectiveCameraScene = ({
   lerp = config.scrollLerp,
   lerpOffset = 0,
   children,
-  margin = 14, // Margin outside viewport to avoid clipping vertex displacement (px)
+  margin = 0, // Margin outside viewport to avoid clipping vertex displacement (px)
   visible = true,
   renderOrder,
   debug = false,
   setInViewportProp = false,
   ...props
 }) => {
-  const scene = useRef()
+  // const scene = useRef()
   const camera = useRef()
-
-  const state = useRef({
-    mounted: false,
-    bounds: { top: 0, left: 0, width: 0, height: 0, inViewport: false, progress: 0 },
-    prevBounds: { top: 0, left: 0, width: 0, height: 0 },
-  }).current
+  const [scene] = useState(() => new Scene())
 
   const [inViewport, setInViewport] = useState(false)
   const [scale, setScale] = useState({ width: 1, height: 1 })
@@ -45,6 +43,15 @@ let PerspectiveCameraScene = ({
   const { requestFrame, renderViewport } = useScrollRig()
 
   const pageReflowCompleted = useCanvasStore((state) => state.pageReflowCompleted)
+
+  const cameraDistance = Math.max(scale.width, scale.height)
+
+  // transient state
+  const state = useRef({
+    mounted: false,
+    bounds: { top: 0, left: 0, width: 0, height: 0, inViewport: false, progress: 0, window: size },
+    prevBounds: { top: 0, left: 0, width: 0, height: 0 },
+  }).current
 
   // Clear scene from canvas on unmount
   useEffect(() => {
@@ -73,19 +80,22 @@ let PerspectiveCameraScene = ({
   const updateSizeAndPosition = () => {
     if (!el || !el.current) return
 
-    const { top, left, width, height } = el.current.getBoundingClientRect()
+    let { top, left, width, height } = el.current.getBoundingClientRect()
+
+    width = width * 0.001
+    height = height * 0.001
+
     state.bounds.top = top + window.pageYOffset
     state.bounds.left = left
-    state.bounds.width = width
-    state.bounds.height = height
+    state.bounds.width = width * 1000
+    state.bounds.height = height * 1000
     state.prevBounds.top = top
 
     setScale({ width, height })
 
     if (camera.current) {
       camera.current.aspect = (width + margin * 2) / (height + margin * 2)
-      camera.current.fov =
-        2 * (180 / Math.PI) * Math.atan((height + margin * 2) / (2 * config.cameraDistancePerspective))
+      camera.current.fov = 2 * (180 / Math.PI) * Math.atan((height + margin * 2) / (2 * cameraDistance))
       camera.current.updateProjectionMatrix()
     }
 
@@ -120,19 +130,19 @@ let PerspectiveCameraScene = ({
     prevBounds.top = lerpTop
 
     // hide/show scene
-    if (isOffscreen && scene.current.visible) {
-      scene.current.visible = false
-    } else if (!isOffscreen && !scene.current.visible) {
-      scene.current.visible = visible
+    if (isOffscreen && scene.visible) {
+      scene.visible = false
+    } else if (!isOffscreen && !scene.visible) {
+      scene.visible = visible
     }
 
     // Render scene to viewport using local camera and limit updates using scissor test
     // Performance improvement - faster than always rendering full canvas
-    if (scene.current.visible) {
+    if (scene.visible) {
       const positiveYUpBottom = size.height - (lerpTop + bounds.height) // inverse Y
 
       renderViewport(
-        scene.current,
+        scene,
         camera.current,
         bounds.left - margin,
         positiveYUpBottom - margin,
@@ -143,31 +153,34 @@ let PerspectiveCameraScene = ({
 
       // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
       const pxInside = bounds.top - lerpTop - bounds.top + size.height
-      bounds.progress = MathUtils.mapLinear(pxInside, 0, size.height + bounds.height, 0, 1)
+      bounds.progress = MathUtils.mapLinear(pxInside, 0, size.height + bounds.height, 0, 1) // percent of total visible distance
+      bounds.visibility = MathUtils.mapLinear(pxInside, 0, bounds.height, 0, 1) // percent of item height in view
+      bounds.viewport = MathUtils.mapLinear(pxInside, 0, size.height, 0, 1) // percent of window height scrolled since visible
     }
 
     // render another frame if delta is large enough
     if (!isOffscreen && delta > config.scrollRestDelta) {
-      requestFrame() // FIXME should only requestFrame this render
+      requestFrame()
     }
   }, config.PRIORITY_VIEWPORTS)
 
   const renderDebugMesh = () => (
-    <mesh layers={LAYER}>
-      <planeBufferGeometry attach="geometry" args={[config.planeSize, config.planeSize, 1, 1]} />
+    <mesh>
+      <planeBufferGeometry attach="geometry" args={[scale.width, scale.height, 1, 1]} />
       <meshBasicMaterial color="pink" attach="material" transparent opacity={0.5} />
     </mesh>
   )
 
-  return (
-    <scene ref={scene} visible={visible}>
+  return createPortal(
+    <>
       {/* Use local camera for viewport rendering */}
       <perspectiveCamera
         ref={camera}
-        position={[0, 0, config.cameraDistancePerspective]}
+        position={[0, 0, cameraDistance]}
         onUpdate={(self) => self.updateProjectionMatrix()}
       />
-      <group scale={[scale.width, scale.height, 1]} renderOrder={renderOrder}>
+
+      <group renderOrder={renderOrder}>
         {(!children || debug) && renderDebugMesh()}
         {children &&
           children({
@@ -181,6 +194,7 @@ let PerspectiveCameraScene = ({
             // new props
             state,
             scene,
+            camera: camera.current,
             scale,
             layers: LAYER,
             inViewport,
@@ -188,7 +202,8 @@ let PerspectiveCameraScene = ({
             ...props,
           })}
       </group>
-    </scene>
+    </>,
+    scene,
   )
 }
 

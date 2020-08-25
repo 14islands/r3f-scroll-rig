@@ -1,10 +1,12 @@
-import React, { useEffect, useLayoutEffect, useRef } from 'react'
+import React, { useEffect, useLayoutEffect, useRef, useMemo } from 'react'
 import PropTypes from 'prop-types'
-import { Canvas } from 'react-three-fiber'
+import { Canvas, useThree } from 'react-three-fiber'
 import { ResizeObserver } from '@juggle/resize-observer'
 import queryString from 'query-string'
 
-import { config, useCanvasStore } from 'components/three/scroll-rig'
+import config from './config'
+import { useCanvasStore } from './store'
+import useScrollRig from './useScrollRig'
 import GlobalRenderer from './GlobalRenderer'
 import PerformanceMonitor from './PerformanceMonitor'
 import StatsDebug from './StatsDebug'
@@ -12,8 +14,13 @@ import ResizeManager from './ResizeManager'
 
 import CanvasErrorBoundary from './CanvasErrorBoundary'
 
-const GlobalCanvas = ({ children, gl, ...props }) => {
+const GlobalCanvas = ({ children, gl, resizeOnHeight, ...props }) => {
   const pixelRatio = useCanvasStore((state) => state.pixelRatio)
+  const { size } = useThree()
+
+  const cameraDistance = useMemo(() => {
+    return size ? Math.max(size.width, size.height) : Math.max(window.innerWidth, window.innerHeight)
+  }, [size])
 
   useEffect(() => {
     const qs = queryString.parse(window.location.search)
@@ -56,17 +63,17 @@ const GlobalCanvas = ({ children, gl, ...props }) => {
         premultipliedAlpha: true, // if false, shader antialias becomes a grey-isch outline
         ...gl,
       }}
-      colorManagement={true}
+      colorManagement={true} // ACESFilmic seems incorrect for non-HDR settings - images get weird colors?
       noEvents={true}
       resize={{ scroll: false, debounce: 0, polyfill: ResizeObserver }}
       // concurrent // zustand (state mngr) is not compatible with concurrent mode yet
       orthographic
-      gl2={false}
+      gl2={true}
       pixelRatio={pixelRatio}
       camera={{
         near: 0.1,
-        far: config.cameraDistance * 1.5,
-        position: [0, 0, config.cameraDistance],
+        far: cameraDistance * 2,
+        position: [0, 0, cameraDistance],
       }}
       style={{
         position: 'fixed',
@@ -80,16 +87,17 @@ const GlobalCanvas = ({ children, gl, ...props }) => {
       }}
       {...props}
     >
-      <GlobalRenderer>{children}</GlobalRenderer>
+      <GlobalRenderer useScrollRig={useScrollRig}>{children}</GlobalRenderer>
       {config.debug && <StatsDebug />}
       <PerformanceMonitor />
-      <ResizeManager />
+      <ResizeManager resizeOnHeight={resizeOnHeight} useScrollRig={useScrollRig} />
     </Canvas>
   )
 }
 
 GlobalCanvas.propTypes = {
   gl: PropTypes.object,
+  resizeOnHeight: PropTypes.bool,
 }
 
 const GlobalCanvasIfSupported = ({ onError, ...props }) => {
@@ -100,7 +108,7 @@ const GlobalCanvasIfSupported = ({ onError, ...props }) => {
     document.documentElement.classList.add('js-has-global-canvas')
   }, [])
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     config.portalEl = portalEl.current
   }, [portalEl])
 

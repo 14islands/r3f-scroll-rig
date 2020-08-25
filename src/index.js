@@ -1,4 +1,5 @@
 import GlobalCanvas from './GlobalCanvas'
+import useScrollRig from './useScrollRig'
 import PerspectiveCameraScene from './PerspectiveCameraScene'
 import ScrollScene from './ScrollScene'
 import ScrollDom from './ScrollDom'
@@ -8,7 +9,6 @@ import useCanvas from './useCanvas'
 import useDelayedCanvas from './useDelayedCanvas'
 import config from './config'
 import { useCanvasStore, canvasStoreApi } from './store'
-import useScrollRig from './useScrollRig'
 import useImgTagAsTexture, { useTextureLoader } from './useImgTagAsTexture'
 
 import * as utils from './utils'

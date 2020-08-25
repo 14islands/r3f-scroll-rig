@@ -3,8 +3,6 @@
 
 export default {
   debug: false,
-  cameraDistancePerspective: 2, // for hover effect on images
-  cameraDistance: 101, // to fit bubbles on lab
   planeSize: 1,
 
   scrollLerp: 0.1, // Linear interpolation - high performance easing
@@ -25,6 +23,8 @@ export default {
   viewportQueue: [],
   fbo: {},
   hasVirtualScrollbar: false,
+
+  portalEl: null,
 
   // z-index for <groups>
   ORDER_TRANSITION: 6,

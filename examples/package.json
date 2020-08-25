@@ -6,18 +6,22 @@
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
-    "r3f-scroll-rig": "ssh://git@github.com:14islands/r3f-scroll-rig.git#master",
+    "drei": "^0.0.66",
+    "framer-motion": "^1.11.1",
+    "glslify": "^7.0.0",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
+    "react-merge-refs": "^1.1.0",
     "react-scripts": "3.4.1",
-    "react-three-fiber": "^4.2.12",
+    "react-spring": "^8.0.27",
+    "react-three-fiber": "^4.2.17",
     "three": "^0.118.3"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "start": "rescripts start",
+    "build": "rescripts build",
+    "test": "rescripts test",
+    "eject": "rescripts eject"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -33,5 +37,10 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@rescripts/cli": "^0.0.14",
+    "glslify-loader": "^2.0.0",
+    "raw-loader": "^4.0.1"
   }
 }

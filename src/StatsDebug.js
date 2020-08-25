@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 import { useFrame } from 'react-three-fiber'
-import { requestIdleCallback } from 'lib/requestIdleCallback'
+import { requestIdleCallback } from './hooks/requestIdleCallback'
 
 const StatsDebug = () => {
   const stats = useRef({ calls: 0 }).current
