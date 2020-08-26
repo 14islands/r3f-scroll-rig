@@ -33,9 +33,9 @@ function App() {
         {(bind) => (
           <div className="App" {...bind}>
             <header className="App-header">
-              <div style={{ margin: '40vh auto 10vw' }}>
+              <div style={{ margin: '-10vh 0 0', width: '100%' }}>
                 <Text style={{}}>14islands Scroll Rig</Text>
-                <div style={{ fontSize: '20px', letterSpacing: 0 }}>
+                <div style={{ fontSize: '20px', letterSpacing: 0, color: 'darkturquoise' }}>
                   Example with antialiasing and global perspective camera
                 </div>
               </div>

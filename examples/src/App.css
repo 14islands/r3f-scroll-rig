@@ -20,9 +20,14 @@ main {
 
 
 .App-header {
-  min-height: 100vh;
+  min-height: 105vh;
   font-size: calc(10vw);
   color: deeppink;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 
   letter-spacing: -.05em;
 }

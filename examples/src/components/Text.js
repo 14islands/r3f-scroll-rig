@@ -7,7 +7,7 @@ const Text = ({ children, className, style }) => {
   const ref = useRef()
 
   const updateTextMesh = useCanvas(
-    <ScrollScene el={ref} debug={false}>
+    <ScrollScene el={ref} debug={false} margin={100}>
       { (props) => <WebGLText el={ref} {...props}>{children}</WebGLText> }
     </ScrollScene>,
   )
