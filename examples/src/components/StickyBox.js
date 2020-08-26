@@ -4,7 +4,7 @@ import { MathUtils } from 'three'
 import { useFrame, useThree } from 'react-three-fiber'
 import { useSpring, animated } from 'react-spring/three'
 
-import { renderAsSticky } from './StickyMesh'
+import StickyScrollScene from './StickyScrollScene'
 
 
 const BoxMesh = ({scale, state, lerp }) => {
@@ -54,9 +54,9 @@ const StickyBox = ({ src, aspectRatio }) => {
   const ref = useRef()
 
   useCanvas(
-    <ScrollScene el={ref} scissor={false} debug={false} inViewportMargin={100}>
-      {renderAsSticky(BoxMesh, { stickyLerp: 0.2})}
-    </ScrollScene>,
+    <StickyScrollScene el={ref} scissor={false} stickyLerp={0.2} debug={false} inViewportMargin={100}>
+      {props => <BoxMesh {...props} />}
+    </StickyScrollScene>
   )
 
   return (

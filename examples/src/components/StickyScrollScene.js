@@ -4,7 +4,6 @@ import { useFrame } from 'react-three-fiber'
 import { ScrollScene } from '@14islands/r3f-scroll-rig'
 
 // Sticky mesh that covers full viewport size
-
 export const StickyMesh = ({ children, state, lerp, stickyLerp = 1.0 }) => {
   const mesh = useRef()
   const local = useRef({ lerp: 1 }).current
@@ -58,3 +57,5 @@ export const StickyScrollScene = ({ children, stickyLerp, ...props }) => {
     </ScrollScene>
   )
 }
+
+export default StickyScrollScene

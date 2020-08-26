@@ -8,6 +8,7 @@ import { BasicShadowMap } from 'three'
 import PerspectiveCamera from './components/PerspectiveCamera'
 import Text from './components/text/Text'
 import Image from './components/image'
+import ParallaxImage from './components/image/ParallaxImage'
 import StickyImage from './components/image/StickyImage'
 import StickyBox from './components/StickyBox'
 import InlineBox from './components/InlineBox'
@@ -64,10 +65,15 @@ function App() {
                 </div>
               </div>
 
-              <Text>These are ScrollScenes with images inside</Text>
+              <Text>Moree ScrollScenes with Parallaxing images</Text>
               <div style={{ display: 'flex', justifyContent: 'space-between', margin: '10vw' }}>
-                <Image src={testImage} aspectRatio={2 / 1} style={{ width: '45%' }} />
-                <Image src={testImage} aspectRatio={2 / 1} style={{ width: '45%', marginTop: '20%' }} />
+                <ParallaxImage src={testImage} aspectRatio={2 / 1} style={{ width: '45%' }} parallax={-200} />
+                <ParallaxImage
+                  src={testImage}
+                  aspectRatio={2 / 1}
+                  style={{ width: '45%', marginTop: '20%' }}
+                  parallax={50}
+                />
               </div>
               <Text>A sticky scrollscene that covers 300vh with a fullscreen image</Text>
               <div style={{ height: '300vh', margin: '5vw' }} ref={el}>

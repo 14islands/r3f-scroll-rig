@@ -6,7 +6,7 @@ import vertexShader from './shader.vert'
 import fragmentShader from './shader.frag'
 
 import WebGLImage from './WebGLImage'
-import { renderAsSticky, StickyScrollScene } from '../StickyMesh'
+import StickyScrollScene from '../StickyScrollScene'
 
 const StickyImage = ({ src }) => {
   const ref = useRef()
