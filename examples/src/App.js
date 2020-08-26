@@ -108,7 +108,7 @@ function App() {
 
               <RotatingImage src={t4} aspectRatio={1920 / 1920} />
             </main>
-            <footer style={{ padding: '10vw 0 80vh' }}>
+            <footer style={{ padding: '10vw 0 60vh' }}>
               <Text>That's all for now...</Text>
             </footer>
           </div>
