@@ -2,7 +2,7 @@ import React, { useRef } from 'react'
 import logo from './logo.svg'
 import './App.css'
 
-import { GlobalCanvas, VirtualScrollbar } from 'r3f-scroll-rig'
+import { GlobalCanvas, VirtualScrollbar } from '@14islands/r3f-scroll-rig'
 import { BasicShadowMap } from 'three'
 
 import PerspectiveCamera from './components/PerspectiveCamera'

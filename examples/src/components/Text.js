@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useMemo } from 'react'
-import { useCanvas, ScrollScene } from 'r3f-scroll-rig'
+import { useCanvas, ScrollScene } from '@14islands/r3f-scroll-rig'
 import WebGLText from './WebGLText'
 
 

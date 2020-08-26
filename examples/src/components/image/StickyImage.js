@@ -1,5 +1,5 @@
 import React, { useRef } from 'react'
-import { useCanvas, ScrollScene, ScrollDomPortal } from 'r3f-scroll-rig'
+import { useCanvas, ScrollScene, ScrollDomPortal } from '@14islands/r3f-scroll-rig'
 
 
 import vertexShader from './shader.vert'

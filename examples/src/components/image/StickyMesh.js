@@ -1,7 +1,7 @@
 import React, { useRef } from 'react'
 import { MathUtils } from 'three'
 import { useFrame } from 'react-three-fiber'
-import { ScrollScene } from 'r3f-scroll-rig'
+import { ScrollScene } from '@14islands/r3f-scroll-rig'
 
 // Sticky mesh that covers full viewport size
 

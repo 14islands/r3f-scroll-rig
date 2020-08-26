@@ -1,5 +1,5 @@
 import React, { useRef } from 'react'
-import { useScrollRig, useCanvas, ScrollScene, ScrollDomPortal, PerspectiveCameraScene } from 'r3f-scroll-rig'
+import { useScrollRig, useCanvas, ScrollScene, ScrollDomPortal, PerspectiveCameraScene } from '@14islands/r3f-scroll-rig'
 import { MathUtils } from 'three'
 import { useFrame, useThree } from 'react-three-fiber'
 import { useSpring, animated } from 'react-spring/three'

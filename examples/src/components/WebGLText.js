@@ -1,6 +1,6 @@
 import React, { useRef, useMemo } from 'react'
 import { useFrame, useThree } from 'react-three-fiber'
-import { useScrollRig } from 'r3f-scroll-rig'
+import { useScrollRig } from '@14islands/r3f-scroll-rig'
 import { Color } from 'three'
 import { MeshWobbleMaterial } from 'drei'
 

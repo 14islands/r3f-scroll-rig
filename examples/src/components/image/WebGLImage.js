@@ -1,5 +1,5 @@
 import React, { useRef, useMemo, useEffect } from 'react'
-import { useScrollRig, useImgTagAsTexture } from 'r3f-scroll-rig'
+import { useScrollRig, useImgTagAsTexture } from '@14islands/r3f-scroll-rig'
 import { Color, Vector2 } from 'three'
 import { useFrame, useThree } from 'react-three-fiber'
 

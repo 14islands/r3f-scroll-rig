@@ -1,5 +1,5 @@
 import React, { useRef, Suspense, useEffect } from 'react'
-import { useScrollRig, useCanvas, ScrollScene, PerspectiveCameraScene, ScrollDomPortal } from 'r3f-scroll-rig'
+import { useScrollRig, useCanvas, ScrollScene, PerspectiveCameraScene, ScrollDomPortal } from '@14islands/r3f-scroll-rig'
 import { MathUtils, CameraHelper, FrontSide, BackSide, DoubleSide } from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { useFrame, useThree, useLoader, addTail } from 'react-three-fiber'
