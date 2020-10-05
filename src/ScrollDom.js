@@ -14,7 +14,7 @@ import useScrollRig from './useScrollRig'
 const LAYOUT_LERP = 0.1
 
 /**
- * Make DOM element fixed and move using useFrame so we can and match the lerp of a PerspectiveCameraScene
+ * Make DOM element fixed and move using useFrame so we can and match the lerp of a ScrollScene
  * The referenced DOM element will be cloned and made position:fixed. The original el is hidden.
  * @author david@14islands.com
  */

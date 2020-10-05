@@ -1,5 +1,5 @@
 import { useLayoutEffect, useMemo } from 'react'
-import { uuid } from 'uuidv4'
+import { MathUtils } from 'three'
 
 import requestIdleCallback from './hooks/requestIdleCallback'
 import { useCanvasStore } from './store'
@@ -14,7 +14,7 @@ const useCanvas = (object, deps = [], key) => {
   const removeFromCanvas = useCanvasStore((state) => state.removeFromCanvas)
 
   // auto generate uuid v4 key
-  const uniqueKey = useMemo(() => key || uuid(), [])
+  const uniqueKey = useMemo(() => key || MathUtils.generateUUID(), [])
 
   useLayoutEffect(() => {
     renderToCanvas(uniqueKey, object)

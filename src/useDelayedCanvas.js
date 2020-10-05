@@ -1,5 +1,5 @@
 import { useLayoutEffect, useMemo } from 'react'
-import { uuid } from 'uuidv4'
+import { MathUtils } from 'three'
 
 import useDelayedEffect from './hooks/useDelayedEffect'
 import requestIdleCallback from './hooks/requestIdleCallback'
@@ -15,7 +15,7 @@ export const useDelayedCanvas = (object, ms, deps = [], key) => {
   const removeFromCanvas = useCanvasStore((state) => state.removeFromCanvas)
 
   // auto generate uuid v4 key
-  const uniqueKey = useMemo(() => key || uuid(), [])
+  const uniqueKey = useMemo(() => key || MathUtils.generateUUID(), [])
 
   // remove on unmount
   useLayoutEffect(() => {
