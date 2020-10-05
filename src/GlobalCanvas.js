@@ -68,7 +68,6 @@ const GlobalCanvas = ({ children, gl, resizeOnHeight, ...props }) => {
       resize={{ scroll: false, debounce: 0, polyfill: ResizeObserver }}
       // concurrent // zustand (state mngr) is not compatible with concurrent mode yet
       orthographic
-      gl2={true}
       pixelRatio={pixelRatio}
       camera={{
         near: 0.1,
