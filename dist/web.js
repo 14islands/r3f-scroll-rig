@@ -5,12 +5,11 @@ import { useThree, useFrame, Canvas, createPortal } from 'react-three-fiber';
 import { ResizeObserver } from '@juggle/resize-observer';
 import queryString from 'query-string';
 import create from 'zustand';
-import { sRGBEncoding, NoToneMapping, WebGLRenderTarget, Scene, Math as Math$1, ImageBitmapLoader, TextureLoader, CanvasTexture, LinearFilter, RGBFormat, RGBAFormat } from 'three';
+import { sRGBEncoding, NoToneMapping, WebGLRenderTarget, Scene, Math as Math$1, MathUtils, ImageBitmapLoader, TextureLoader, CanvasTexture, LinearFilter, RGBFormat, RGBAFormat } from 'three';
 import PropTypes from 'prop-types';
 import { useViewportScroll } from 'framer-motion';
 import ReactDOM from 'react-dom';
 import { useWindowHeight } from '@react-hook/window-size';
-import { uuid } from 'uuidv4';
 
 // Transient shared state for canvas components
 // usContext() causes re-rendering which can drop frames
@@ -600,7 +599,6 @@ const GlobalCanvas = (_ref) => {
     } // concurrent // zustand (state mngr) is not compatible with concurrent mode yet
     ,
     orthographic: true,
-    gl2: true,
     pixelRatio: pixelRatio,
     camera: {
       near: 0.1,
@@ -1162,7 +1160,7 @@ var ScrollScene$1 = ScrollScene;
 
 const LAYOUT_LERP = 0.1;
 /**
- * Make DOM element fixed and move using useFrame so we can and match the lerp of a PerspectiveCameraScene
+ * Make DOM element fixed and move using useFrame so we can and match the lerp of a ScrollScene
  * The referenced DOM element will be cloned and made position:fixed. The original el is hidden.
  * @author david@14islands.com
  */
@@ -1923,7 +1921,7 @@ const useCanvas = (object, deps = [], key) => {
   const renderToCanvas = useCanvasStore(state => state.renderToCanvas);
   const removeFromCanvas = useCanvasStore(state => state.removeFromCanvas); // auto generate uuid v4 key
 
-  const uniqueKey = useMemo(() => key || uuid(), []);
+  const uniqueKey = useMemo(() => key || MathUtils.generateUUID(), []);
   useLayoutEffect(() => {
     renderToCanvas(uniqueKey, object);
     return () => removeFromCanvas(uniqueKey);
@@ -1956,7 +1954,7 @@ const useDelayedCanvas = (object, ms, deps = [], key) => {
   const renderToCanvas = useCanvasStore(state => state.renderToCanvas);
   const removeFromCanvas = useCanvasStore(state => state.removeFromCanvas); // auto generate uuid v4 key
 
-  const uniqueKey = useMemo(() => key || uuid(), []); // remove on unmount
+  const uniqueKey = useMemo(() => key || MathUtils.generateUUID(), []); // remove on unmount
 
   useLayoutEffect(() => {
     return () => removeFromCanvas(uniqueKey);
@@ -2008,7 +2006,6 @@ function isPowerOfTwo(dimensions = {
 const useTextureLoader = (url, dimensions, {
   disableMipmaps = false
 } = {}) => {
-  const hasPreviousError = useRef(false);
   const [texture, setTexture] = useState();
   const [imageBitmap, setImageBitmap] = useState();
   const {

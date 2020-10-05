@@ -18,7 +18,6 @@ var PropTypes = _interopDefault(require('prop-types'));
 var framerMotion = require('framer-motion');
 var ReactDOM = _interopDefault(require('react-dom'));
 var windowSize = require('@react-hook/window-size');
-var uuidv4 = require('uuidv4');
 
 // Transient shared state for canvas components
 // usContext() causes re-rendering which can drop frames
@@ -718,7 +717,6 @@ var GlobalCanvas = function GlobalCanvas(_ref) {
     } // concurrent // zustand (state mngr) is not compatible with concurrent mode yet
     ,
     orthographic: true,
-    gl2: true,
     pixelRatio: pixelRatio,
     camera: {
       near: 0.1,
@@ -1322,7 +1320,7 @@ var ScrollScene$1 = ScrollScene;
 
 var LAYOUT_LERP = 0.1;
 /**
- * Make DOM element fixed and move using useFrame so we can and match the lerp of a PerspectiveCameraScene
+ * Make DOM element fixed and move using useFrame so we can and match the lerp of a ScrollScene
  * The referenced DOM element will be cloned and made position:fixed. The original el is hidden.
  * @author david@14islands.com
  */
@@ -2112,7 +2110,7 @@ var useCanvas = function useCanvas(object, deps, key) {
   }); // auto generate uuid v4 key
 
   var uniqueKey = React.useMemo(function () {
-    return key || uuidv4.uuid();
+    return key || three.MathUtils.generateUUID();
   }, []);
   React.useLayoutEffect(function () {
     renderToCanvas(uniqueKey, object);
@@ -2167,7 +2165,7 @@ var useDelayedCanvas = function useDelayedCanvas(object, ms, deps, key) {
   }); // auto generate uuid v4 key
 
   var uniqueKey = React.useMemo(function () {
-    return key || uuidv4.uuid();
+    return key || three.MathUtils.generateUUID();
   }, []); // remove on unmount
 
   React.useLayoutEffect(function () {
@@ -2239,8 +2237,6 @@ var useTextureLoader = function useTextureLoader(url, dimensions, _temp) {
   var _ref = _temp === void 0 ? {} : _temp,
       _ref$disableMipmaps = _ref.disableMipmaps,
       disableMipmaps = _ref$disableMipmaps === void 0 ? false : _ref$disableMipmaps;
-
-  var hasPreviousError = React.useRef(false);
 
   var _useState = React.useState(),
       texture = _useState[0],
