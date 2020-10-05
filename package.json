@@ -32,6 +32,7 @@
   "homepage": "https://github.com/14islands/r3f-scroll-rig#readme",
   "dependencies": {
     "@react-hook/window-size": "^3.0.6",
+    "query-string": "^6.13.5",
     "uuidv4": "^6.1.1",
     "zustand": "^2.2.3"
   },
