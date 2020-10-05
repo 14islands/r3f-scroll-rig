@@ -4,10 +4,10 @@
   "private": true,
   "dependencies": {
     "@14islands/r3f-scroll-rig": "^1.0.0",
+    "@react-three/drei": "^2.1.0",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
-    "drei": "^0.0.66",
     "framer-motion": "^1.11.1",
     "glslify": "^7.0.0",
     "react": "^16.13.1",
@@ -15,8 +15,8 @@
     "react-merge-refs": "^1.1.0",
     "react-scripts": "3.4.1",
     "react-spring": "^8.0.27",
-    "react-three-fiber": "^4.2.17",
-    "three": "^0.118.3"
+    "react-three-fiber": "^5.0.3",
+    "three": "^0.121.1"
   },
   "scripts": {
     "start": "rescripts start",

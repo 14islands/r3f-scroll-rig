@@ -12,7 +12,7 @@ import ParallaxImage from './components/image/ParallaxImage'
 import StickyImage from './components/image/StickyImage'
 import StickyBox from './components/StickyBox'
 import InlineBox from './components/InlineBox'
-import InlineModel from './components/InlineModel'
+import ModelViewport from './components/ModelViewport'
 
 import testImage from './assets/test.jpg'
 import testPower2Image from './assets/test-power2.jpg'
@@ -86,7 +86,7 @@ function App() {
               <div style={{ padding: '0 40vw 0 15vw' }}>
                 <RotatingImage src={t3} aspectRatio={1920 / 1464}>
                   <div className="RotatingImageModel" style={{ right: '-30vw' }}>
-                    <InlineModel url={sailboatModel} size={0.15} position={[-0.02, -0.1, 0]} />
+                    <ModelViewport url={sailboatModel} size={0.15} position={[-0.02, -0.1, 0]} />
                   </div>
                 </RotatingImage>
               </div>
@@ -94,7 +94,7 @@ function App() {
               <div style={{ padding: '20vh 15vw 0 40vw' }}>
                 <RotatingImage src={t2} aspectRatio={1920 / 1920}>
                   <div className="RotatingImageModel" style={{ left: '-30vw' }}>
-                    <InlineModel url={giraffeModel} size={0.15} position={[0, -0.2, 0]} />
+                    <ModelViewport url={giraffeModel} size={0.15} position={[0, -0.2, 0]} />
                   </div>
                 </RotatingImage>
               </div>
@@ -102,7 +102,7 @@ function App() {
               <div style={{ padding: '15vw 0 5vw' }}>
                 <Text>This one is massive and might lag</Text>
                 <div className="" style={{ height: '80vh' }}>
-                  <InlineModel url={hutModel} size={0.05} position={[0.15, -0.2, 0]} />
+                  <ModelViewport url={hutModel} size={0.05} position={[0.15, -0.2, 0]} />
                 </div>
               </div>
 
@@ -121,7 +121,7 @@ function App() {
         )}
       </VirtualScrollbar>
       <GlobalCanvas
-        shadowMap
+        // shadowMap
         // shadowMap={{
         //   enabled: true,
         //   autoUpdate: true,

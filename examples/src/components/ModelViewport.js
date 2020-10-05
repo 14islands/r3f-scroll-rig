@@ -3,7 +3,7 @@ import { useScrollRig, useCanvas, ScrollScene, PerspectiveCameraScene, ScrollDom
 import { MathUtils, CameraHelper, FrontSide, BackSide, DoubleSide } from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { useFrame, useThree, useLoader, addTail } from 'react-three-fiber'
-import { useGLTFLoader, Shadow, useHelper, softShadows } from 'drei'
+import { useGLTF, Shadow, useHelper, softShadows } from '@react-three/drei'
 import { StandardEffects } from './StandardEffects'
 
 import WebGLImage from './image/WebGLImage'
@@ -11,7 +11,7 @@ import WebGLImage from './image/WebGLImage'
 // softShadows()
 
 // function GltfModel({ url, size }) {
-//   const gltf = useGLTFLoader(url)
+//   const gltf = useGLTF(url)
 //   // const gltf = useLoader(GLTFLoader, url)
 //   return <primitive object={gltf.scene} position={[0, 0, 0]} scale={[size, size, size]} />
 // }
@@ -21,7 +21,7 @@ const ModelMesh = ({ url, scale, camera, scene, state, parallax = 0, size = 1, p
   const light = useRef()
   const { requestFrame, preloadScene } = useScrollRig()
 
-  const gltf = useGLTFLoader(url)
+  const gltf = useGLTF(url)
 
   // useEffect(() => {
   //   if (light.current) {
@@ -126,7 +126,7 @@ const ModelMesh = ({ url, scale, camera, scene, state, parallax = 0, size = 1, p
   )
 }
 
-const InlineModel = ({ src, aspectRatio, url, parallax, size, position }) => {
+const ModelViewport = ({ src, aspectRatio, url, parallax, size, position }) => {
   const ref = useRef()
 
   useCanvas(
@@ -140,4 +140,4 @@ const InlineModel = ({ src, aspectRatio, url, parallax, size, position }) => {
   return <div style={{ width: '100%', height: '100%', background: 'green' }} ref={ref}></div>
 }
 
-export default InlineModel
+export default ModelViewport

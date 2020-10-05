@@ -5,6 +5,7 @@ import mergeRefs from 'react-merge-refs'
 
 export const PerspectiveCamera = forwardRef(({ makeDefault = false, ...props }, ref) => {
   const { setDefaultCamera, camera, size } = useThree()
+
   const cameraRef = useUpdate(
     (cam) => {
       cam.aspect = size.width / size.height

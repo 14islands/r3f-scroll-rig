@@ -2,9 +2,9 @@ import React, { useRef, useMemo } from 'react'
 import { useFrame, useThree } from 'react-three-fiber'
 import { useScrollRig } from '@14islands/r3f-scroll-rig'
 import { Color } from 'three'
-import { MeshWobbleMaterial } from 'drei'
+import { MeshWobbleMaterial } from '@react-three/drei'
 
-import { Text } from 'drei'
+import { Text } from '@react-three/drei'
 
 
 const WebGLText = ({ el, children, state, ...props }) => {
@@ -29,7 +29,7 @@ const WebGLText = ({ el, children, state, ...props }) => {
   useFrame(() => {
     if (mesh.current && state.bounds.inViewport) {
       requestFrame()
-      mesh.current.material.factor.value = Math.max(0, state.bounds.progress - 0.5) * 2
+      mesh.current.material.factor = Math.max(0, state.bounds.progress - 0.5) * 2
     }
   })
 
