@@ -13,7 +13,6 @@ var resizeObserver = require('@juggle/resize-observer');
 var queryString = _interopDefault(require('query-string'));
 var create = _interopDefault(require('zustand'));
 var three = require('three');
-var _inheritsLoose = _interopDefault(require('@babel/runtime/helpers/inheritsLoose'));
 var PropTypes = _interopDefault(require('prop-types'));
 var framerMotion = require('framer-motion');
 var ReactDOM = _interopDefault(require('react-dom'));
@@ -610,45 +609,6 @@ var ResizeManager = function ResizeManager(_ref) {
   }, []);
   return null;
 };
-
-var CanvasErrorBoundary = /*#__PURE__*/function (_React$Component) {
-  _inheritsLoose(CanvasErrorBoundary, _React$Component);
-
-  function CanvasErrorBoundary(props) {
-    var _this;
-
-    _this = _React$Component.call(this, props) || this;
-    _this.state = {
-      error: false
-    };
-    _this.props = props;
-    return _this;
-  }
-
-  CanvasErrorBoundary.getDerivedStateFromError = function getDerivedStateFromError(error) {
-    // Update state so the next render will show the fallback UI.
-    return {
-      error: error
-    };
-  } // componentDidCatch(error, errorInfo) {
-  //   // You can also log the error to an error reporting service
-  //   // logErrorToMyService(error, errorInfo)
-  // }
-  ;
-
-  var _proto = CanvasErrorBoundary.prototype;
-
-  _proto.render = function render() {
-    if (this.state.error) {
-      this.props.onError && this.props.onError(this.state.error);
-      return null;
-    }
-
-    return this.props.children;
-  };
-
-  return CanvasErrorBoundary;
-}(React__default.Component);
 
 var GlobalCanvas = function GlobalCanvas(_ref) {
   var children = _ref.children,
