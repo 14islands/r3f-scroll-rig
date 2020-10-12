@@ -11,7 +11,6 @@
 /* global Blob ImageData */
 
 if (!('createImageBitmap' in window) || /Firefox/.test(navigator.userAgent)) {
-  console.log('POLYFILL')
   window.createImageBitmap = async function (data) {
     return new Promise((resolve, reject) => {
       let dataURL

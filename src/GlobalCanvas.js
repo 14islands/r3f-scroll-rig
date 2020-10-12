@@ -14,7 +14,7 @@ import ResizeManager from './ResizeManager'
 
 import CanvasErrorBoundary from './CanvasErrorBoundary'
 
-const GlobalCanvas = ({ children, gl, resizeOnHeight, ...props }) => {
+export const GlobalCanvas = ({ children, gl, resizeOnHeight, ...props }) => {
   const pixelRatio = useCanvasStore((state) => state.pixelRatio)
   const { size } = useThree()
 

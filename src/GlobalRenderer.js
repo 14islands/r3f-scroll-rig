@@ -23,6 +23,7 @@ export const renderScissor = (gl, scene, camera, left, top, width, height, layer
     camera.layers.set(layer)
     gl.clearDepth()
     gl.render(scene, camera)
+    gl.render(scene, camera)
     gl.setScissorTest(false)
   })
 }
@@ -104,8 +105,7 @@ const GlobalRenderer = ({ useScrollRig, children }) => {
 
     // Render preload frames first and clear directly
     config.preloadQueue.forEach((render) => render())
-
-    gl.clear()
+    if (config.preloadQueue.length) gl.clear()
 
     // Render viewport scissors first
     // config.viewportQueue.forEach((render) => render())

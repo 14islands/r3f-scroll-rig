@@ -8,7 +8,7 @@ import { useCanvasStore } from './store'
  * Adds THREE.js object to the GlobalCanvas while the component is mounted
  * @param {object} object THREE.js object3d
  */
-const useCanvas = (object, deps = [], key) => {
+export const useCanvas = (object, deps = [], key) => {
   const updateCanvas = useCanvasStore((state) => state.updateCanvas)
   const renderToCanvas = useCanvasStore((state) => state.renderToCanvas)
   const removeFromCanvas = useCanvasStore((state) => state.removeFromCanvas)

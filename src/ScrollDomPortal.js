@@ -207,4 +207,5 @@ ScrollDomPortal.propTypes = {
   style: PropTypes.object,
 }
 
+export { ScrollDomPortal }
 export default memo(ScrollDomPortal)

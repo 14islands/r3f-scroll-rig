@@ -241,4 +241,5 @@ PerspectiveCameraScene.childPropTypes = {
   inViewport: PropTypes.bool, // {x,y} to scale
 }
 
+export { PerspectiveCameraScene }
 export default PerspectiveCameraScene
