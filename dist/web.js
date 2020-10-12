@@ -1083,7 +1083,6 @@ let ScrollScene = (_ref) => {
     opacity: 0.5
   }));
 
-  console.log('ScrollScene', scale.width, scale.height);
   return /*#__PURE__*/React.createElement("scene", {
     ref: scene,
     visible: state.bounds.inViewport && visible

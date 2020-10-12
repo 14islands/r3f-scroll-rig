@@ -5263,9 +5263,9 @@ url@^0.11.0:
     querystring "0.2.0"
 
 use-asset@^0.1.1:
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/use-asset/-/use-asset-0.1.1.tgz#cc6835c36ee1b9cc79708d4c8fa954a62d55bc1c"
-  integrity sha512-HSBywtDxITn7xxc3AK3phkhtaD05w1X/9sjnIfrQcDPRCVpgJ2Z+Bg1ixK5PB3c81nuAuTXRgMGzRvGoztdDlg==
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/use-asset/-/use-asset-0.1.2.tgz#ec32e6f212d772e1e4873991d7a6ec326a7a44eb"
+  integrity sha512-hXnxOm5nDtxN5KPL5PUhEXbNsL9z8xIkYXo4WSBzV2dfS9ahaL6K+P/oMOUUiJ0FfyD1+N5EL8LhwVPUE6xHWA==
   dependencies:
     fast-deep-equal "^3.1.3"
 

@@ -1243,7 +1243,6 @@ exports.ScrollScene = function ScrollScene(_ref) {
     }));
   };
 
-  console.log('ScrollScene', scale.width, scale.height);
   return /*#__PURE__*/React__default.createElement("scene", {
     ref: scene,
     visible: state.bounds.inViewport && visible
