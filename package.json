@@ -33,7 +33,8 @@
   "dependencies": {
     "@react-hook/window-size": "^3.0.6",
     "query-string": "^6.13.5",
-    "zustand": "^2.2.3"
+    "zustand": "^2.2.3",
+    "react-three-fiber": "^5.0.3"
   },
   "devDependencies": {
     "@babel/core": "^7.10.3",
@@ -60,19 +61,17 @@
     "prettier": "^2.0.5",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
-    "react-three-fiber": "^4.2.12",
     "rollup": "^2.18.1",
     "rollup-plugin-babel": "^4.4.0",
     "rollup-plugin-json": "^4.0.0",
     "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-size-snapshot": "^0.12.0",
-    "three": "^0.118.3"
+    "three": "^0.121.1"
   },
   "peerDependencies": {
     "framer-motion": "^1.11.1",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
-    "react-three-fiber": "^4.2.17",
-    "three": "^0.118.3"
+    "three": "^0.121.1"
   }
 }

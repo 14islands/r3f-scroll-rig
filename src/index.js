@@ -1,41 +1,41 @@
-import GlobalCanvas from './GlobalCanvas'
-import useScrollRig from './useScrollRig'
-import PerspectiveCameraScene from './PerspectiveCameraScene'
-import ScrollScene from './ScrollScene'
-import ScrollDom from './ScrollDom'
-import ScrollDomPortal from './ScrollDomPortal'
-import VirtualScrollbar from './VirtualScrollbar'
-import useCanvas from './useCanvas'
-import useDelayedCanvas from './useDelayedCanvas'
-import config from './config'
-import { useCanvasStore, canvasStoreApi } from './store'
-import useImgTagAsTexture, { useTextureLoader } from './useImgTagAsTexture'
-
 import * as utils from './utils'
 
-export {
-  //
-  // Public & battle-tested
-  // ----------------------------------
-  GlobalCanvas,
-  ScrollScene,
-  VirtualScrollbar,
-  useCanvas,
-  useScrollRig,
-  useImgTagAsTexture,
-  useTextureLoader,
-  ScrollDomPortal,
-  //
-  // Public & somewhat experimental
-  // ----------------------------------
-  PerspectiveCameraScene,
-  useDelayedCanvas,
-  ScrollDom,
-  //
-  // Private-ish
-  // ----------------------------------
-  config,
-  useCanvasStore,
-  canvasStoreApi,
-  utils,
-}
+export { GlobalCanvas } from './GlobalCanvas'
+export { useScrollRig } from './useScrollRig'
+export { PerspectiveCameraScene } from './PerspectiveCameraScene'
+export { ScrollScene } from './ScrollScene'
+export { ScrollDom } from './ScrollDom'
+export { ScrollDomPortal } from './ScrollDomPortal'
+export { useCanvas } from './useCanvas'
+export { useDelayedCanvas } from './useDelayedCanvas'
+export { config } from './config'
+export { useCanvasStore, canvasStoreApi } from './store'
+export { useImgTagAsTexture, useTextureLoader } from './useImgTagAsTexture'
+export { utils }
+export { VirtualScrollbar } from './VirtualScrollbar'
+// export {
+//   //
+//   // Public & battle-tested
+//   // ----------------------------------
+//   GlobalCanvas,
+//   ScrollScene,
+//   VirtualScrollbar,
+//   useCanvas,
+//   useScrollRig,
+//   useImgTagAsTexture,
+//   useTextureLoader,
+//   ScrollDomPortal,
+//   //
+//   // Public & somewhat experimental
+//   // ----------------------------------
+//   PerspectiveCameraScene,
+//   useDelayedCanvas,
+//   ScrollDom,
+//   //
+//   // Private-ish
+//   // ----------------------------------
+//   config,
+//   useCanvasStore,
+//   canvasStoreApi,
+//   utils,
+// }

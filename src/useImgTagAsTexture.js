@@ -65,7 +65,6 @@ export const useTextureLoader = (url, dimensions, { disableMipmaps = false } = {
     }
     loader.setCrossOrigin('anonymous')
 
-    console.log('load url', url)
     loader.load(
       url,
       (texture) => {
@@ -107,7 +106,7 @@ export const useTextureLoader = (url, dimensions, { disableMipmaps = false } = {
   return [texture, disposeBitmap]
 }
 
-const useImgTagAsTexture = (imgEl, dimensions, opts) => {
+export const useImgTagAsTexture = (imgEl, dimensions, opts) => {
   const [url, setUrl] = useState(null)
   const [texture, disposeBitmap] = useTextureLoader(url, dimensions, opts)
 

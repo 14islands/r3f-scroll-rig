@@ -186,6 +186,7 @@ let ScrollScene = ({
 
       const positiveYUpBottom = size.height * 0.5 - (lerpY + bounds.height * 0.5) // inverse Y
       if (scissor) {
+        // console.log('render scissor', camera.fov, bounds.left, positiveYUpBottom, bounds.width, bounds.height, margin)
         renderScissor(
           scene.current,
           camera,
@@ -291,4 +292,5 @@ ScrollScene.childPropTypes = {
   inViewport: PropTypes.bool, // {x,y} to scale
 }
 
+export { ScrollScene }
 export default ScrollScene

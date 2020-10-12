@@ -227,4 +227,5 @@ ScrollDom.propTypes = {
   style: PropTypes.object,
 }
 
+export { ScrollDom }
 export default memo(ScrollDom)

@@ -1,6 +1,6 @@
 import _extends from '@babel/runtime/helpers/esm/extends';
 import _objectWithoutPropertiesLoose from '@babel/runtime/helpers/esm/objectWithoutPropertiesLoose';
-import React, { useRef, useLayoutEffect, Suspense, Fragment, useMemo, useCallback, useEffect, useState, memo, forwardRef } from 'react';
+import React, { useRef, useLayoutEffect, Suspense, Fragment, useMemo, useCallback, useEffect, useState, forwardRef } from 'react';
 import { useThree, useFrame, Canvas, createPortal } from 'react-three-fiber';
 import { ResizeObserver } from '@juggle/resize-observer';
 import queryString from 'query-string';
@@ -11,9 +11,31 @@ import { useViewportScroll } from 'framer-motion';
 import ReactDOM from 'react-dom';
 import { useWindowHeight } from '@react-hook/window-size';
 
+// Use to override Frustum temporarily to pre-upload textures to GPU
+function setAllCulled(obj, overrideCulled) {
+  if (!obj) return;
+
+  if (overrideCulled === false) {
+    obj.wasFrustumCulled = obj.frustumCulled;
+    obj.wasVisible = obj.visible;
+    obj.visible = true;
+    obj.frustumCulled = false;
+  } else {
+    obj.visible = obj.wasVisible;
+    obj.frustumCulled = obj.wasFrustumCulled;
+  }
+
+  obj.children.forEach(child => setAllCulled(child, overrideCulled));
+}
+
+var utils = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  setAllCulled: setAllCulled
+});
+
 // Transient shared state for canvas components
 // usContext() causes re-rendering which can drop frames
-var config = {
+const config = {
   debug: false,
   planeSize: 1,
   scrollLerp: 0.1,
@@ -155,13 +177,11 @@ const [useCanvasStore, canvasStoreApi] = create(set => ({
     set(state => {
       // if VirtualScrollbar is active, it triggers `triggerReflowCompleted` instead
       if (!config.hasVirtualScrollbar) {
-        console.log('has hasVirtualScrollbar');
         requestIdleCallback(state.triggerReflowCompleted, {
           timeout: 100
         });
       }
 
-      console.log('return pageReflow', state.pageReflow, '->', state.pageReflow + 1);
       return {
         pageReflow: state.pageReflow + 1
       };
@@ -173,28 +193,6 @@ const [useCanvasStore, canvasStoreApi] = create(set => ({
     }));
   }
 }));
-
-// Use to override Frustum temporarily to pre-upload textures to GPU
-function setAllCulled(obj, overrideCulled) {
-  if (!obj) return;
-
-  if (overrideCulled === false) {
-    obj.wasFrustumCulled = obj.frustumCulled;
-    obj.wasVisible = obj.visible;
-    obj.visible = true;
-    obj.frustumCulled = false;
-  } else {
-    obj.visible = obj.wasVisible;
-    obj.frustumCulled = obj.wasFrustumCulled;
-  }
-
-  obj.children.forEach(child => setAllCulled(child, overrideCulled));
-}
-
-var utils = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  setAllCulled: setAllCulled
-});
 
 const renderFullscreen = (layers = [0]) => {
   config.globalRender = config.globalRender || [0];
@@ -209,6 +207,7 @@ const renderScissor = (gl, scene, camera, left, top, width, height, layer = 0) =
     gl.setScissorTest(true);
     camera.layers.set(layer);
     gl.clearDepth();
+    gl.render(scene, camera);
     gl.render(scene, camera);
     gl.setScissorTest(false);
   });
@@ -298,7 +297,7 @@ const GlobalRenderer = ({
     config.hasRenderQueue = false; // Render preload frames first and clear directly
 
     config.preloadQueue.forEach(render => render());
-    gl.clear(); // Render viewport scissors first
+    if (config.preloadQueue.length) gl.clear(); // Render viewport scissors first
     // config.viewportQueue.forEach((render) => render())
 
     if (config.globalRender) {
@@ -625,33 +624,6 @@ const GlobalCanvas = (_ref) => {
   }));
 };
 
-const GlobalCanvasIfSupported = (_ref2) => {
-  let {
-    onError: _onError
-  } = _ref2,
-      props = _objectWithoutPropertiesLoose(_ref2, ["onError"]);
-
-  const portalEl = useRef();
-  const setCanvasAvailable = useCanvasStore(state => state.setCanvasAvailable);
-  useLayoutEffect(() => {
-    document.documentElement.classList.add('js-has-global-canvas');
-  }, []);
-  useLayoutEffect(() => {
-    config.portalEl = portalEl.current;
-  }, [portalEl]);
-  return /*#__PURE__*/React.createElement(CanvasErrorBoundary, {
-    onError: err => {
-      _onError && _onError(err);
-      setCanvasAvailable(false);
-      /* WebGL failed to init */
-
-      document.documentElement.classList.remove('js-has-global-canvas');
-    }
-  }, /*#__PURE__*/React.createElement(GlobalCanvas, props), /*#__PURE__*/React.createElement("div", {
-    ref: portalEl
-  }));
-};
-
 const LAYER = 2;
 /**
  * Generic THREE.js Scene that tracks the dimensions and position of a DOM element while scrolling
@@ -872,7 +844,6 @@ PerspectiveCameraScene.childPropTypes = _extends({}, PerspectiveCameraScene.prop
   inViewport: PropTypes.bool // {x,y} to scale
 
 });
-var PerspectiveCameraScene$1 = PerspectiveCameraScene;
 
 /**
  * Generic THREE.js Scene that tracks the dimensions and position of a DOM element while scrolling
@@ -1075,6 +1046,7 @@ let ScrollScene = (_ref) => {
       const positiveYUpBottom = size.height * 0.5 - (lerpY + bounds.height * 0.5); // inverse Y
 
       if (scissor) {
+        // console.log('render scissor', camera.fov, bounds.left, positiveYUpBottom, bounds.width, bounds.height, margin)
         renderScissor(scene.current, camera, bounds.left - margin, positiveYUpBottom - margin, bounds.width + margin * 2, bounds.height + margin * 2);
       } else {
         renderFullscreen();
@@ -1111,6 +1083,7 @@ let ScrollScene = (_ref) => {
     opacity: 0.5
   }));
 
+  console.log('ScrollScene', scale.width, scale.height);
   return /*#__PURE__*/React.createElement("scene", {
     ref: scene,
     visible: state.bounds.inViewport && visible
@@ -1156,7 +1129,6 @@ ScrollScene.childPropTypes = _extends({}, ScrollScene.propTypes, {
   inViewport: PropTypes.bool // {x,y} to scale
 
 });
-var ScrollScene$1 = ScrollScene;
 
 const LAYOUT_LERP = 0.1;
 /**
@@ -1388,7 +1360,6 @@ ScrollDom.propTypes = {
   layoutLerp: PropTypes.number,
   style: PropTypes.object
 };
-var ScrollDom$1 = /*#__PURE__*/memo(ScrollDom);
 
 const LAYOUT_LERP$1 = 0.1;
 /**
@@ -1600,7 +1571,184 @@ ScrollDomPortal.propTypes = {
   layoutLerp: PropTypes.number,
   style: PropTypes.object
 };
-var ScrollDomPortal$1 = /*#__PURE__*/memo(ScrollDomPortal);
+
+/**
+ * Adds THREE.js object to the GlobalCanvas while the component is mounted
+ * @param {object} object THREE.js object3d
+ */
+
+const useCanvas = (object, deps = [], key) => {
+  const updateCanvas = useCanvasStore(state => state.updateCanvas);
+  const renderToCanvas = useCanvasStore(state => state.renderToCanvas);
+  const removeFromCanvas = useCanvasStore(state => state.removeFromCanvas); // auto generate uuid v4 key
+
+  const uniqueKey = useMemo(() => key || MathUtils.generateUUID(), []);
+  useLayoutEffect(() => {
+    renderToCanvas(uniqueKey, object);
+    return () => removeFromCanvas(uniqueKey);
+  }, deps); // return function that can set new props on the canvas component
+
+  const set = props => {
+    requestIdleCallback(() => updateCanvas(uniqueKey, props), {
+      timeout: 100
+    });
+  };
+
+  return set;
+};
+
+const useDelayedEffect = (fn, deps, ms = 0) => {
+  let timer;
+  useEffect(() => {
+    timer = setTimeout(fn, ms);
+    return () => clearTimeout(timer);
+  }, deps);
+};
+
+/**
+ * Adds THREE.js object to the GlobalCanvas while the component is mounted after initial delay (ms)
+ * @param {object} object THREE.js object3d
+ */
+
+const useDelayedCanvas = (object, ms, deps = [], key) => {
+  const updateCanvas = useCanvasStore(state => state.updateCanvas);
+  const renderToCanvas = useCanvasStore(state => state.renderToCanvas);
+  const removeFromCanvas = useCanvasStore(state => state.removeFromCanvas); // auto generate uuid v4 key
+
+  const uniqueKey = useMemo(() => key || MathUtils.generateUUID(), []); // remove on unmount
+
+  useLayoutEffect(() => {
+    return () => removeFromCanvas(uniqueKey);
+  }, []);
+  useDelayedEffect(() => {
+    renderToCanvas(uniqueKey, object);
+  }, deps, ms); // return function that can set new props on the canvas component
+
+  const set = props => {
+    requestIdleCallback(() => updateCanvas(uniqueKey, props), {
+      timeout: 100
+    });
+  };
+
+  return set;
+};
+
+/**
+ *  Reasons for why this exists:
+ *
+ *  - Make sure we don't load image twice - <img> tag already loads image, we need to make sure we get a cache hit
+ *
+ *  - Get responsive image size using currentSrc/src from the <img/> if available
+ *
+ *  - Consistent image loading across major browsers
+ *    - Safari doesnt support createImageBitmap
+ *    - Firefox createImageBitmap doesn't accept 2nd parameter for flipping
+ *    - Firefox createImageBitmap seems to flip powerOf2 images by default - Chrome doesn't
+ *
+ */
+
+const useImageBitmap = typeof createImageBitmap !== 'undefined' && /Firefox/.test(navigator.userAgent) === false; // Override fetch to prefer cached images by default
+
+if (typeof window !== 'undefined') {
+  const realFetch = window.fetch;
+
+  window.fetch = (url, options = {
+    cache: 'force-cache'
+  }, ...args) => realFetch(url, options, ...args);
+}
+
+function isPowerOfTwo(dimensions = {
+  width: -1,
+  height: -1
+}) {
+  return Math$1.isPowerOfTwo(dimensions.width) && Math$1.isPowerOfTwo(dimensions.height);
+}
+
+const useTextureLoader = (url, dimensions, {
+  disableMipmaps = false
+} = {}) => {
+  const [texture, setTexture] = useState();
+  const [imageBitmap, setImageBitmap] = useState();
+  const {
+    gl
+  } = useThree();
+  const disposeBitmap = useCallback(() => {
+    if (imageBitmap && imageBitmap.close) {
+      imageBitmap.close();
+      setImageBitmap(null);
+    }
+  }, [imageBitmap]);
+
+  const loadTexture = url => {
+    let loader;
+
+    if (useImageBitmap) {
+      loader = new ImageBitmapLoader(); // Flip if texture is powerOf2
+
+      if (!isPowerOfTwo(dimensions)) {
+        loader.setOptions({
+          imageOrientation: 'flipY',
+          premultiplyAlpha: 'none'
+        });
+      }
+    } else {
+      loader = new TextureLoader();
+    }
+
+    loader.setCrossOrigin('anonymous');
+    loader.load(url, texture => {
+      if (useImageBitmap) {
+        setImageBitmap(imageBitmap);
+        texture = new CanvasTexture(texture);
+      } // max quality
+
+
+      texture.anisotropy = gl.capabilities.getMaxAnisotropy();
+      texture.encoding = sRGBEncoding;
+
+      if (disableMipmaps) {
+        texture.minFilter = LinearFilter;
+        texture.generateMipmaps = false;
+      } // JPEGs can't have an alpha channel, so memory can be saved by storing them as RGB.
+      // eslint-disable-next-line no-useless-escape
+
+
+      var isJPEG = url.search(/\.jpe?g($|\?)/i) > 0 || url.search(/^data\:image\/jpeg/) === 0;
+      texture.format = isJPEG ? RGBFormat : RGBAFormat;
+      setTexture(texture);
+    }, null, err => {
+      console.error('err', err);
+    });
+  };
+
+  useEffect(() => {
+    if (url) {
+      loadTexture(url);
+    }
+  }, [url]);
+  return [texture, disposeBitmap];
+};
+const useImgTagAsTexture = (imgEl, dimensions, opts) => {
+  const [url, setUrl] = useState(null);
+  const [texture, disposeBitmap] = useTextureLoader(url, dimensions, opts);
+
+  const loadTexture = () => {
+    imgEl.removeEventListener('load', loadTexture);
+    setUrl(imgEl.currentSrc || imgEl.src);
+  };
+
+  useEffect(() => {
+    // Wait for DOM <img> to finish loading so we get a cache hit from our upcoming fetch API request
+    if (imgEl) {
+      imgEl.addEventListener('load', loadTexture); // check if image was loaded from browser cache
+
+      if (imgEl.complete) {
+        loadTexture();
+      }
+    }
+  }, [imgEl]);
+  return [texture, disposeBitmap];
+};
 
 const DEFAULT_LERP = 0.1;
 
@@ -1911,184 +2059,4 @@ const VirtualScrollbar = (_ref) => {
   }, rest)));
 };
 
-/**
- * Adds THREE.js object to the GlobalCanvas while the component is mounted
- * @param {object} object THREE.js object3d
- */
-
-const useCanvas = (object, deps = [], key) => {
-  const updateCanvas = useCanvasStore(state => state.updateCanvas);
-  const renderToCanvas = useCanvasStore(state => state.renderToCanvas);
-  const removeFromCanvas = useCanvasStore(state => state.removeFromCanvas); // auto generate uuid v4 key
-
-  const uniqueKey = useMemo(() => key || MathUtils.generateUUID(), []);
-  useLayoutEffect(() => {
-    renderToCanvas(uniqueKey, object);
-    return () => removeFromCanvas(uniqueKey);
-  }, deps); // return function that can set new props on the canvas component
-
-  const set = props => {
-    requestIdleCallback(() => updateCanvas(uniqueKey, props), {
-      timeout: 100
-    });
-  };
-
-  return set;
-};
-
-const useDelayedEffect = (fn, deps, ms = 0) => {
-  let timer;
-  useEffect(() => {
-    timer = setTimeout(fn, ms);
-    return () => clearTimeout(timer);
-  }, deps);
-};
-
-/**
- * Adds THREE.js object to the GlobalCanvas while the component is mounted after initial delay (ms)
- * @param {object} object THREE.js object3d
- */
-
-const useDelayedCanvas = (object, ms, deps = [], key) => {
-  const updateCanvas = useCanvasStore(state => state.updateCanvas);
-  const renderToCanvas = useCanvasStore(state => state.renderToCanvas);
-  const removeFromCanvas = useCanvasStore(state => state.removeFromCanvas); // auto generate uuid v4 key
-
-  const uniqueKey = useMemo(() => key || MathUtils.generateUUID(), []); // remove on unmount
-
-  useLayoutEffect(() => {
-    return () => removeFromCanvas(uniqueKey);
-  }, []);
-  useDelayedEffect(() => {
-    renderToCanvas(uniqueKey, object);
-  }, deps, ms); // return function that can set new props on the canvas component
-
-  const set = props => {
-    requestIdleCallback(() => updateCanvas(uniqueKey, props), {
-      timeout: 100
-    });
-  };
-
-  return set;
-};
-
-/**
- *  Reasons for why this exists:
- *
- *  - Make sure we don't load image twice - <img> tag already loads image, we need to make sure we get a cache hit
- *
- *  - Get responsive image size using currentSrc/src from the <img/> if available
- *
- *  - Consistent image loading across major browsers
- *    - Safari doesnt support createImageBitmap
- *    - Firefox createImageBitmap doesn't accept 2nd parameter for flipping
- *    - Firefox createImageBitmap seems to flip powerOf2 images by default - Chrome doesn't
- *
- */
-
-const useImageBitmap = typeof createImageBitmap !== 'undefined' && /Firefox/.test(navigator.userAgent) === false; // Override fetch to prefer cached images by default
-
-if (typeof window !== 'undefined') {
-  const realFetch = window.fetch;
-
-  window.fetch = (url, options = {
-    cache: 'force-cache'
-  }, ...args) => realFetch(url, options, ...args);
-}
-
-function isPowerOfTwo(dimensions = {
-  width: -1,
-  height: -1
-}) {
-  return Math$1.isPowerOfTwo(dimensions.width) && Math$1.isPowerOfTwo(dimensions.height);
-}
-
-const useTextureLoader = (url, dimensions, {
-  disableMipmaps = false
-} = {}) => {
-  const [texture, setTexture] = useState();
-  const [imageBitmap, setImageBitmap] = useState();
-  const {
-    gl
-  } = useThree();
-  const disposeBitmap = useCallback(() => {
-    if (imageBitmap && imageBitmap.close) {
-      imageBitmap.close();
-      setImageBitmap(null);
-    }
-  }, [imageBitmap]);
-
-  const loadTexture = url => {
-    let loader;
-
-    if (useImageBitmap) {
-      loader = new ImageBitmapLoader(); // Flip if texture is powerOf2
-
-      if (!isPowerOfTwo(dimensions)) {
-        loader.setOptions({
-          imageOrientation: 'flipY',
-          premultiplyAlpha: 'none'
-        });
-      }
-    } else {
-      loader = new TextureLoader();
-    }
-
-    loader.setCrossOrigin('anonymous');
-    console.log('load url', url);
-    loader.load(url, texture => {
-      if (useImageBitmap) {
-        setImageBitmap(imageBitmap);
-        texture = new CanvasTexture(texture);
-      } // max quality
-
-
-      texture.anisotropy = gl.capabilities.getMaxAnisotropy();
-      texture.encoding = sRGBEncoding;
-
-      if (disableMipmaps) {
-        texture.minFilter = LinearFilter;
-        texture.generateMipmaps = false;
-      } // JPEGs can't have an alpha channel, so memory can be saved by storing them as RGB.
-      // eslint-disable-next-line no-useless-escape
-
-
-      var isJPEG = url.search(/\.jpe?g($|\?)/i) > 0 || url.search(/^data\:image\/jpeg/) === 0;
-      texture.format = isJPEG ? RGBFormat : RGBAFormat;
-      setTexture(texture);
-    }, null, err => {
-      console.error('err', err);
-    });
-  };
-
-  useEffect(() => {
-    if (url) {
-      loadTexture(url);
-    }
-  }, [url]);
-  return [texture, disposeBitmap];
-};
-
-const useImgTagAsTexture = (imgEl, dimensions, opts) => {
-  const [url, setUrl] = useState(null);
-  const [texture, disposeBitmap] = useTextureLoader(url, dimensions, opts);
-
-  const loadTexture = () => {
-    imgEl.removeEventListener('load', loadTexture);
-    setUrl(imgEl.currentSrc || imgEl.src);
-  };
-
-  useEffect(() => {
-    // Wait for DOM <img> to finish loading so we get a cache hit from our upcoming fetch API request
-    if (imgEl) {
-      imgEl.addEventListener('load', loadTexture); // check if image was loaded from browser cache
-
-      if (imgEl.complete) {
-        loadTexture();
-      }
-    }
-  }, [imgEl]);
-  return [texture, disposeBitmap];
-};
-
-export { GlobalCanvasIfSupported as GlobalCanvas, PerspectiveCameraScene$1 as PerspectiveCameraScene, ScrollDom$1 as ScrollDom, ScrollDomPortal$1 as ScrollDomPortal, ScrollScene$1 as ScrollScene, VirtualScrollbar, canvasStoreApi, config, useCanvas, useCanvasStore, useDelayedCanvas, useImgTagAsTexture, useScrollRig, useTextureLoader, utils };
+export { GlobalCanvas, PerspectiveCameraScene, ScrollDom, ScrollDomPortal, ScrollScene, VirtualScrollbar, canvasStoreApi, config, useCanvas, useCanvasStore, useDelayedCanvas, useImgTagAsTexture, useScrollRig, useTextureLoader, utils };

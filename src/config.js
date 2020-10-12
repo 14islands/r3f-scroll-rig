@@ -1,7 +1,7 @@
 // Transient shared state for canvas components
 // usContext() causes re-rendering which can drop frames
 
-export default {
+export const config = {
   debug: false,
   planeSize: 1,
 
@@ -33,3 +33,5 @@ export default {
   ORDER_LAB_CONTENT: 3,
   ORDER_LAB_BG_BUBBLES: 2,
 }
+
+export default config
