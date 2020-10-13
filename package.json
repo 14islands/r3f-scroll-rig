@@ -16,7 +16,7 @@
     "staged:lint": "eslint --ignore-path .gitignore --fix",
     "prebuild": "rimraf dist",
     "build": "rollup -c",
-    "publish-patch": "npm version patch; npm publish; git push"
+    "publish-patch": "npm version patch; git push; npm publish"
   },
   "repository": {
     "type": "git",
