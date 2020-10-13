@@ -236,7 +236,7 @@ FakeScroller.propTypes = {
  * Wrapper for virtual scrollbar
  * @param {*} param0
  */
-export const VirtualScrollbar = ({ disabled, children, ...rest }) => {
+const VirtualScrollbar = ({ disabled, children, ...rest }) => {
   const ref = useRef()
   const [active, setActive] = useState(false)
 
@@ -292,4 +292,4 @@ VirtualScrollbar.propTypes = {
   disabled: PropTypes.bool,
 }
 
-export default VirtualScrollbar
+export { VirtualScrollbar }

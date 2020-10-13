@@ -69,4 +69,4 @@ function createConfig(entry, out) {
   ]
 }
 
-export default [...createConfig('index', 'web')]
+export default [...createConfig('index', 'web'), ...createConfig('VirtualScrollbar', 'scrollbar')]

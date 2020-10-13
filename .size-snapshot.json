@@ -17,5 +17,43 @@
     "bundled": 73267,
     "minified": 31385,
     "gzipped": 8652
+  },
+  "vscroll.js": {
+    "bundled": 12612,
+    "minified": 5447,
+    "gzipped": 2205,
+    "treeshaked": {
+      "rollup": {
+        "code": 1496,
+        "import_statements": 158
+      },
+      "webpack": {
+        "code": 3013
+      }
+    }
+  },
+  "vscroll.cjs.js": {
+    "bundled": 15673,
+    "minified": 6575,
+    "gzipped": 2419
+  },
+  "scrollbar.js": {
+    "bundled": 12612,
+    "minified": 5447,
+    "gzipped": 2205,
+    "treeshaked": {
+      "rollup": {
+        "code": 1496,
+        "import_statements": 158
+      },
+      "webpack": {
+        "code": 3013
+      }
+    }
+  },
+  "scrollbar.cjs.js": {
+    "bundled": 15673,
+    "minified": 6575,
+    "gzipped": 2419
   }
 }
