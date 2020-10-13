@@ -1,0 +1,5 @@
+{
+  "internal": true,
+  "main": "../dist/scrollbar.cjs.js",
+  "module": "../dist/scrollbar.js"
+}
