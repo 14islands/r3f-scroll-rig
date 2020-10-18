@@ -1728,7 +1728,8 @@ const FakeScroller = ({
   el,
   lerp = DEFAULT_LERP,
   restDelta = 1,
-  scrollY = null
+  scrollY = null,
+  onUpdate
 }) => {
   const pageReflow = useCanvasStore(state => state.pageReflow);
   const triggerReflowCompleted = useCanvasStore(state => state.triggerReflowCompleted);
@@ -1761,9 +1762,12 @@ const FakeScroller = ({
     } = state;
     scroll.current = _lerp(scroll.current, scroll.target, scroll.lerp);
     const delta = scroll.current - scroll.target;
-    scroll.velocity = Math.abs(delta);
+    scroll.velocity = Math.abs(delta); // TODO fps independent velocity
+
     scroll.direction = Math.sign(delta);
-    transformSections(); // stop animation if delta is low
+    transformSections(); // update callback
+
+    onUpdate && onUpdate(scroll); // stop animation if delta is low
 
     if (scroll.velocity < restDelta) {
       window.cancelAnimationFrame(state.frame);

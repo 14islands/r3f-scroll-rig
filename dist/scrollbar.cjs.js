@@ -213,7 +213,8 @@ var FakeScroller = function FakeScroller(_ref) {
       _ref$restDelta = _ref.restDelta,
       restDelta = _ref$restDelta === void 0 ? 1 : _ref$restDelta,
       _ref$scrollY = _ref.scrollY,
-      scrollY = _ref$scrollY === void 0 ? null : _ref$scrollY;
+      scrollY = _ref$scrollY === void 0 ? null : _ref$scrollY,
+      onUpdate = _ref.onUpdate;
   var pageReflow = useCanvasStore(function (state) {
     return state.pageReflow;
   });
@@ -251,9 +252,12 @@ var FakeScroller = function FakeScroller(_ref) {
     var scroll = state.scroll;
     scroll.current = _lerp(scroll.current, scroll.target, scroll.lerp);
     var delta = scroll.current - scroll.target;
-    scroll.velocity = Math.abs(delta);
+    scroll.velocity = Math.abs(delta); // TODO fps independent velocity
+
     scroll.direction = Math.sign(delta);
-    transformSections(); // stop animation if delta is low
+    transformSections(); // update callback
+
+    onUpdate && onUpdate(scroll); // stop animation if delta is low
 
     if (scroll.velocity < restDelta) {
       window.cancelAnimationFrame(state.frame);
