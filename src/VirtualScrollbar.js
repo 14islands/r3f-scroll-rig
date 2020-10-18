@@ -10,7 +10,7 @@ function _lerp(v0, v1, t) {
   return v0 * (1 - t) + v1 * t
 }
 
-const FakeScroller = ({ el, lerp = DEFAULT_LERP, restDelta = 1, scrollY = null }) => {
+const FakeScroller = ({ el, lerp = DEFAULT_LERP, restDelta = 1, scrollY = null, onUpdate }) => {
   const pageReflow = useCanvasStore((state) => state.pageReflow)
   const triggerReflowCompleted = useCanvasStore((state) => state.triggerReflowCompleted)
   const heightEl = useRef()
@@ -48,6 +48,9 @@ const FakeScroller = ({ el, lerp = DEFAULT_LERP, restDelta = 1, scrollY = null }
     scroll.direction = Math.sign(delta)
 
     transformSections()
+
+    // update callback
+    onUpdate && onUpdate()
 
     // stop animation if delta is low
     if (scroll.velocity < restDelta) {
@@ -226,6 +229,7 @@ FakeScroller.propTypes = {
   el: PropTypes.object,
   lerp: PropTypes.number,
   restDelta: PropTypes.number,
+  onUpdate: PropTypes.func,
   scrollY: PropTypes.shape({
     get: PropTypes.func,
     onChange: PropTypes.func,
@@ -290,6 +294,7 @@ const VirtualScrollbar = ({ disabled, children, ...rest }) => {
 
 VirtualScrollbar.propTypes = {
   disabled: PropTypes.bool,
+  onUpdate: PropTypes.func,
 }
 
 export { VirtualScrollbar }
