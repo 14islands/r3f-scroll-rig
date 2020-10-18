@@ -44,13 +44,13 @@ const FakeScroller = ({ el, lerp = DEFAULT_LERP, restDelta = 1, scrollY = null, 
 
     scroll.current = _lerp(scroll.current, scroll.target, scroll.lerp)
     const delta = scroll.current - scroll.target
-    scroll.velocity = Math.abs(delta)
+    scroll.velocity = Math.abs(delta) // TODO fps independent velocity
     scroll.direction = Math.sign(delta)
 
     transformSections()
 
     // update callback
-    onUpdate && onUpdate()
+    onUpdate && onUpdate(scroll)
 
     // stop animation if delta is low
     if (scroll.velocity < restDelta) {
