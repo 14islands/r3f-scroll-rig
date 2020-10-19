@@ -13,10 +13,10 @@ var resizeObserver = require('@juggle/resize-observer');
 var queryString = _interopDefault(require('query-string'));
 var create = _interopDefault(require('zustand'));
 var three = require('three');
+var windowSize = require('@react-hook/window-size');
 var PropTypes = _interopDefault(require('prop-types'));
 var framerMotion = require('framer-motion');
 var ReactDOM = _interopDefault(require('react-dom'));
-var windowSize = require('@react-hook/window-size');
 
 // Use to override Frustum temporarily to pre-upload textures to GPU
 function setAllCulled(obj, overrideCulled) {
@@ -65,6 +65,7 @@ var config = {
   viewportQueue: [],
   fbo: {},
   hasVirtualScrollbar: false,
+  hasGlobalCanvas: false,
   portalEl: null,
   // z-index for <groups>
   ORDER_TRANSITION: 6,
@@ -571,23 +572,25 @@ var ResizeManager = function ResizeManager(_ref) {
       resizeOnWebFontLoaded = _ref$resizeOnWebFontL === void 0 ? true : _ref$resizeOnWebFontL;
   var mounted = React.useRef(false);
 
-  var _useThree = reactThreeFiber.useThree(),
-      size = _useThree.size;
+  var _useWindowSize = windowSize.useWindowSize(),
+      windowWidth = _useWindowSize[0],
+      windowHeight = _useWindowSize[1];
 
-  var _useScrollRig = useScrollRig(),
-      reflow = _useScrollRig.reflow; // The reason for not resizing on height on "mobile" is because the height changes when the URL bar disapears in the browser chrome
+  var reflow = useCanvasStore(function (state) {
+    return state.requestReflow;
+  }); // The reason for not resizing on height on "mobile" is because the height changes when the URL bar disapears in the browser chrome
   // Can we base this on something better - or is there another way to avoid?
 
-
-  var height = resizeOnHeight ? null : size.height; // Detect only resize events
+  var height = resizeOnHeight ? null : windowHeight; // Detect only resize events
 
   React.useEffect(function () {
     if (mounted.current) {
+      console.log('ResizeManager.reflow');
       reflow();
     } else {
       mounted.current = true;
     }
-  }, [size.width, height]); // reflow on webfont loaded to prevent misalignments
+  }, [windowWidth, height]); // reflow on webfont loaded to prevent misalignments
 
   React.useEffect(function () {
     if (!resizeOnWebFontLoaded) return;
@@ -627,6 +630,8 @@ var GlobalCanvas = function GlobalCanvas(_ref) {
     return size ? Math.max(size.width, size.height) : Math.max(window.innerWidth, window.innerHeight);
   }, [size]);
   React.useEffect(function () {
+    // flag that global canvas is active
+    config.hasGlobalCanvas = true;
     var qs = queryString.parse(window.location.search); // show FPS counter?
 
     if (typeof qs.fps !== 'undefined') {
@@ -650,6 +655,10 @@ var GlobalCanvas = function GlobalCanvas(_ref) {
     if (typeof qs.debug !== 'undefined') {
       config.debug = true;
     }
+
+    return function () {
+      config.hasGlobalCanvas = false;
+    };
   }, []);
   return /*#__PURE__*/React__default.createElement(reactThreeFiber.Canvas, _extends({
     className: "ScrollRigCanvas",
@@ -697,8 +706,7 @@ var GlobalCanvas = function GlobalCanvas(_ref) {
   }, props), /*#__PURE__*/React__default.createElement(GlobalRenderer, {
     useScrollRig: useScrollRig
   }, children), config.debug && /*#__PURE__*/React__default.createElement(StatsDebug, null), /*#__PURE__*/React__default.createElement(PerformanceMonitor, null), /*#__PURE__*/React__default.createElement(ResizeManager, {
-    resizeOnHeight: resizeOnHeight,
-    useScrollRig: useScrollRig
+    resizeOnHeight: resizeOnHeight
   }));
 };
 
@@ -1960,7 +1968,9 @@ var FakeScroller = function FakeScroller(_ref) {
       restDelta = _ref$restDelta === void 0 ? 1 : _ref$restDelta,
       _ref$scrollY = _ref.scrollY,
       scrollY = _ref$scrollY === void 0 ? null : _ref$scrollY,
-      onUpdate = _ref.onUpdate;
+      onUpdate = _ref.onUpdate,
+      _ref$threshold = _ref.threshold,
+      threshold = _ref$threshold === void 0 ? 100 : _ref$threshold;
   var pageReflow = useCanvasStore(function (state) {
     return state.pageReflow;
   });
@@ -1985,8 +1995,7 @@ var FakeScroller = function FakeScroller(_ref) {
     },
     bounds: {
       height: window.innerHeight,
-      scrollHeight: 0,
-      threshold: 100
+      scrollHeight: 0
     },
     isResizing: false,
     sectionEls: null,
@@ -2041,9 +2050,7 @@ var FakeScroller = function FakeScroller(_ref) {
   };
 
   var isVisible = function isVisible(bounds) {
-    var _state$bounds = state.bounds,
-        height = _state$bounds.height,
-        threshold = _state$bounds.threshold;
+    var height = state.bounds.height;
     var current = state.scroll.current;
     var top = bounds.top,
         bottom = bounds.bottom;
@@ -2208,14 +2215,16 @@ var FakeScroller = function FakeScroller(_ref) {
  */
 var VirtualScrollbar = function VirtualScrollbar(_ref4) {
   var disabled = _ref4.disabled,
+      resizeOnHeight = _ref4.resizeOnHeight,
       children = _ref4.children,
-      rest = _objectWithoutPropertiesLoose(_ref4, ["disabled", "children"]);
+      rest = _objectWithoutPropertiesLoose(_ref4, ["disabled", "resizeOnHeight", "children"]);
 
   var ref = React.useRef();
 
   var _useState2 = React.useState(false),
       active = _useState2[0],
       setActive = _useState2[1]; // FakeScroller wont trigger resize without this here.. whyyyy?
+  // David from the future: due to code splitting maybe? two instances of the store?
   // eslint-disable-next-line no-unused-vars
 
 
@@ -2245,7 +2254,8 @@ var VirtualScrollbar = function VirtualScrollbar(_ref4) {
       config.hasVirtualScrollbar = !disabled;
     }, 0);
     return function () {
-      return clearTimeout(timer);
+      clearTimeout(timer);
+      config.hasVirtualScrollbar = false;
     };
   }, [disabled]);
   var activeStyle = {
@@ -2262,7 +2272,9 @@ var VirtualScrollbar = function VirtualScrollbar(_ref4) {
     style: style
   }), active && /*#__PURE__*/React__default.createElement(FakeScroller, _extends({
     el: ref
-  }, rest)));
+  }, rest)), !config.hasGlobalCanvas && /*#__PURE__*/React__default.createElement(ResizeManager, {
+    resizeOnHeight: resizeOnHeight
+  }));
 };
 
 exports.GlobalCanvas = GlobalCanvas;

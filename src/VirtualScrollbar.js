@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 
 import config from './config'
 import useCanvasStore from './store'
+import ResizeManager from './ResizeManager'
 
 const DEFAULT_LERP = 0.1
 
@@ -10,7 +11,7 @@ function _lerp(v0, v1, t) {
   return v0 * (1 - t) + v1 * t
 }
 
-const FakeScroller = ({ el, lerp = DEFAULT_LERP, restDelta = 1, scrollY = null, onUpdate }) => {
+const FakeScroller = ({ el, lerp = DEFAULT_LERP, restDelta = 1, scrollY = null, onUpdate, threshold = 100 }) => {
   const pageReflow = useCanvasStore((state) => state.pageReflow)
   const triggerReflowCompleted = useCanvasStore((state) => state.triggerReflowCompleted)
   const heightEl = useRef()
@@ -30,7 +31,6 @@ const FakeScroller = ({ el, lerp = DEFAULT_LERP, restDelta = 1, scrollY = null, 
     bounds: {
       height: window.innerHeight,
       scrollHeight: 0,
-      threshold: 100,
     },
     isResizing: false,
     sectionEls: null,
@@ -82,7 +82,7 @@ const FakeScroller = ({ el, lerp = DEFAULT_LERP, restDelta = 1, scrollY = null, 
   }
 
   const isVisible = (bounds) => {
-    const { height, threshold } = state.bounds
+    const { height } = state.bounds
     const { current } = state.scroll
     const { top, bottom } = bounds
 
@@ -227,6 +227,7 @@ const FakeScroller = ({ el, lerp = DEFAULT_LERP, restDelta = 1, scrollY = null, 
 
 FakeScroller.propTypes = {
   el: PropTypes.object,
+  threshold: PropTypes.number, // when to stop translating outside viewport
   lerp: PropTypes.number,
   restDelta: PropTypes.number,
   onUpdate: PropTypes.func,
@@ -240,11 +241,12 @@ FakeScroller.propTypes = {
  * Wrapper for virtual scrollbar
  * @param {*} param0
  */
-const VirtualScrollbar = ({ disabled, children, ...rest }) => {
+const VirtualScrollbar = ({ disabled, resizeOnHeight, children, ...rest }) => {
   const ref = useRef()
   const [active, setActive] = useState(false)
 
   // FakeScroller wont trigger resize without this here.. whyyyy?
+  // David from the future: due to code splitting maybe? two instances of the store?
   // eslint-disable-next-line no-unused-vars
   const pageReflow = useCanvasStore((state) => state.pageReflow)
 
@@ -270,7 +272,10 @@ const VirtualScrollbar = ({ disabled, children, ...rest }) => {
       // tell GlobalCanvas that VirtualScrollbar is active
       config.hasVirtualScrollbar = !disabled
     }, 0)
-    return () => clearTimeout(timer)
+    return () => {
+      clearTimeout(timer)
+      config.hasVirtualScrollbar = false
+    }
   }, [disabled])
 
   const activeStyle = {
@@ -288,12 +293,14 @@ const VirtualScrollbar = ({ disabled, children, ...rest }) => {
       {/* Always render children to prevent double mount */}
       {children({ ref, style })}
       {active && <FakeScroller el={ref} {...rest} />}
+      {!config.hasGlobalCanvas && <ResizeManager resizeOnHeight={resizeOnHeight} />}
     </>
   )
 }
 
 VirtualScrollbar.propTypes = {
   disabled: PropTypes.bool,
+  resizeOnHeight: PropTypes.bool,
   onUpdate: PropTypes.func,
 }
 

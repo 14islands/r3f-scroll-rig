@@ -23,6 +23,7 @@ export const config = {
   viewportQueue: [],
   fbo: {},
   hasVirtualScrollbar: false,
+  hasGlobalCanvas: false,
 
   portalEl: null,
 

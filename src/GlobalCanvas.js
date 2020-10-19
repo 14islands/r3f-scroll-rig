@@ -23,6 +23,9 @@ export const GlobalCanvas = ({ children, gl, resizeOnHeight, ...props }) => {
   }, [size])
 
   useEffect(() => {
+    // flag that global canvas is active
+    config.hasGlobalCanvas = true
+
     const qs = queryString.parse(window.location.search)
 
     // show FPS counter?
@@ -44,6 +47,10 @@ export const GlobalCanvas = ({ children, gl, resizeOnHeight, ...props }) => {
     // show debug statements
     if (typeof qs.debug !== 'undefined') {
       config.debug = true
+    }
+
+    return () => {
+      config.hasGlobalCanvas = false
     }
   }, [])
 
@@ -89,7 +96,7 @@ export const GlobalCanvas = ({ children, gl, resizeOnHeight, ...props }) => {
       <GlobalRenderer useScrollRig={useScrollRig}>{children}</GlobalRenderer>
       {config.debug && <StatsDebug />}
       <PerformanceMonitor />
-      <ResizeManager resizeOnHeight={resizeOnHeight} useScrollRig={useScrollRig} />
+      <ResizeManager resizeOnHeight={resizeOnHeight} />
     </Canvas>
   )
 }

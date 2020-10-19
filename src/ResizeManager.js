@@ -1,5 +1,8 @@
 import { useEffect, useRef } from 'react'
-import { useThree } from 'react-three-fiber'
+import { useWindowSize } from '@react-hook/window-size'
+
+import { useCanvasStore } from './store'
+
 /**
  * Manages Scroll rig resize events by trigger a reflow instead of individual resize listeners in each component
  * The order is carefully scripted:
@@ -9,21 +12,22 @@ import { useThree } from 'react-three-fiber'
  */
 const ResizeManager = ({ useScrollRig, resizeOnHeight = true, resizeOnWebFontLoaded = true }) => {
   const mounted = useRef(false)
-  const { size } = useThree()
-  const { reflow } = useScrollRig()
+  const [windowWidth, windowHeight] = useWindowSize()
+  const reflow = useCanvasStore((state) => state.requestReflow)
 
   // The reason for not resizing on height on "mobile" is because the height changes when the URL bar disapears in the browser chrome
   // Can we base this on something better - or is there another way to avoid?
-  const height = resizeOnHeight ? null : size.height
+  const height = resizeOnHeight ? null : windowHeight
 
   // Detect only resize events
   useEffect(() => {
     if (mounted.current) {
+      console.log('ResizeManager.reflow')
       reflow()
     } else {
       mounted.current = true
     }
-  }, [size.width, height])
+  }, [windowWidth, height])
 
   // reflow on webfont loaded to prevent misalignments
   useEffect(() => {

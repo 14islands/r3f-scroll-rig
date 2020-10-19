@@ -9,6 +9,7 @@ var _objectWithoutPropertiesLoose = _interopDefault(require('@babel/runtime/help
 var React = require('react');
 var React__default = _interopDefault(React);
 var create = _interopDefault(require('zustand'));
+var windowSize = require('@react-hook/window-size');
 
 // Transient shared state for canvas components
 // usContext() causes re-rendering which can drop frames
@@ -33,6 +34,7 @@ var config = {
   viewportQueue: [],
   fbo: {},
   hasVirtualScrollbar: false,
+  hasGlobalCanvas: false,
   portalEl: null,
   // z-index for <groups>
   ORDER_TRANSITION: 6,
@@ -200,6 +202,63 @@ var _create = create(function (set) {
     useCanvasStore = _create[0],
     canvasStoreApi = _create[1];
 
+/**
+ * Manages Scroll rig resize events by trigger a reflow instead of individual resize listeners in each component
+ * The order is carefully scripted:
+ *  1. reflow() will cause VirtualScrollbar to recalculate positions
+ *  2. VirtualScrollbar triggers `pageReflowCompleted`
+ *  3. Canvas scroll components listen to  `pageReflowCompleted` and recalc positions
+ */
+
+var ResizeManager = function ResizeManager(_ref) {
+  var useScrollRig = _ref.useScrollRig,
+      _ref$resizeOnHeight = _ref.resizeOnHeight,
+      resizeOnHeight = _ref$resizeOnHeight === void 0 ? true : _ref$resizeOnHeight,
+      _ref$resizeOnWebFontL = _ref.resizeOnWebFontLoaded,
+      resizeOnWebFontLoaded = _ref$resizeOnWebFontL === void 0 ? true : _ref$resizeOnWebFontL;
+  var mounted = React.useRef(false);
+
+  var _useWindowSize = windowSize.useWindowSize(),
+      windowWidth = _useWindowSize[0],
+      windowHeight = _useWindowSize[1];
+
+  var reflow = useCanvasStore(function (state) {
+    return state.requestReflow;
+  }); // The reason for not resizing on height on "mobile" is because the height changes when the URL bar disapears in the browser chrome
+  // Can we base this on something better - or is there another way to avoid?
+
+  var height = resizeOnHeight ? null : windowHeight; // Detect only resize events
+
+  React.useEffect(function () {
+    if (mounted.current) {
+      console.log('ResizeManager.reflow');
+      reflow();
+    } else {
+      mounted.current = true;
+    }
+  }, [windowWidth, height]); // reflow on webfont loaded to prevent misalignments
+
+  React.useEffect(function () {
+    if (!resizeOnWebFontLoaded) return;
+    var fallbackTimer;
+
+    if ('fonts' in document) {
+      document.fonts.onloadingdone = reflow;
+    } else {
+      fallbackTimer = setTimeout(reflow, 1000);
+    }
+
+    return function () {
+      if ('fonts' in document) {
+        document.fonts.onloadingdone = null;
+      } else {
+        clearTimeout(fallbackTimer);
+      }
+    };
+  }, []);
+  return null;
+};
+
 var DEFAULT_LERP = 0.1;
 
 function _lerp(v0, v1, t) {
@@ -214,7 +273,9 @@ var FakeScroller = function FakeScroller(_ref) {
       restDelta = _ref$restDelta === void 0 ? 1 : _ref$restDelta,
       _ref$scrollY = _ref.scrollY,
       scrollY = _ref$scrollY === void 0 ? null : _ref$scrollY,
-      onUpdate = _ref.onUpdate;
+      onUpdate = _ref.onUpdate,
+      _ref$threshold = _ref.threshold,
+      threshold = _ref$threshold === void 0 ? 100 : _ref$threshold;
   var pageReflow = useCanvasStore(function (state) {
     return state.pageReflow;
   });
@@ -239,8 +300,7 @@ var FakeScroller = function FakeScroller(_ref) {
     },
     bounds: {
       height: window.innerHeight,
-      scrollHeight: 0,
-      threshold: 100
+      scrollHeight: 0
     },
     isResizing: false,
     sectionEls: null,
@@ -295,9 +355,7 @@ var FakeScroller = function FakeScroller(_ref) {
   };
 
   var isVisible = function isVisible(bounds) {
-    var _state$bounds = state.bounds,
-        height = _state$bounds.height,
-        threshold = _state$bounds.threshold;
+    var height = state.bounds.height;
     var current = state.scroll.current;
     var top = bounds.top,
         bottom = bounds.bottom;
@@ -462,14 +520,16 @@ var FakeScroller = function FakeScroller(_ref) {
  */
 var VirtualScrollbar = function VirtualScrollbar(_ref4) {
   var disabled = _ref4.disabled,
+      resizeOnHeight = _ref4.resizeOnHeight,
       children = _ref4.children,
-      rest = _objectWithoutPropertiesLoose(_ref4, ["disabled", "children"]);
+      rest = _objectWithoutPropertiesLoose(_ref4, ["disabled", "resizeOnHeight", "children"]);
 
   var ref = React.useRef();
 
   var _useState2 = React.useState(false),
       active = _useState2[0],
       setActive = _useState2[1]; // FakeScroller wont trigger resize without this here.. whyyyy?
+  // David from the future: due to code splitting maybe? two instances of the store?
   // eslint-disable-next-line no-unused-vars
 
 
@@ -499,7 +559,8 @@ var VirtualScrollbar = function VirtualScrollbar(_ref4) {
       config.hasVirtualScrollbar = !disabled;
     }, 0);
     return function () {
-      return clearTimeout(timer);
+      clearTimeout(timer);
+      config.hasVirtualScrollbar = false;
     };
   }, [disabled]);
   var activeStyle = {
@@ -516,7 +577,9 @@ var VirtualScrollbar = function VirtualScrollbar(_ref4) {
     style: style
   }), active && /*#__PURE__*/React__default.createElement(FakeScroller, _extends({
     el: ref
-  }, rest)));
+  }, rest)),  /*#__PURE__*/React__default.createElement(ResizeManager, {
+    resizeOnHeight: resizeOnHeight
+  }));
 };
 
 exports.VirtualScrollbar = VirtualScrollbar;

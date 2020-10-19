@@ -6,10 +6,10 @@ import { ResizeObserver } from '@juggle/resize-observer';
 import queryString from 'query-string';
 import create from 'zustand';
 import { sRGBEncoding, NoToneMapping, WebGLRenderTarget, Scene, Math as Math$1, MathUtils, ImageBitmapLoader, TextureLoader, CanvasTexture, LinearFilter, RGBFormat, RGBAFormat } from 'three';
+import { useWindowSize, useWindowHeight } from '@react-hook/window-size';
 import PropTypes from 'prop-types';
 import { useViewportScroll } from 'framer-motion';
 import ReactDOM from 'react-dom';
-import { useWindowHeight } from '@react-hook/window-size';
 
 // Use to override Frustum temporarily to pre-upload textures to GPU
 function setAllCulled(obj, overrideCulled) {
@@ -56,6 +56,7 @@ const config = {
   viewportQueue: [],
   fbo: {},
   hasVirtualScrollbar: false,
+  hasGlobalCanvas: false,
   portalEl: null,
   // z-index for <groups>
   ORDER_TRANSITION: 6,
@@ -463,23 +464,20 @@ const ResizeManager = ({
   resizeOnWebFontLoaded = true
 }) => {
   const mounted = useRef(false);
-  const {
-    size
-  } = useThree();
-  const {
-    reflow
-  } = useScrollRig(); // The reason for not resizing on height on "mobile" is because the height changes when the URL bar disapears in the browser chrome
+  const [windowWidth, windowHeight] = useWindowSize();
+  const reflow = useCanvasStore(state => state.requestReflow); // The reason for not resizing on height on "mobile" is because the height changes when the URL bar disapears in the browser chrome
   // Can we base this on something better - or is there another way to avoid?
 
-  const height = resizeOnHeight ? null : size.height; // Detect only resize events
+  const height = resizeOnHeight ? null : windowHeight; // Detect only resize events
 
   useEffect(() => {
     if (mounted.current) {
+      console.log('ResizeManager.reflow');
       reflow();
     } else {
       mounted.current = true;
     }
-  }, [size.width, height]); // reflow on webfont loaded to prevent misalignments
+  }, [windowWidth, height]); // reflow on webfont loaded to prevent misalignments
 
   useEffect(() => {
     if (!resizeOnWebFontLoaded) return;
@@ -518,6 +516,8 @@ const GlobalCanvas = (_ref) => {
     return size ? Math.max(size.width, size.height) : Math.max(window.innerWidth, window.innerHeight);
   }, [size]);
   useEffect(() => {
+    // flag that global canvas is active
+    config.hasGlobalCanvas = true;
     const qs = queryString.parse(window.location.search); // show FPS counter?
 
     if (typeof qs.fps !== 'undefined') {
@@ -541,6 +541,10 @@ const GlobalCanvas = (_ref) => {
     if (typeof qs.debug !== 'undefined') {
       config.debug = true;
     }
+
+    return () => {
+      config.hasGlobalCanvas = false;
+    };
   }, []);
   return /*#__PURE__*/React.createElement(Canvas, _extends({
     className: "ScrollRigCanvas",
@@ -588,8 +592,7 @@ const GlobalCanvas = (_ref) => {
   }, props), /*#__PURE__*/React.createElement(GlobalRenderer, {
     useScrollRig: useScrollRig
   }, children), config.debug && /*#__PURE__*/React.createElement(StatsDebug, null), /*#__PURE__*/React.createElement(PerformanceMonitor, null), /*#__PURE__*/React.createElement(ResizeManager, {
-    resizeOnHeight: resizeOnHeight,
-    useScrollRig: useScrollRig
+    resizeOnHeight: resizeOnHeight
   }));
 };
 
@@ -1729,7 +1732,8 @@ const FakeScroller = ({
   lerp = DEFAULT_LERP,
   restDelta = 1,
   scrollY = null,
-  onUpdate
+  onUpdate,
+  threshold = 100
 }) => {
   const pageReflow = useCanvasStore(state => state.pageReflow);
   const triggerReflowCompleted = useCanvasStore(state => state.triggerReflowCompleted);
@@ -1747,8 +1751,7 @@ const FakeScroller = ({
     },
     bounds: {
       height: window.innerHeight,
-      scrollHeight: 0,
-      threshold: 100
+      scrollHeight: 0
     },
     isResizing: false,
     sectionEls: null,
@@ -1810,8 +1813,7 @@ const FakeScroller = ({
 
   const isVisible = bounds => {
     const {
-      height,
-      threshold
+      height
     } = state.bounds;
     const {
       current
@@ -1983,12 +1985,14 @@ const FakeScroller = ({
 const VirtualScrollbar = (_ref) => {
   let {
     disabled,
+    resizeOnHeight,
     children
   } = _ref,
-      rest = _objectWithoutPropertiesLoose(_ref, ["disabled", "children"]);
+      rest = _objectWithoutPropertiesLoose(_ref, ["disabled", "resizeOnHeight", "children"]);
 
   const ref = useRef();
   const [active, setActive] = useState(false); // FakeScroller wont trigger resize without this here.. whyyyy?
+  // David from the future: due to code splitting maybe? two instances of the store?
   // eslint-disable-next-line no-unused-vars
 
   const pageReflow = useCanvasStore(state => state.pageReflow);
@@ -2012,7 +2016,10 @@ const VirtualScrollbar = (_ref) => {
 
       config.hasVirtualScrollbar = !disabled;
     }, 0);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      config.hasVirtualScrollbar = false;
+    };
   }, [disabled]);
   const activeStyle = {
     position: 'fixed',
@@ -2028,7 +2035,9 @@ const VirtualScrollbar = (_ref) => {
     style
   }), active && /*#__PURE__*/React.createElement(FakeScroller, _extends({
     el: ref
-  }, rest)));
+  }, rest)), !config.hasGlobalCanvas && /*#__PURE__*/React.createElement(ResizeManager, {
+    resizeOnHeight: resizeOnHeight
+  }));
 };
 
 export { GlobalCanvas, PerspectiveCameraScene, ScrollDom, ScrollDomPortal, ScrollScene, VirtualScrollbar, canvasStoreApi, config, useCanvas, useCanvasStore, useDelayedCanvas, useImgTagAsTexture, useScrollRig, useTextureLoader, utils };
