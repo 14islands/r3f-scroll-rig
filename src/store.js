@@ -56,7 +56,7 @@ const [useCanvasStore, canvasStoreApi] = create((set) => ({
   setPixelRatio: (pixelRatio) => set((state) => ({ pixelRatio })),
 
   // Used to ask components to re-calculate their positions after a layout reflow
-  pageReflow: 0,
+  pageReflowRequested: 0,
   pageReflowCompleted: 0,
   requestReflow: () => {
     set((state) => {
@@ -64,7 +64,7 @@ const [useCanvasStore, canvasStoreApi] = create((set) => ({
       if (!config.hasVirtualScrollbar) {
         requestIdleCallback(state.triggerReflowCompleted, { timeout: 100 })
       }
-      return { pageReflow: state.pageReflow + 1 }
+      return { pageReflowRequested: state.pageReflowRequested + 1 }
     })
   },
   triggerReflowCompleted: () => {

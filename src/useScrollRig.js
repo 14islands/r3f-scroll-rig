@@ -16,9 +16,10 @@ export const useScrollRig = () => {
   const suspended = useCanvasStore((state) => state.suspended)
   const setPaused = useCanvasStore((state) => state.setPaused)
   const requestReflow = useCanvasStore((state) => state.requestReflow)
+  const pageReflowCompleted = useCanvasStore((state) => state.pageReflowCompleted)
   const pixelRatio = useCanvasStore((state) => state.pixelRatio)
 
-  const { gl, invalidate, size } = useThree()
+  const { invalidate } = useThree()
 
   const requestFrame = useCallback(() => {
     if (!paused && !suspended) {
@@ -44,11 +45,12 @@ export const useScrollRig = () => {
     requestFrame,
     pause,
     resume,
-    preloadScene: (...params) => preloadScene(gl, ...params),
+    preloadScene,
     renderFullscreen,
-    renderScissor: (...params) => renderScissor(gl, ...params),
-    renderViewport: (...params) => renderViewport(gl, ...params, size),
+    renderScissor,
+    renderViewport,
     reflow: requestReflow,
+    reflowCompleted: pageReflowCompleted,
   }
 }
 
