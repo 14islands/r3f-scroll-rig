@@ -10,9 +10,6 @@ import config from './config'
 import { useCanvasStore } from './store'
 import useScrollRig from './useScrollRig'
 
-// Camera layer to not affect global scene
-const LAYER = 2
-
 /**
  * Generic THREE.js Scene that tracks the dimensions and position of a DOM element while scrolling
  * Scene is rendered into a GL viewport matching the DOM position for better performance
@@ -30,6 +27,7 @@ let PerspectiveCameraScene = ({
   renderOrder,
   debug = false,
   setInViewportProp = false,
+  renderOnTop = false,
   ...props
 }) => {
   // const scene = useRef()
@@ -37,14 +35,20 @@ let PerspectiveCameraScene = ({
   const [scene] = useState(() => new Scene())
 
   const [inViewport, setInViewport] = useState(false)
-  const [scale, setScale] = useState({ width: 1, height: 1 })
+  const [scale, setScale] = useState({
+    width: 1,
+    height: 1,
+    multiplier: config.scaleMultiplier,
+    pixelWidth: 1,
+    pixelHeight: 1,
+  })
   const { scrollY } = useViewportScroll()
   const { size } = useThree()
   const { requestFrame, renderViewport } = useScrollRig()
 
   const pageReflowCompleted = useCanvasStore((state) => state.pageReflowCompleted)
 
-  const cameraDistance = Math.max(scale.width, scale.height)
+  const [cameraDistance, setCameraDistance] = useState(0)
 
   // transient state
   const state = useRef({
@@ -56,7 +60,6 @@ let PerspectiveCameraScene = ({
   // Clear scene from canvas on unmount
   useEffect(() => {
     state.mounted = true
-
     return () => {
       state.mounted = false
       // gl.clear()
@@ -80,23 +83,34 @@ let PerspectiveCameraScene = ({
   const updateSizeAndPosition = () => {
     if (!el || !el.current) return
 
-    let { top, left, width, height } = el.current.getBoundingClientRect()
-
-    width = width * 0.001
-    height = height * 0.001
+    const { top, left, width, height } = el.current.getBoundingClientRect()
 
     state.bounds.top = top + window.pageYOffset
     state.bounds.left = left
-    state.bounds.width = width * 1000
-    state.bounds.height = height * 1000
+    state.bounds.width = width
+    state.bounds.height = height
     state.prevBounds.top = top
 
-    setScale({ width, height })
+    const viewportWidth = width * config.scaleMultiplier
+    const viewportHeight = height * config.scaleMultiplier
+
+    setScale({
+      width: viewportWidth,
+      height: viewportHeight,
+      multiplier: config.scaleMultiplier,
+      pixelWidth: width,
+      pixelHeight: height,
+    })
+    const cameraDistance = Math.max(viewportWidth, viewportHeight)
+    setCameraDistance(cameraDistance)
 
     if (camera.current) {
-      camera.current.aspect = (width + margin * 2) / (height + margin * 2)
-      camera.current.fov = 2 * (180 / Math.PI) * Math.atan((height + margin * 2) / (2 * cameraDistance))
+      camera.current.aspect = (viewportWidth + margin * 2) / (viewportHeight + margin * 2)
+      camera.current.fov = 2 * (180 / Math.PI) * Math.atan((viewportHeight + margin * 2) / (2 * cameraDistance))
       camera.current.updateProjectionMatrix()
+      // https://github.com/react-spring/react-three-fiber/issues/178
+      // Update matrix world since the renderer is a frame late
+      camera.current.updateMatrixWorld()
     }
 
     requestFrame() // trigger render
@@ -141,15 +155,15 @@ let PerspectiveCameraScene = ({
     if (scene.visible) {
       const positiveYUpBottom = size.height - (lerpTop + bounds.height) // inverse Y
 
-      renderViewport(
+      renderViewport({
         scene,
-        camera.current,
-        bounds.left - margin,
-        positiveYUpBottom - margin,
-        bounds.width + margin * 2,
-        bounds.height + margin * 2,
-        LAYER,
-      )
+        camera: camera.current,
+        left: bounds.left - margin,
+        top: positiveYUpBottom - margin,
+        width: bounds.width + margin * 2,
+        height: bounds.height + margin * 2,
+        renderOnTop,
+      })
 
       // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
       const pxInside = bounds.top - lerpTop - bounds.top + size.height
@@ -162,7 +176,7 @@ let PerspectiveCameraScene = ({
     if (!isOffscreen && delta > config.scrollRestDelta) {
       requestFrame()
     }
-  }, config.PRIORITY_VIEWPORTS)
+  }, config.PRIORITY_VIEWPORTS + renderOrder)
 
   const renderDebugMesh = () => (
     <mesh>
@@ -196,7 +210,6 @@ let PerspectiveCameraScene = ({
             scene,
             camera: camera.current,
             scale,
-            layers: LAYER,
             inViewport,
             // tunnel the rest
             ...props,
@@ -237,7 +250,6 @@ PerspectiveCameraScene.childPropTypes = {
     }),
   }),
   scene: PropTypes.object, // Parent scene,
-  layers: PropTypes.number, // webglm renderer layer for child mesh
   inViewport: PropTypes.bool, // {x,y} to scale
 }
 

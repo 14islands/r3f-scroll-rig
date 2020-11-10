@@ -12,7 +12,7 @@ import useScrollRig from './useScrollRig'
 
 /**
  * Generic THREE.js Scene that tracks the dimensions and position of a DOM element while scrolling
- * Scene is positioned above DOM element and scissored around it for better performance (only updates pixels within that area)
+ * Scene is positioned and scaled exactly above DOM element
  *
  * @author david@14islands.com
  */
@@ -21,7 +21,7 @@ let ScrollScene = ({
   lerp = config.scrollLerp,
   lerpOffset = 0,
   children,
-  renderOrder,
+  renderOrder = 1,
   margin = 14, // Margin outside viewport to avoid clipping vertex displacement (px)
   inViewportMargin, // Margin outside viewport to avoid clipping vertex displacement (px)
   visible = true,
@@ -38,10 +38,16 @@ let ScrollScene = ({
   const group = useRef()
 
   const [inViewport, setInViewport] = useState(false)
-  const [scale, setScale] = useState({ width: 1, height: 1 })
+  const [scale, setScale] = useState({
+    width: 1,
+    height: 1,
+    multiplier: config.scaleMultiplier,
+    pixelWidth: 1,
+    pixelHeight: 1,
+  })
   const { scrollY } = useViewportScroll()
   const { size } = useThree()
-  const { requestFrame, renderScissor, renderFullscreen } = useScrollRig()
+  const { requestFrame, renderFullscreen, renderScissor } = useScrollRig()
 
   const pageReflowCompleted = useCanvasStore((state) => state.pageReflowCompleted)
 
@@ -71,7 +77,6 @@ let ScrollScene = ({
     return () => (state.mounted = false)
   }, [])
 
-  // set ref on intersection observer
   useLayoutEffect(() => {
     // hide image - leave in DOM to measure and get events
     if (!el?.current) return
@@ -90,18 +95,25 @@ let ScrollScene = ({
 
     const { bounds, prevBounds } = state
     const { top, left, width, height } = el.current.getBoundingClientRect()
+
     bounds.top = top + window.pageYOffset
     bounds.left = left
     bounds.width = width
     bounds.height = height
     bounds.centerOffset = size.height * 0.5 - height * 0.5
 
-    setScale({ width, height })
+    setScale({
+      width: width * config.scaleMultiplier,
+      height: height * config.scaleMultiplier,
+      multiplier: config.scaleMultiplier,
+      pixelWidth: width,
+      pixelHeight: height,
+    })
     bounds.window = size
 
     // place horizontally
     bounds.x = left - size.width * 0.5 + width * 0.5
-    scene.current.position.x = bounds.x
+    scene.current.position.x = bounds.x * config.scaleMultiplier
 
     // prevents ghost lerp on first render
     if (state.isFirstRender) {
@@ -181,20 +193,19 @@ let ScrollScene = ({
 
     if (scene.current.visible) {
       // move scene
-      scene.current.position.y = -lerpY
-      scene.current.position.x = lerpX
+      scene.current.position.y = -lerpY * config.scaleMultiplier
+      scene.current.position.x = lerpX * config.scaleMultiplier
 
       const positiveYUpBottom = size.height * 0.5 - (lerpY + bounds.height * 0.5) // inverse Y
       if (scissor) {
-        // console.log('render scissor', camera.fov, bounds.left, positiveYUpBottom, bounds.width, bounds.height, margin)
-        renderScissor(
-          scene.current,
+        renderScissor({
+          scene: scene.current,
           camera,
-          bounds.left - margin,
-          positiveYUpBottom - margin,
-          bounds.width + margin * 2,
-          bounds.height + margin * 2,
-        )
+          left: bounds.left - margin,
+          top: positiveYUpBottom - margin,
+          width: bounds.width + margin * 2,
+          height: bounds.height + margin * 2,
+        })
       } else {
         renderFullscreen()
       }
@@ -210,7 +221,7 @@ let ScrollScene = ({
     if (!isOffscreen && delta > config.scrollRestDelta) {
       requestFrame()
     }
-  }, config.PRIORITY_SCISSORS)
+  }, config.PRIORITY_SCISSORS + renderOrder)
 
   // Clear scene from canvas on unmount
   // useEffect(() => {
@@ -247,6 +258,8 @@ let ScrollScene = ({
             state,
             scene: scene.current,
             inViewport,
+            // useFrame render priority (in case children need to run after)
+            priority: config.PRIORITY_SCISSORS + renderOrder,
             // tunnel the rest
             ...props,
           })}
@@ -265,7 +278,7 @@ ScrollScene.propTypes = {
   renderOrder: PropTypes.number, // threejs render order
   visible: PropTypes.bool, // threejs render order,
   layoutOffset: PropTypes.func, // {x,y} to translate
-  margin: PropTypes.number, // custom margin around scissor to impact clipping
+  margin: PropTypes.number, // custom margin around DOM el to avoid clipping
   scissor: PropTypes.bool, // render using scissor test for better peformance
   debug: PropTypes.bool, // show debug mesh
   setInViewportProp: PropTypes.bool, // update inViewport property on child (might cause lag)
@@ -291,6 +304,8 @@ ScrollScene.childPropTypes = {
   scene: PropTypes.object, // Parent scene,
   inViewport: PropTypes.bool, // {x,y} to scale
 }
+
+ScrollScene.priority = config.PRIORITY_SCISSORS
 
 export { ScrollScene }
 export default ScrollScene
