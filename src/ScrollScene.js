@@ -51,8 +51,8 @@ let ScrollScene = ({
 
   const pageReflowCompleted = useCanvasStore((state) => state.pageReflowCompleted)
 
-  // transient state
-  const state = useRef({
+  // non-reactive state
+  const transient = useRef({
     mounted: false,
     isFirstRender: true,
     bounds: {
@@ -66,15 +66,13 @@ let ScrollScene = ({
       progress: 0,
       viewport: 0,
       visibility: 0,
-      window: size,
-      velocity: 0,
     },
     prevBounds: { y: 0, x: 0, direction: 1, directionTime: 0 },
   }).current
 
   useEffect(() => {
-    state.mounted = true
-    return () => (state.mounted = false)
+    transient.mounted = true
+    return () => (transient.mounted = false)
   }, [])
 
   useLayoutEffect(() => {
@@ -93,33 +91,36 @@ let ScrollScene = ({
   const updateSizeAndPosition = () => {
     if (!el || !el.current) return
 
-    const { bounds, prevBounds } = state
+    const { bounds, prevBounds } = transient
     const { top, left, width, height } = el.current.getBoundingClientRect()
 
+    // pixel bounds
     bounds.top = top + window.pageYOffset
     bounds.left = left
     bounds.width = width
     bounds.height = height
     bounds.centerOffset = size.height * 0.5 - height * 0.5
 
+    // scale in viewport units and pixel
     setScale({
       width: width * config.scaleMultiplier,
       height: height * config.scaleMultiplier,
       multiplier: config.scaleMultiplier,
       pixelWidth: width,
       pixelHeight: height,
+      viewportWidth: size.width * config.scaleMultiplier,
+      viewportHeight: size.height * config.scaleMultiplier,
     })
-    bounds.window = size
 
     // place horizontally
     bounds.x = left - size.width * 0.5 + width * 0.5
     scene.current.position.x = bounds.x * config.scaleMultiplier
 
     // prevents ghost lerp on first render
-    if (state.isFirstRender) {
+    if (transient.isFirstRender) {
       prevBounds.y = top - bounds.centerOffset
       prevBounds.x = bounds.x
-      state.isFirstRender = false
+      transient.isFirstRender = false
     }
 
     requestFrame() // trigger render
@@ -132,7 +133,7 @@ let ScrollScene = ({
 
   // RENDER FRAME
   useFrame(({ gl, camera, clock }) => {
-    const { bounds, prevBounds } = state
+    const { bounds, prevBounds } = transient
     // const clockDelta = clock.getDelta()
     const time = clock.getElapsedTime()
 
@@ -173,14 +174,12 @@ let ScrollScene = ({
     // Abort if element not in screen
     const scrollMargin = inViewportMargin || size.height * 0.33
     const isOffscreen =
-      lerpY + size.height * 0.5 + bounds.height * 0.5 < -scrollMargin ||
-      lerpY + size.height * 0.5 - bounds.height * 0.5 > size.height + scrollMargin
+      lerpY + size.height * 0.5 + scale.pixelHeight * 0.5 < -scrollMargin ||
+      lerpY + size.height * 0.5 - scale.pixelHeight * 0.5 > size.height + scrollMargin
 
     // store top value for next frame
     bounds.inViewport = !isOffscreen
-    // const velocity = MathUtils.clamp((prevBounds.y - lerpY) / clockDelta / 1000 / 1000 / 100, -1, 1)
-    // bounds.velocity = MathUtils.lerp(bounds.velocity, velocity, 0.05)
-    setInViewportProp && requestIdleCallback(() => state.mounted && setInViewport(!isOffscreen))
+    setInViewportProp && requestIdleCallback(() => transient.mounted && setInViewport(!isOffscreen))
     prevBounds.y = lerpY
     prevBounds.x = lerpX
 
@@ -196,7 +195,7 @@ let ScrollScene = ({
       scene.current.position.y = -lerpY * config.scaleMultiplier
       scene.current.position.x = lerpX * config.scaleMultiplier
 
-      const positiveYUpBottom = size.height * 0.5 - (lerpY + bounds.height * 0.5) // inverse Y
+      const positiveYUpBottom = size.height * 0.5 - (lerpY + scale.pixelHeight * 0.5) // inverse Y
       if (scissor) {
         renderScissor({
           scene: scene.current,
@@ -212,8 +211,8 @@ let ScrollScene = ({
 
       // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
       const pxInside = bounds.top - lerpY - bounds.top + size.height - bounds.centerOffset
-      bounds.progress = MathUtils.mapLinear(pxInside, 0, size.height + bounds.height, 0, 1) // percent of total visible distance
-      bounds.visibility = MathUtils.mapLinear(pxInside, 0, bounds.height, 0, 1) // percent of item height in view
+      bounds.progress = MathUtils.mapLinear(pxInside, 0, size.height + scale.pixelHeight, 0, 1) // percent of total visible distance
+      bounds.visibility = MathUtils.mapLinear(pxInside, 0, scale.pixelHeight, 0, 1) // percent of item height in view
       bounds.viewport = MathUtils.mapLinear(pxInside, 0, size.height, 0, 1) // percent of window height scrolled since visible
     }
 
@@ -239,7 +238,7 @@ let ScrollScene = ({
   )
 
   return (
-    <scene ref={scene} visible={state.bounds.inViewport && visible}>
+    <scene ref={scene} visible={transient.bounds.inViewport && visible}>
       <group renderOrder={renderOrder}>
         {(!children || debug) && renderDebugMesh()}
         {children &&
@@ -249,13 +248,14 @@ let ScrollScene = ({
             lerp,
             lerpOffset,
             layoutLerp,
-            renderOrder,
-            visible,
-            layoutOffset,
             margin,
+            visible,
+            renderOrder,
+            layoutOffset,
             // new props
             scale,
-            state,
+            state: transient, // @deprecated
+            scrollState: transient.bounds,
             scene: scene.current,
             inViewport,
             // useFrame render priority (in case children need to run after)

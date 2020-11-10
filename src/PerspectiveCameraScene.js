@@ -28,9 +28,9 @@ let PerspectiveCameraScene = ({
   debug = false,
   setInViewportProp = false,
   renderOnTop = false,
+  scaleMultiplier = config.scaleMultiplier, // use global setting as default
   ...props
 }) => {
-  // const scene = useRef()
   const camera = useRef()
   const [scene] = useState(() => new Scene())
 
@@ -38,7 +38,7 @@ let PerspectiveCameraScene = ({
   const [scale, setScale] = useState({
     width: 1,
     height: 1,
-    multiplier: config.scaleMultiplier,
+    multiplier: scaleMultiplier,
     pixelWidth: 1,
     pixelHeight: 1,
   })
@@ -50,19 +50,27 @@ let PerspectiveCameraScene = ({
 
   const [cameraDistance, setCameraDistance] = useState(0)
 
-  // transient state
-  const state = useRef({
+  // non-reactive state
+  const transient = useRef({
     mounted: false,
-    bounds: { top: 0, left: 0, width: 0, height: 0, inViewport: false, progress: 0, window: size },
+    bounds: {
+      top: 0,
+      left: 0,
+      width: 0,
+      height: 0,
+      inViewport: false,
+      progress: 0,
+      viewport: 0,
+      visibility: 0,
+    },
     prevBounds: { top: 0, left: 0, width: 0, height: 0 },
   }).current
 
   // Clear scene from canvas on unmount
   useEffect(() => {
-    state.mounted = true
+    transient.mounted = true
     return () => {
-      state.mounted = false
-      // gl.clear()
+      transient.mounted = false
     }
   }, [])
 
@@ -83,24 +91,30 @@ let PerspectiveCameraScene = ({
   const updateSizeAndPosition = () => {
     if (!el || !el.current) return
 
+    const { bounds, prevBounds } = transient
     const { top, left, width, height } = el.current.getBoundingClientRect()
 
-    state.bounds.top = top + window.pageYOffset
-    state.bounds.left = left
-    state.bounds.width = width
-    state.bounds.height = height
-    state.prevBounds.top = top
+    // pixel bounds
+    bounds.top = top + window.pageYOffset
+    bounds.left = left
+    bounds.width = width
+    bounds.height = height
+    prevBounds.top = top
 
-    const viewportWidth = width * config.scaleMultiplier
-    const viewportHeight = height * config.scaleMultiplier
+    const viewportWidth = width * scaleMultiplier
+    const viewportHeight = height * scaleMultiplier
 
+    // scale in viewport units and pixel
     setScale({
       width: viewportWidth,
       height: viewportHeight,
-      multiplier: config.scaleMultiplier,
+      multiplier: scaleMultiplier,
       pixelWidth: width,
       pixelHeight: height,
+      viewportWidth: size.width * scaleMultiplier,
+      viewportHeight: size.height * scaleMultiplier,
     })
+
     const cameraDistance = Math.max(viewportWidth, viewportHeight)
     setCameraDistance(cameraDistance)
 
@@ -124,7 +138,7 @@ let PerspectiveCameraScene = ({
   // RENDER FRAME
   useFrame(() => {
     if (!scene) return
-    const { bounds, prevBounds } = state
+    const { bounds, prevBounds } = transient
 
     // add scroll value to bounds to get current position
     const topY = bounds.top - scrollY.get()
@@ -140,7 +154,7 @@ let PerspectiveCameraScene = ({
 
     // store top value for next frame
     bounds.inViewport = !isOffscreen
-    setInViewportProp && requestIdleCallback(() => state.mounted && setInViewport(!isOffscreen))
+    setInViewportProp && requestIdleCallback(() => transient.mounted && setInViewport(!isOffscreen))
     prevBounds.top = lerpTop
 
     // hide/show scene
@@ -206,11 +220,15 @@ let PerspectiveCameraScene = ({
             visible,
             renderOrder,
             // new props
-            state,
+            scale,
+            state: transient, // @deprecated
+            scrollState: transient.bounds,
+            transient,
             scene,
             camera: camera.current,
-            scale,
             inViewport,
+            // useFrame render priority (in case children need to run after)
+            priority: config.PRIORITY_VIEWPORTS + renderOrder,
             // tunnel the rest
             ...props,
           })}
