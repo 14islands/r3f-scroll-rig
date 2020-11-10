@@ -1,11 +1,11 @@
 import _extends from '@babel/runtime/helpers/esm/extends';
 import _objectWithoutPropertiesLoose from '@babel/runtime/helpers/esm/objectWithoutPropertiesLoose';
-import React, { useRef, useLayoutEffect, Suspense, Fragment, useMemo, useCallback, useEffect, useState, forwardRef } from 'react';
+import React, { useRef, useLayoutEffect, Suspense, Fragment, useCallback, useEffect, useMemo, useState, forwardRef } from 'react';
 import { useThree, useFrame, Canvas, createPortal } from 'react-three-fiber';
 import { ResizeObserver } from '@juggle/resize-observer';
 import queryString from 'query-string';
 import create from 'zustand';
-import { sRGBEncoding, NoToneMapping, WebGLRenderTarget, Scene, Math as Math$1, MathUtils, ImageBitmapLoader, TextureLoader, CanvasTexture, LinearFilter, RGBFormat, RGBAFormat } from 'three';
+import { sRGBEncoding, NoToneMapping, Scene, Math as Math$1, MathUtils, ImageBitmapLoader, TextureLoader, CanvasTexture, LinearFilter, RGBFormat, RGBAFormat } from 'three';
 import { useWindowSize, useWindowHeight } from '@react-hook/window-size';
 import PropTypes from 'prop-types';
 import { useViewportScroll } from 'framer-motion';
@@ -37,33 +37,31 @@ var utils = /*#__PURE__*/Object.freeze({
 // usContext() causes re-rendering which can drop frames
 const config = {
   debug: false,
-  planeSize: 1,
+  // Global lerp settings
   scrollLerp: 0.1,
   // Linear interpolation - high performance easing
   scrollRestDelta: 0.14,
   // min delta to trigger animation frame on scroll
-  // Render priorities (highest = last render)
-  PRIORITY_GLOBAL: 100,
-  PRIORITY_VIEWPORTS: 10,
-  PRIORITY_SCISSORS: 20,
+  // Execution order for useFrames (highest = last render)
+  PRIORITY_SCISSORS: 1,
+  PRIORITY_VIEWPORTS: 1,
+  PRIORITY_GLOBAL: 1001,
+  // max renderOrder supported for scissors = 1000
+  // Scaling
+  scaleMultiplier: 1,
+  // scale pixels vs viewport units (1:1 by default)
   // Global rendering props
   globalRender: false,
-  hasRenderQueue: false,
   preloadQueue: [],
   preRender: [],
   postRender: [],
   scissorQueue: [],
-  viewportQueue: [],
-  fbo: {},
+  viewportQueueBefore: [],
+  viewportQueueAfter: [],
   hasVirtualScrollbar: false,
   hasGlobalCanvas: false,
-  portalEl: null,
-  // z-index for <groups>
-  ORDER_TRANSITION: 6,
-  ORDER_LAB_CTA: 5,
-  ORDER_LAB_FG_BUBBLES: 4,
-  ORDER_LAB_CONTENT: 3,
-  ORDER_LAB_BG_BUBBLES: 2
+  // portal for viewports
+  portalEl: null
 };
 
 /**
@@ -172,7 +170,7 @@ const [useCanvasStore, canvasStoreApi] = create(set => ({
     pixelRatio
   })),
   // Used to ask components to re-calculate their positions after a layout reflow
-  pageReflow: 0,
+  pageReflowRequested: 0,
   pageReflowCompleted: 0,
   requestReflow: () => {
     set(state => {
@@ -184,7 +182,7 @@ const [useCanvasStore, canvasStoreApi] = create(set => ({
       }
 
       return {
-        pageReflow: state.pageReflow + 1
+        pageReflowRequested: state.pageReflowRequested + 1
       };
     });
   },
@@ -199,38 +197,51 @@ const renderFullscreen = (layers = [0]) => {
   config.globalRender = config.globalRender || [0];
   config.globalRender = [...config.globalRender, ...layers];
 };
-const renderScissor = (gl, scene, camera, left, top, width, height, layer = 0) => {
+const renderScissor = ({
+  scene,
+  camera,
+  left,
+  top,
+  width,
+  height,
+  layer = 0
+}) => {
   if (!scene || !camera) return;
-  config.hasRenderQueue = true;
-  config.scissorQueue.push(() => {
-    // console.log('SCISSOR RENDER', layer)
+  config.scissorQueue.push((gl, camera) => {
     gl.setScissor(left, top, width, height);
     gl.setScissorTest(true);
     camera.layers.set(layer);
     gl.clearDepth();
     gl.render(scene, camera);
-    gl.render(scene, camera);
     gl.setScissorTest(false);
   });
 };
-const renderViewport = (gl, scene, camera, left, top, width, height, layer = 0, size) => {
+const renderViewport = ({
+  scene,
+  camera,
+  left,
+  top,
+  width,
+  height,
+  layer = 0,
+  renderOnTop = false
+}) => {
   if (!scene || !camera) return;
-  config.hasRenderQueue = true;
-  config.viewportQueue.push(() => {
+  config[renderOnTop ? 'viewportQueueAfter' : 'viewportQueueBefore'].push((gl, size) => {
     // console.log('VIEWPORT RENDER', layer)
     gl.setViewport(left, top, width, height);
     gl.setScissor(left, top, width, height);
-    gl.setScissorTest(true); // camera.layers.set(layer)
-
+    gl.setScissorTest(true);
+    camera.layers.set(layer);
     gl.clearDepth();
     gl.render(scene, camera);
     gl.setScissorTest(false);
     gl.setViewport(0, 0, size.width, size.height);
   });
 };
-const preloadScene = (gl, scene, camera, layer = 0, callback) => {
+const preloadScene = (scene, camera, layer = 0, callback) => {
   if (!scene || !camera) return;
-  config.preloadQueue.push(() => {
+  config.preloadQueue.push(gl => {
     gl.setScissorTest(false);
     setAllCulled(scene, false);
     camera.layers.set(layer);
@@ -239,36 +250,9 @@ const preloadScene = (gl, scene, camera, layer = 0, callback) => {
     callback && callback();
   });
 };
-
-const useFBO = () => {
-  const {
-    size
-  } = useThree();
-  const pixelRatio = useCanvasStore(state => state.pixelRatio);
-  useMemo(() => {
-    const ratio = Math.min(1, Math.max(2, pixelRatio)); // contrain FBO to 1.5 pixel ratio to improve perf
-
-    const width = size.width * ratio;
-    const height = size.height * ratio;
-
-    if (config.fboWidth === width && config.fboHeight === height) {
-      return;
-    }
-
-    config.debug && console.log('=================');
-    config.debug && console.log('===== INIT FBO ==', size, pixelRatio);
-    config.debug && console.log('=================');
-    const f = new WebGLRenderTarget(width, height, {// anisotropy: gl.capabilities.getMaxAnisotropy(), // reduce blurring at glancing angles
-    });
-    config.fbo = f;
-    config.fboWidth = width;
-    config.fboHeight = height;
-  }, [size]);
-};
 /**
  * Global render loop to avoid double renders on the same frame
  */
-
 
 const GlobalRenderer = ({
   useScrollRig,
@@ -276,14 +260,13 @@ const GlobalRenderer = ({
 }) => {
   const scene = useRef();
   const {
-    gl
+    gl,
+    size
   } = useThree();
   const canvasChildren = useCanvasStore(state => state.canvasChildren);
   const scrollRig = useScrollRig();
-  useFBO();
   useLayoutEffect(() => {
-    gl.outputEncoding = sRGBEncoding; // gl.getContext().disable(gl.getContext().DEPTH_TEST)
-
+    gl.outputEncoding = sRGBEncoding;
     gl.autoClear = false; // we do our own rendering
 
     gl.setClearColor(null, 0);
@@ -295,16 +278,16 @@ const GlobalRenderer = ({
     camera,
     scene
   }) => {
-    config.hasRenderQueue = false; // Render preload frames first and clear directly
-
-    config.preloadQueue.forEach(render => render());
+    // Render preload frames first and clear directly
+    config.preloadQueue.forEach(render => render(gl));
     if (config.preloadQueue.length) gl.clear(); // Render viewport scissors first
-    // config.viewportQueue.forEach((render) => render())
+
+    config.viewportQueueBefore.forEach(render => render(gl, size));
 
     if (config.globalRender) {
       // console.log('GLOBAL RENDER')
       // run any pre-process frames
-      config.preRender.forEach(render => render()); // render default layer, scene, camera
+      config.preRender.forEach(render => render(gl)); // render default layer, scene, camera
 
       camera.layers.disableAll();
       config.globalRender.forEach(layer => {
@@ -314,22 +297,23 @@ const GlobalRenderer = ({
 
       gl.render(scene, camera); // run any post-render frame (additional layers etc)
 
-      config.postRender.forEach(render => render()); // cleanup for next frame
+      config.postRender.forEach(render => render(gl)); // cleanup for next frame
 
       config.globalRender = false;
       config.preRender = [];
       config.postRender = [];
     } else {
       // console.log('GLOBAL SCISSORS')
-      config.scissorQueue.forEach(render => render());
-    } // Render viewport scissors last
+      config.scissorQueue.forEach(render => render(gl, camera));
+    } // Render viewports last
 
 
-    config.viewportQueue.forEach(render => render());
+    config.viewportQueueAfter.forEach(render => render(gl));
     config.preloadQueue = [];
     config.scissorQueue = [];
-    config.viewportQueue = [];
-  }, config.PRIORITY_GLOBAL); // render as HUD over ViewportCameraScenes
+    config.viewportQueueBefore = [];
+    config.viewportQueueAfter = [];
+  }, config.PRIORITY_GLOBAL); // Take over rendering
 
   config.debug && console.log('GlobalRenderer', Object.keys(canvasChildren).length);
   return /*#__PURE__*/React.createElement("scene", {
@@ -367,11 +351,10 @@ const useScrollRig = () => {
   const suspended = useCanvasStore(state => state.suspended);
   const setPaused = useCanvasStore(state => state.setPaused);
   const requestReflow = useCanvasStore(state => state.requestReflow);
+  const pageReflowCompleted = useCanvasStore(state => state.pageReflowCompleted);
   const pixelRatio = useCanvasStore(state => state.pixelRatio);
   const {
-    gl,
-    invalidate,
-    size
+    invalidate
   } = useThree();
   const requestFrame = useCallback(() => {
     if (!paused && !suspended) {
@@ -397,11 +380,12 @@ const useScrollRig = () => {
     requestFrame,
     pause,
     resume,
-    preloadScene: (...params) => preloadScene(gl, ...params),
+    preloadScene,
     renderFullscreen,
-    renderScissor: (...params) => renderScissor(gl, ...params),
-    renderViewport: (...params) => renderViewport(gl, ...params, size),
-    reflow: requestReflow
+    renderScissor,
+    renderViewport,
+    reflow: requestReflow,
+    reflowCompleted: pageReflowCompleted
   };
 };
 
@@ -428,21 +412,40 @@ const PerformanceMonitor = () => {
   return null;
 };
 
-const StatsDebug = () => {
+const StatsDebug = ({
+  render = true,
+  memory = true
+}) => {
   const stats = useRef({
-    calls: 0
+    calls: 0,
+    triangles: 0,
+    geometries: 0,
+    textures: 0
   }).current;
   useFrame(({
     gl,
     clock
   }) => {
     gl.info.autoReset = false;
-    window._gl = gl;
-    const calls = gl.info.render.calls;
+    const _calls = gl.info.render.calls;
+    const _triangles = gl.info.render.triangles;
+    const _geometries = gl.info.memory.geometries;
+    const _textures = gl.info.memory.textures;
 
-    if (calls !== stats.calls) {
-      requestIdleCallback(() => console.log('Draw calls: ', calls));
-      stats.calls = calls;
+    if (render) {
+      if (_calls !== stats.calls || _triangles !== stats.triangles) {
+        requestIdleCallback(() => console.info('Draw calls: ', _calls, ' Triangles: ', _triangles));
+        stats.calls = _calls;
+        stats.triangles = _triangles;
+      }
+    }
+
+    if (memory) {
+      if (_geometries !== stats.geometries || _textures !== stats.textures) {
+        requestIdleCallback(() => console.info('Geometries: ', _geometries, 'Textures: ', _textures));
+        stats.geometries = _geometries;
+        stats.textures = _textures;
+      }
     }
 
     gl.info.reset();
@@ -459,20 +462,22 @@ const StatsDebug = () => {
  */
 
 const ResizeManager = ({
-  useScrollRig,
+  reflow,
   resizeOnHeight = true,
   resizeOnWebFontLoaded = true
 }) => {
-  const mounted = useRef(false);
-  const [windowWidth, windowHeight] = useWindowSize();
-  const reflow = useCanvasStore(state => state.requestReflow); // The reason for not resizing on height on "mobile" is because the height changes when the URL bar disapears in the browser chrome
+  const mounted = useRef(false); // must be debounced more than the GlobalCanvas so all components have the correct value from useThree({ size })
+
+  const [windowWidth, windowHeight] = useWindowSize({
+    wait: 300
+  }); // The reason for not resizing on height on "mobile" is because the height changes when the URL bar disapears in the browser chrome
   // Can we base this on something better - or is there another way to avoid?
 
-  const height = resizeOnHeight ? null : windowHeight; // Detect only resize events
+  const height = resizeOnHeight ? windowHeight : null; // Detect only resize events
 
   useEffect(() => {
     if (mounted.current) {
-      console.log('ResizeManager.reflow');
+      config.debug && console.log('ResizeManager', 'reflow()');
       reflow();
     } else {
       mounted.current = true;
@@ -504,17 +509,23 @@ const GlobalCanvas = (_ref) => {
   let {
     children,
     gl,
-    resizeOnHeight
+    resizeOnHeight,
+    noEvents = true,
+    config: confOverrides
   } = _ref,
-      props = _objectWithoutPropertiesLoose(_ref, ["children", "gl", "resizeOnHeight"]);
+      props = _objectWithoutPropertiesLoose(_ref, ["children", "gl", "resizeOnHeight", "noEvents", "config"]);
 
   const pixelRatio = useCanvasStore(state => state.pixelRatio);
+  const requestReflow = useCanvasStore(state => state.requestReflow);
   const {
     size
   } = useThree();
   const cameraDistance = useMemo(() => {
     return size ? Math.max(size.width, size.height) : Math.max(window.innerWidth, window.innerHeight);
   }, [size]);
+  useEffect(() => {
+    Object.assign(config, confOverrides);
+  }, [confOverrides]);
   useEffect(() => {
     // flag that global canvas is active
     config.hasGlobalCanvas = true;
@@ -563,7 +574,7 @@ const GlobalCanvas = (_ref) => {
     }, gl),
     colorManagement: true // ACESFilmic seems incorrect for non-HDR settings - images get weird colors?
     ,
-    noEvents: true,
+    noEvents: noEvents,
     resize: {
       scroll: false,
       debounce: 0,
@@ -586,17 +597,17 @@ const GlobalCanvas = (_ref) => {
       // use 100vh to avoid resize on iOS when url bar goes away
       zIndex: 1,
       // to sit on top of the page-transition-links styles
-      pointerEvents: 'none',
+      pointerEvents: noEvents ? 'none' : 'auto',
       transform: 'translateZ(0)'
     }
   }, props), /*#__PURE__*/React.createElement(GlobalRenderer, {
     useScrollRig: useScrollRig
   }, children), config.debug && /*#__PURE__*/React.createElement(StatsDebug, null), /*#__PURE__*/React.createElement(PerformanceMonitor, null), /*#__PURE__*/React.createElement(ResizeManager, {
+    reflow: requestReflow,
     resizeOnHeight: resizeOnHeight
   }));
 };
 
-const LAYER = 2;
 /**
  * Generic THREE.js Scene that tracks the dimensions and position of a DOM element while scrolling
  * Scene is rendered into a GL viewport matching the DOM position for better performance
@@ -616,9 +627,10 @@ let PerspectiveCameraScene = (_ref) => {
     visible = true,
     renderOrder,
     debug = false,
-    setInViewportProp = false
+    setInViewportProp = false,
+    renderOnTop = false
   } = _ref,
-      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "margin", "visible", "renderOrder", "debug", "setInViewportProp"]);
+      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "margin", "visible", "renderOrder", "debug", "setInViewportProp", "renderOnTop"]);
 
   // const scene = useRef()
   const camera = useRef();
@@ -626,7 +638,10 @@ let PerspectiveCameraScene = (_ref) => {
   const [inViewport, setInViewport] = useState(false);
   const [scale, setScale] = useState({
     width: 1,
-    height: 1
+    height: 1,
+    multiplier: config.scaleMultiplier,
+    pixelWidth: 1,
+    pixelHeight: 1
   });
   const {
     scrollY
@@ -639,7 +654,7 @@ let PerspectiveCameraScene = (_ref) => {
     renderViewport
   } = useScrollRig();
   const pageReflowCompleted = useCanvasStore(state => state.pageReflowCompleted);
-  const cameraDistance = Math.max(scale.width, scale.height); // transient state
+  const [cameraDistance, setCameraDistance] = useState(0); // transient state
 
   const state = useRef({
     mounted: false,
@@ -681,28 +696,36 @@ let PerspectiveCameraScene = (_ref) => {
 
   const updateSizeAndPosition = () => {
     if (!el || !el.current) return;
-    let {
+    const {
       top,
       left,
       width,
       height
     } = el.current.getBoundingClientRect();
-    width = width * 0.001;
-    height = height * 0.001;
     state.bounds.top = top + window.pageYOffset;
     state.bounds.left = left;
-    state.bounds.width = width * 1000;
-    state.bounds.height = height * 1000;
+    state.bounds.width = width;
+    state.bounds.height = height;
     state.prevBounds.top = top;
+    const viewportWidth = width * config.scaleMultiplier;
+    const viewportHeight = height * config.scaleMultiplier;
     setScale({
-      width,
-      height
+      width: viewportWidth,
+      height: viewportHeight,
+      multiplier: config.scaleMultiplier,
+      pixelWidth: width,
+      pixelHeight: height
     });
+    const cameraDistance = Math.max(viewportWidth, viewportHeight);
+    setCameraDistance(cameraDistance);
 
     if (camera.current) {
-      camera.current.aspect = (width + margin * 2) / (height + margin * 2);
-      camera.current.fov = 2 * (180 / Math.PI) * Math.atan((height + margin * 2) / (2 * cameraDistance));
-      camera.current.updateProjectionMatrix();
+      camera.current.aspect = (viewportWidth + margin * 2) / (viewportHeight + margin * 2);
+      camera.current.fov = 2 * (180 / Math.PI) * Math.atan((viewportHeight + margin * 2) / (2 * cameraDistance));
+      camera.current.updateProjectionMatrix(); // https://github.com/react-spring/react-three-fiber/issues/178
+      // Update matrix world since the renderer is a frame late
+
+      camera.current.updateMatrixWorld();
     }
 
     requestFrame(); // trigger render
@@ -743,7 +766,15 @@ let PerspectiveCameraScene = (_ref) => {
     if (scene.visible) {
       const positiveYUpBottom = size.height - (lerpTop + bounds.height); // inverse Y
 
-      renderViewport(scene, camera.current, bounds.left - margin, positiveYUpBottom - margin, bounds.width + margin * 2, bounds.height + margin * 2, LAYER); // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
+      renderViewport({
+        scene,
+        camera: camera.current,
+        left: bounds.left - margin,
+        top: positiveYUpBottom - margin,
+        width: bounds.width + margin * 2,
+        height: bounds.height + margin * 2,
+        renderOnTop
+      }); // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
 
       const pxInside = bounds.top - lerpTop - bounds.top + size.height;
       bounds.progress = Math$1.mapLinear(pxInside, 0, size.height + bounds.height, 0, 1); // percent of total visible distance
@@ -757,7 +788,7 @@ let PerspectiveCameraScene = (_ref) => {
     if (!isOffscreen && delta > config.scrollRestDelta) {
       requestFrame();
     }
-  }, config.PRIORITY_VIEWPORTS);
+  }, config.PRIORITY_VIEWPORTS + renderOrder);
 
   const renderDebugMesh = () => /*#__PURE__*/React.createElement("mesh", null, /*#__PURE__*/React.createElement("planeBufferGeometry", {
     attach: "geometry",
@@ -788,7 +819,6 @@ let PerspectiveCameraScene = (_ref) => {
     scene,
     camera: camera.current,
     scale,
-    layers: LAYER,
     inViewport
   }, props)))), scene);
 };
@@ -811,15 +841,13 @@ PerspectiveCameraScene.childPropTypes = _extends({}, PerspectiveCameraScene.prop
   }),
   scene: PropTypes.object,
   // Parent scene,
-  layers: PropTypes.number,
-  // webglm renderer layer for child mesh
   inViewport: PropTypes.bool // {x,y} to scale
 
 });
 
 /**
  * Generic THREE.js Scene that tracks the dimensions and position of a DOM element while scrolling
- * Scene is positioned above DOM element and scissored around it for better performance (only updates pixels within that area)
+ * Scene is positioned and scaled exactly above DOM element
  *
  * @author david@14islands.com
  */
@@ -830,7 +858,7 @@ let ScrollScene = (_ref) => {
     lerp = config.scrollLerp,
     lerpOffset = 0,
     children,
-    renderOrder,
+    renderOrder = 1,
     margin = 14,
     // Margin outside viewport to avoid clipping vertex displacement (px)
     inViewportMargin,
@@ -852,7 +880,10 @@ let ScrollScene = (_ref) => {
   const [inViewport, setInViewport] = useState(false);
   const [scale, setScale] = useState({
     width: 1,
-    height: 1
+    height: 1,
+    multiplier: config.scaleMultiplier,
+    pixelWidth: 1,
+    pixelHeight: 1
   });
   const {
     scrollY
@@ -862,8 +893,8 @@ let ScrollScene = (_ref) => {
   } = useThree();
   const {
     requestFrame,
-    renderScissor,
-    renderFullscreen
+    renderFullscreen,
+    renderScissor
   } = useScrollRig();
   const pageReflowCompleted = useCanvasStore(state => state.pageReflowCompleted); // transient state
 
@@ -894,8 +925,7 @@ let ScrollScene = (_ref) => {
   useEffect(() => {
     state.mounted = true;
     return () => state.mounted = false;
-  }, []); // set ref on intersection observer
-
+  }, []);
   useLayoutEffect(() => {
     // hide image - leave in DOM to measure and get events
     if (!(el == null ? void 0 : el.current)) return;
@@ -926,13 +956,16 @@ let ScrollScene = (_ref) => {
     bounds.height = height;
     bounds.centerOffset = size.height * 0.5 - height * 0.5;
     setScale({
-      width,
-      height
+      width: width * config.scaleMultiplier,
+      height: height * config.scaleMultiplier,
+      multiplier: config.scaleMultiplier,
+      pixelWidth: width,
+      pixelHeight: height
     });
     bounds.window = size; // place horizontally
 
     bounds.x = left - size.width * 0.5 + width * 0.5;
-    scene.current.position.x = bounds.x; // prevents ghost lerp on first render
+    scene.current.position.x = bounds.x * config.scaleMultiplier; // prevents ghost lerp on first render
 
     if (state.isFirstRender) {
       prevBounds.y = top - bounds.centerOffset;
@@ -1013,13 +1046,19 @@ let ScrollScene = (_ref) => {
 
     if (scene.current.visible) {
       // move scene
-      scene.current.position.y = -lerpY;
-      scene.current.position.x = lerpX;
+      scene.current.position.y = -lerpY * config.scaleMultiplier;
+      scene.current.position.x = lerpX * config.scaleMultiplier;
       const positiveYUpBottom = size.height * 0.5 - (lerpY + bounds.height * 0.5); // inverse Y
 
       if (scissor) {
-        // console.log('render scissor', camera.fov, bounds.left, positiveYUpBottom, bounds.width, bounds.height, margin)
-        renderScissor(scene.current, camera, bounds.left - margin, positiveYUpBottom - margin, bounds.width + margin * 2, bounds.height + margin * 2);
+        renderScissor({
+          scene: scene.current,
+          camera,
+          left: bounds.left - margin,
+          top: positiveYUpBottom - margin,
+          width: bounds.width + margin * 2,
+          height: bounds.height + margin * 2
+        });
       } else {
         renderFullscreen();
       } // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
@@ -1037,7 +1076,7 @@ let ScrollScene = (_ref) => {
     if (!isOffscreen && delta > config.scrollRestDelta) {
       requestFrame();
     }
-  }, config.PRIORITY_SCISSORS); // Clear scene from canvas on unmount
+  }, config.PRIORITY_SCISSORS + renderOrder); // Clear scene from canvas on unmount
   // useEffect(() => {
   //   return () => {
   //     gl.clear()
@@ -1074,7 +1113,9 @@ let ScrollScene = (_ref) => {
     scale,
     state,
     scene: scene.current,
-    inViewport
+    inViewport,
+    // useFrame render priority (in case children need to run after)
+    priority: config.PRIORITY_SCISSORS + renderOrder
   }, props))));
 };
 
@@ -1100,6 +1141,7 @@ ScrollScene.childPropTypes = _extends({}, ScrollScene.propTypes, {
   inViewport: PropTypes.bool // {x,y} to scale
 
 });
+ScrollScene.priority = config.PRIORITY_SCISSORS;
 
 const LAYOUT_LERP = 0.1;
 /**
@@ -1735,7 +1777,7 @@ const FakeScroller = ({
   onUpdate,
   threshold = 100
 }) => {
-  const pageReflow = useCanvasStore(state => state.pageReflow);
+  const pageReflowRequested = useCanvasStore(state => state.pageReflowRequested);
   const triggerReflowCompleted = useCanvasStore(state => state.triggerReflowCompleted);
   const heightEl = useRef();
   const [fakeHeight, setFakeHeight] = useState();
@@ -1968,7 +2010,7 @@ const FakeScroller = ({
 
   useEffect(() => {
     handleResize();
-  }, [pageReflow]);
+  }, [pageReflowRequested]);
   return /*#__PURE__*/React.createElement("div", {
     className: "js-fake-scroll",
     ref: heightEl,
@@ -1991,11 +2033,10 @@ const VirtualScrollbar = (_ref) => {
       rest = _objectWithoutPropertiesLoose(_ref, ["disabled", "resizeOnHeight", "children"]);
 
   const ref = useRef();
-  const [active, setActive] = useState(false); // FakeScroller wont trigger resize without this here.. whyyyy?
-  // David from the future: due to code splitting maybe? two instances of the store?
-  // eslint-disable-next-line no-unused-vars
+  const [active, setActive] = useState(false); // FakeScroller wont trigger resize without touching the store here..
+  // due to code splitting maybe? two instances of the store?
 
-  const pageReflow = useCanvasStore(state => state.pageReflow);
+  const requestReflow = useCanvasStore(state => state.requestReflow);
   const setVirtualScrollbar = useCanvasStore(state => state.setVirtualScrollbar); // NOT SURE THIS IS NEEDED ANY LONGER
   // Make sure we are scrolled to top before measuring stuff
   // `gatsby-plugin-transition-link` scrolls back to top in a `setTimeout()` which makes it delayed
@@ -2036,8 +2077,24 @@ const VirtualScrollbar = (_ref) => {
   }), active && /*#__PURE__*/React.createElement(FakeScroller, _extends({
     el: ref
   }, rest)), !config.hasGlobalCanvas && /*#__PURE__*/React.createElement(ResizeManager, {
+    reflow: requestReflow,
     resizeOnHeight: resizeOnHeight
   }));
 };
 
-export { GlobalCanvas, PerspectiveCameraScene, ScrollDom, ScrollDomPortal, ScrollScene, VirtualScrollbar, canvasStoreApi, config, useCanvas, useCanvasStore, useDelayedCanvas, useImgTagAsTexture, useScrollRig, useTextureLoader, utils };
+/**
+ * Public interface for ScrollRig
+ */
+
+const useScrollbar = () => {
+  const hasVirtualScrollbar = useCanvasStore(state => state.hasVirtualScrollbar);
+  const requestReflow = useCanvasStore(state => state.requestReflow);
+  const pageReflowCompleted = useCanvasStore(state => state.pageReflowCompleted);
+  return {
+    hasVirtualScrollbar,
+    reflow: requestReflow,
+    reflowCompleted: pageReflowCompleted
+  };
+};
+
+export { GlobalCanvas, PerspectiveCameraScene, ScrollDom, ScrollDomPortal, ScrollScene, VirtualScrollbar, canvasStoreApi, config, useCanvas, useCanvasStore, useDelayedCanvas, useImgTagAsTexture, useScrollRig, useScrollbar, useTextureLoader, utils };

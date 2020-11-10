@@ -1,1 +1,1 @@
-export * from "./VirtualScrollbar"
+export * from "./scrollbar/index"

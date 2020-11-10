@@ -1,41 +1,8 @@
-import _extends from '@babel/runtime/helpers/esm/extends';
 import _objectWithoutPropertiesLoose from '@babel/runtime/helpers/esm/objectWithoutPropertiesLoose';
-import React, { useRef, useEffect, useState, useLayoutEffect } from 'react';
+import _extends from '@babel/runtime/helpers/esm/extends';
 import create from 'zustand';
+import React, { useRef, useEffect, useState, useLayoutEffect } from 'react';
 import { useWindowSize } from '@react-hook/window-size';
-
-// Transient shared state for canvas components
-// usContext() causes re-rendering which can drop frames
-const config = {
-  debug: false,
-  planeSize: 1,
-  scrollLerp: 0.1,
-  // Linear interpolation - high performance easing
-  scrollRestDelta: 0.14,
-  // min delta to trigger animation frame on scroll
-  // Render priorities (highest = last render)
-  PRIORITY_GLOBAL: 100,
-  PRIORITY_VIEWPORTS: 10,
-  PRIORITY_SCISSORS: 20,
-  // Global rendering props
-  globalRender: false,
-  hasRenderQueue: false,
-  preloadQueue: [],
-  preRender: [],
-  postRender: [],
-  scissorQueue: [],
-  viewportQueue: [],
-  fbo: {},
-  hasVirtualScrollbar: false,
-  hasGlobalCanvas: false,
-  portalEl: null,
-  // z-index for <groups>
-  ORDER_TRANSITION: 6,
-  ORDER_LAB_CTA: 5,
-  ORDER_LAB_FG_BUBBLES: 4,
-  ORDER_LAB_CONTENT: 3,
-  ORDER_LAB_BG_BUBBLES: 2
-};
 
 /**
  * runtime check for requestIdleCallback
@@ -50,6 +17,37 @@ const requestIdleCallback = (callback, {
   } else {
     setTimeout(callback, 0);
   }
+};
+
+// Transient shared state for canvas components
+// usContext() causes re-rendering which can drop frames
+const config = {
+  debug: false,
+  // Global lerp settings
+  scrollLerp: 0.1,
+  // Linear interpolation - high performance easing
+  scrollRestDelta: 0.14,
+  // min delta to trigger animation frame on scroll
+  // Execution order for useFrames (highest = last render)
+  PRIORITY_SCISSORS: 1,
+  PRIORITY_VIEWPORTS: 1,
+  PRIORITY_GLOBAL: 1001,
+  // max renderOrder supported for scissors = 1000
+  // Scaling
+  scaleMultiplier: 1,
+  // scale pixels vs viewport units (1:1 by default)
+  // Global rendering props
+  globalRender: false,
+  preloadQueue: [],
+  preRender: [],
+  postRender: [],
+  scissorQueue: [],
+  viewportQueueBefore: [],
+  viewportQueueAfter: [],
+  hasVirtualScrollbar: false,
+  hasGlobalCanvas: false,
+  // portal for viewports
+  portalEl: null
 };
 
 function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return typeof key === "symbol" ? key : String(key); }
@@ -136,7 +134,7 @@ const [useCanvasStore, canvasStoreApi] = create(set => ({
     pixelRatio
   })),
   // Used to ask components to re-calculate their positions after a layout reflow
-  pageReflow: 0,
+  pageReflowRequested: 0,
   pageReflowCompleted: 0,
   requestReflow: () => {
     set(state => {
@@ -148,7 +146,7 @@ const [useCanvasStore, canvasStoreApi] = create(set => ({
       }
 
       return {
-        pageReflow: state.pageReflow + 1
+        pageReflowRequested: state.pageReflowRequested + 1
       };
     });
   },
@@ -160,6 +158,21 @@ const [useCanvasStore, canvasStoreApi] = create(set => ({
 }));
 
 /**
+ * Public interface for ScrollRig
+ */
+
+const useScrollbar = () => {
+  const hasVirtualScrollbar = useCanvasStore(state => state.hasVirtualScrollbar);
+  const requestReflow = useCanvasStore(state => state.requestReflow);
+  const pageReflowCompleted = useCanvasStore(state => state.pageReflowCompleted);
+  return {
+    hasVirtualScrollbar,
+    reflow: requestReflow,
+    reflowCompleted: pageReflowCompleted
+  };
+};
+
+/**
  * Manages Scroll rig resize events by trigger a reflow instead of individual resize listeners in each component
  * The order is carefully scripted:
  *  1. reflow() will cause VirtualScrollbar to recalculate positions
@@ -168,20 +181,21 @@ const [useCanvasStore, canvasStoreApi] = create(set => ({
  */
 
 const ResizeManager = ({
-  useScrollRig,
+  reflow,
   resizeOnHeight = true,
   resizeOnWebFontLoaded = true
 }) => {
-  const mounted = useRef(false);
-  const [windowWidth, windowHeight] = useWindowSize();
-  const reflow = useCanvasStore(state => state.requestReflow); // The reason for not resizing on height on "mobile" is because the height changes when the URL bar disapears in the browser chrome
+  const mounted = useRef(false); // must be debounced more than the GlobalCanvas so all components have the correct value from useThree({ size })
+
+  const [windowWidth, windowHeight] = useWindowSize({
+    wait: 300
+  }); // The reason for not resizing on height on "mobile" is because the height changes when the URL bar disapears in the browser chrome
   // Can we base this on something better - or is there another way to avoid?
 
-  const height = resizeOnHeight ? null : windowHeight; // Detect only resize events
+  const height = resizeOnHeight ? windowHeight : null; // Detect only resize events
 
   useEffect(() => {
     if (mounted.current) {
-      console.log('ResizeManager.reflow');
       reflow();
     } else {
       mounted.current = true;
@@ -223,7 +237,7 @@ const FakeScroller = ({
   onUpdate,
   threshold = 100
 }) => {
-  const pageReflow = useCanvasStore(state => state.pageReflow);
+  const pageReflowRequested = useCanvasStore(state => state.pageReflowRequested);
   const triggerReflowCompleted = useCanvasStore(state => state.triggerReflowCompleted);
   const heightEl = useRef();
   const [fakeHeight, setFakeHeight] = useState();
@@ -456,7 +470,7 @@ const FakeScroller = ({
 
   useEffect(() => {
     handleResize();
-  }, [pageReflow]);
+  }, [pageReflowRequested]);
   return /*#__PURE__*/React.createElement("div", {
     className: "js-fake-scroll",
     ref: heightEl,
@@ -479,11 +493,10 @@ const VirtualScrollbar = (_ref) => {
       rest = _objectWithoutPropertiesLoose(_ref, ["disabled", "resizeOnHeight", "children"]);
 
   const ref = useRef();
-  const [active, setActive] = useState(false); // FakeScroller wont trigger resize without this here.. whyyyy?
-  // David from the future: due to code splitting maybe? two instances of the store?
-  // eslint-disable-next-line no-unused-vars
+  const [active, setActive] = useState(false); // FakeScroller wont trigger resize without touching the store here..
+  // due to code splitting maybe? two instances of the store?
 
-  const pageReflow = useCanvasStore(state => state.pageReflow);
+  const requestReflow = useCanvasStore(state => state.requestReflow);
   const setVirtualScrollbar = useCanvasStore(state => state.setVirtualScrollbar); // NOT SURE THIS IS NEEDED ANY LONGER
   // Make sure we are scrolled to top before measuring stuff
   // `gatsby-plugin-transition-link` scrolls back to top in a `setTimeout()` which makes it delayed
@@ -524,8 +537,9 @@ const VirtualScrollbar = (_ref) => {
   }), active && /*#__PURE__*/React.createElement(FakeScroller, _extends({
     el: ref
   }, rest)),  /*#__PURE__*/React.createElement(ResizeManager, {
+    reflow: requestReflow,
     resizeOnHeight: resizeOnHeight
   }));
 };
 
-export { VirtualScrollbar };
+export { VirtualScrollbar, useScrollbar };
