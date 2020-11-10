@@ -12,7 +12,10 @@ export { config } from './config'
 export { useCanvasStore, canvasStoreApi } from './store'
 export { useImgTagAsTexture, useTextureLoader } from './useImgTagAsTexture'
 export { utils }
-export { VirtualScrollbar } from './VirtualScrollbar'
+
+export { VirtualScrollbar } from './scrollbar/VirtualScrollbar'
+export { useScrollbar } from './scrollbar/useScrollbar'
+
 // export {
 //   //
 //   // Public & battle-tested

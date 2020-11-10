@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState, useLayoutEffect } from 'react'
 import PropTypes from 'prop-types'
 
-import config from './config'
-import useCanvasStore from './store'
-import ResizeManager from './ResizeManager'
+import config from '../config'
+import useCanvasStore from '../store'
+import ResizeManager from '../ResizeManager'
 
 const DEFAULT_LERP = 0.1
 
@@ -12,7 +12,7 @@ function _lerp(v0, v1, t) {
 }
 
 const FakeScroller = ({ el, lerp = DEFAULT_LERP, restDelta = 1, scrollY = null, onUpdate, threshold = 100 }) => {
-  const pageReflow = useCanvasStore((state) => state.pageReflow)
+  const pageReflowRequested = useCanvasStore((state) => state.pageReflowRequested)
   const triggerReflowCompleted = useCanvasStore((state) => state.triggerReflowCompleted)
   const heightEl = useRef()
 
@@ -220,7 +220,7 @@ const FakeScroller = ({ el, lerp = DEFAULT_LERP, restDelta = 1, scrollY = null, 
 
   useEffect(() => {
     handleResize()
-  }, [pageReflow])
+  }, [pageReflowRequested])
 
   return <div className="js-fake-scroll" ref={heightEl} style={{ height: fakeHeight }}></div>
 }
@@ -245,11 +245,9 @@ const VirtualScrollbar = ({ disabled, resizeOnHeight, children, ...rest }) => {
   const ref = useRef()
   const [active, setActive] = useState(false)
 
-  // FakeScroller wont trigger resize without this here.. whyyyy?
-  // David from the future: due to code splitting maybe? two instances of the store?
-  // eslint-disable-next-line no-unused-vars
-  const pageReflow = useCanvasStore((state) => state.pageReflow)
-
+  // FakeScroller wont trigger resize without touching the store here..
+  // due to code splitting maybe? two instances of the store?
+  const requestReflow = useCanvasStore((state) => state.requestReflow)
   const setVirtualScrollbar = useCanvasStore((state) => state.setVirtualScrollbar)
 
   // NOT SURE THIS IS NEEDED ANY LONGER
@@ -293,7 +291,7 @@ const VirtualScrollbar = ({ disabled, resizeOnHeight, children, ...rest }) => {
       {/* Always render children to prevent double mount */}
       {children({ ref, style })}
       {active && <FakeScroller el={ref} {...rest} />}
-      {!config.hasGlobalCanvas && <ResizeManager resizeOnHeight={resizeOnHeight} />}
+      {!config.hasGlobalCanvas && <ResizeManager reflow={requestReflow} resizeOnHeight={resizeOnHeight} />}
     </>
   )
 }
