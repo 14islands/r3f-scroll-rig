@@ -14,13 +14,18 @@ import ResizeManager from './ResizeManager'
 
 import CanvasErrorBoundary from './CanvasErrorBoundary'
 
-export const GlobalCanvas = ({ children, gl, resizeOnHeight, ...props }) => {
+export const GlobalCanvas = ({ children, gl, resizeOnHeight, noEvents = true, config: confOverrides, ...props }) => {
   const pixelRatio = useCanvasStore((state) => state.pixelRatio)
+  const requestReflow = useCanvasStore((state) => state.requestReflow)
   const { size } = useThree()
 
   const cameraDistance = useMemo(() => {
     return size ? Math.max(size.width, size.height) : Math.max(window.innerWidth, window.innerHeight)
   }, [size])
+
+  useEffect(() => {
+    Object.assign(config, confOverrides)
+  }, [confOverrides])
 
   useEffect(() => {
     // flag that global canvas is active
@@ -71,7 +76,7 @@ export const GlobalCanvas = ({ children, gl, resizeOnHeight, ...props }) => {
         ...gl,
       }}
       colorManagement={true} // ACESFilmic seems incorrect for non-HDR settings - images get weird colors?
-      noEvents={true}
+      noEvents={noEvents}
       resize={{ scroll: false, debounce: 0, polyfill: ResizeObserver }}
       // concurrent // zustand (state mngr) is not compatible with concurrent mode yet
       orthographic
@@ -88,7 +93,7 @@ export const GlobalCanvas = ({ children, gl, resizeOnHeight, ...props }) => {
         right: 0,
         height: '100vh', // use 100vh to avoid resize on iOS when url bar goes away
         zIndex: 1, // to sit on top of the page-transition-links styles
-        pointerEvents: 'none',
+        pointerEvents: noEvents ? 'none' : 'auto',
         transform: 'translateZ(0)',
       }}
       {...props}
@@ -96,7 +101,7 @@ export const GlobalCanvas = ({ children, gl, resizeOnHeight, ...props }) => {
       <GlobalRenderer useScrollRig={useScrollRig}>{children}</GlobalRenderer>
       {config.debug && <StatsDebug />}
       <PerformanceMonitor />
-      <ResizeManager resizeOnHeight={resizeOnHeight} />
+      <ResizeManager reflow={requestReflow} resizeOnHeight={resizeOnHeight} />
     </Canvas>
   )
 }
@@ -104,6 +109,8 @@ export const GlobalCanvas = ({ children, gl, resizeOnHeight, ...props }) => {
 GlobalCanvas.propTypes = {
   gl: PropTypes.object,
   resizeOnHeight: PropTypes.bool,
+  noEvents: PropTypes.bool,
+  config: PropTypes.bool, // scrollrig config overrides
 }
 
 const GlobalCanvasIfSupported = ({ onError, ...props }) => {
