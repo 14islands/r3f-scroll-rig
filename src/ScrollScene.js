@@ -25,8 +25,6 @@ let ScrollScene = ({
   margin = 14, // Margin outside viewport to avoid clipping vertex displacement (px)
   inViewportMargin, // Margin outside viewport to avoid clipping vertex displacement (px)
   visible = true,
-  layoutOffset = () => {},
-  layoutLerp = 0.1,
   scissor = true,
   debug = false,
   softDirection = false, // experimental
@@ -67,7 +65,7 @@ let ScrollScene = ({
       viewport: 0,
       visibility: 0,
     },
-    prevBounds: { y: 0, x: 0, direction: 1, directionTime: 0 },
+    prevBounds: { y: 0, direction: 1, directionTime: 0 },
   }).current
 
   useEffect(() => {
@@ -119,7 +117,6 @@ let ScrollScene = ({
     // prevents ghost lerp on first render
     if (transient.isFirstRender) {
       prevBounds.y = top - bounds.centerOffset
-      prevBounds.x = bounds.x
       transient.isFirstRender = false
     }
 
@@ -134,14 +131,10 @@ let ScrollScene = ({
   // RENDER FRAME
   useFrame(({ gl, camera, clock }) => {
     const { bounds, prevBounds } = transient
-    // const clockDelta = clock.getDelta()
     const time = clock.getElapsedTime()
 
-    const layoutOffsetX = bounds.x + (layoutOffset(bounds)?.x || 0)
-    const layoutOffsetY = layoutOffset(bounds)?.y || 0
-
     // Find new Y based on cached position and scroll
-    const y = bounds.top - scrollY.get() - bounds.centerOffset + layoutOffsetY
+    const y = bounds.top - scrollY.get() - bounds.centerOffset
 
     // if previously hidden and now visible, update previous position to not get ghost easing when made visible
     if (scene.current.visible && !bounds.inViewport) {
@@ -165,11 +158,10 @@ let ScrollScene = ({
     }
 
     // frame delta
-    const delta = Math.abs(prevBounds.y - y) + Math.abs(prevBounds.x - layoutOffsetX)
+    const delta = Math.abs(prevBounds.y - y)
 
     // Lerp the distance to simulate easing
     const lerpY = MathUtils.lerp(prevBounds.y, y, yLerp + lerpOffset)
-    const lerpX = MathUtils.lerp(prevBounds.x, layoutOffsetX, layoutLerp)
 
     // Abort if element not in screen
     const scrollMargin = inViewportMargin || size.height * 0.33
@@ -181,7 +173,6 @@ let ScrollScene = ({
     bounds.inViewport = !isOffscreen
     setInViewportProp && requestIdleCallback(() => transient.mounted && setInViewport(!isOffscreen))
     prevBounds.y = lerpY
-    prevBounds.x = lerpX
 
     // hide/show scene
     if (isOffscreen && scene.current.visible) {
@@ -193,7 +184,6 @@ let ScrollScene = ({
     if (scene.current.visible) {
       // move scene
       scene.current.position.y = -lerpY * config.scaleMultiplier
-      scene.current.position.x = lerpX * config.scaleMultiplier
 
       const positiveYUpBottom = size.height * 0.5 - (lerpY + scale.pixelHeight * 0.5) // inverse Y
       if (scissor) {
@@ -247,11 +237,9 @@ let ScrollScene = ({
             el,
             lerp,
             lerpOffset,
-            layoutLerp,
             margin,
             visible,
             renderOrder,
-            layoutOffset,
             // new props
             scale,
             state: transient, // @deprecated
@@ -274,10 +262,8 @@ ScrollScene.propTypes = {
   el: PropTypes.object, // DOM element to track,
   lerp: PropTypes.number, // Base lerp ratio
   lerpOffset: PropTypes.number, // Offset applied to `lerp`
-  layoutLerp: PropTypes.number, // lerp ratio used when translating offset or layout changes
   renderOrder: PropTypes.number, // threejs render order
   visible: PropTypes.bool, // threejs render order,
-  layoutOffset: PropTypes.func, // {x,y} to translate
   margin: PropTypes.number, // custom margin around DOM el to avoid clipping
   scissor: PropTypes.bool, // render using scissor test for better peformance
   debug: PropTypes.bool, // show debug mesh

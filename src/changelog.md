@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.5.0
+
+### ScrollScene
+
+- Deprecated `layoutOffset` and `layoutLerp`. Should be implemented by child component.
+
 ## v1.4.0
 
 ### ScrollScene

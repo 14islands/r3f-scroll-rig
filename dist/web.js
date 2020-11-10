@@ -878,8 +878,6 @@ let ScrollScene = (_ref) => {
     inViewportMargin,
     // Margin outside viewport to avoid clipping vertex displacement (px)
     visible = true,
-    layoutOffset = () => {},
-    layoutLerp = 0.1,
     scissor = true,
     debug = false,
     softDirection = false,
@@ -887,7 +885,7 @@ let ScrollScene = (_ref) => {
     setInViewportProp = false,
     updateLayout = 0
   } = _ref,
-      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "margin", "inViewportMargin", "visible", "layoutOffset", "layoutLerp", "scissor", "debug", "softDirection", "setInViewportProp", "updateLayout"]);
+      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "margin", "inViewportMargin", "visible", "scissor", "debug", "softDirection", "setInViewportProp", "updateLayout"]);
 
   const scene = useRef();
   const group = useRef();
@@ -929,7 +927,6 @@ let ScrollScene = (_ref) => {
     },
     prevBounds: {
       y: 0,
-      x: 0,
       direction: 1,
       directionTime: 0
     }
@@ -984,7 +981,6 @@ let ScrollScene = (_ref) => {
 
     if (transient.isFirstRender) {
       prevBounds.y = top - bounds.centerOffset;
-      prevBounds.x = bounds.x;
       transient.isFirstRender = false;
     }
 
@@ -1001,18 +997,13 @@ let ScrollScene = (_ref) => {
     camera,
     clock
   }) => {
-    var _layoutOffset, _layoutOffset2;
-
     const {
       bounds,
       prevBounds
-    } = transient; // const clockDelta = clock.getDelta()
+    } = transient;
+    const time = clock.getElapsedTime(); // Find new Y based on cached position and scroll
 
-    const time = clock.getElapsedTime();
-    const layoutOffsetX = bounds.x + (((_layoutOffset = layoutOffset(bounds)) == null ? void 0 : _layoutOffset.x) || 0);
-    const layoutOffsetY = ((_layoutOffset2 = layoutOffset(bounds)) == null ? void 0 : _layoutOffset2.y) || 0; // Find new Y based on cached position and scroll
-
-    const y = bounds.top - scrollY.get() - bounds.centerOffset + layoutOffsetY; // if previously hidden and now visible, update previous position to not get ghost easing when made visible
+    const y = bounds.top - scrollY.get() - bounds.centerOffset; // if previously hidden and now visible, update previous position to not get ghost easing when made visible
 
     if (scene.current.visible && !bounds.inViewport) {
       prevBounds.y = y;
@@ -1038,18 +1029,16 @@ let ScrollScene = (_ref) => {
     } // frame delta
 
 
-    const delta = Math.abs(prevBounds.y - y) + Math.abs(prevBounds.x - layoutOffsetX); // Lerp the distance to simulate easing
+    const delta = Math.abs(prevBounds.y - y); // Lerp the distance to simulate easing
 
-    const lerpY = Math$1.lerp(prevBounds.y, y, yLerp + lerpOffset);
-    const lerpX = Math$1.lerp(prevBounds.x, layoutOffsetX, layoutLerp); // Abort if element not in screen
+    const lerpY = Math$1.lerp(prevBounds.y, y, yLerp + lerpOffset); // Abort if element not in screen
 
     const scrollMargin = inViewportMargin || size.height * 0.33;
     const isOffscreen = lerpY + size.height * 0.5 + scale.pixelHeight * 0.5 < -scrollMargin || lerpY + size.height * 0.5 - scale.pixelHeight * 0.5 > size.height + scrollMargin; // store top value for next frame
 
     bounds.inViewport = !isOffscreen;
     setInViewportProp && requestIdleCallback(() => transient.mounted && setInViewport(!isOffscreen));
-    prevBounds.y = lerpY;
-    prevBounds.x = lerpX; // hide/show scene
+    prevBounds.y = lerpY; // hide/show scene
 
     if (isOffscreen && scene.current.visible) {
       scene.current.visible = false;
@@ -1060,7 +1049,6 @@ let ScrollScene = (_ref) => {
     if (scene.current.visible) {
       // move scene
       scene.current.position.y = -lerpY * config.scaleMultiplier;
-      scene.current.position.x = lerpX * config.scaleMultiplier;
       const positiveYUpBottom = size.height * 0.5 - (lerpY + scale.pixelHeight * 0.5); // inverse Y
 
       if (scissor) {
@@ -1117,11 +1105,9 @@ let ScrollScene = (_ref) => {
     el,
     lerp,
     lerpOffset,
-    layoutLerp,
     margin,
     visible,
     renderOrder,
-    layoutOffset,
     // new props
     scale,
     state: transient,

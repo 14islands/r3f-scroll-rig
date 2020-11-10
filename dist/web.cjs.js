@@ -1004,10 +1004,6 @@ exports.ScrollScene = function ScrollScene(_ref) {
       inViewportMargin = _ref.inViewportMargin,
       _ref$visible = _ref.visible,
       visible = _ref$visible === void 0 ? true : _ref$visible,
-      _ref$layoutOffset = _ref.layoutOffset,
-      layoutOffset = _ref$layoutOffset === void 0 ? function () {} : _ref$layoutOffset,
-      _ref$layoutLerp = _ref.layoutLerp,
-      layoutLerp = _ref$layoutLerp === void 0 ? 0.1 : _ref$layoutLerp,
       _ref$scissor = _ref.scissor,
       scissor = _ref$scissor === void 0 ? true : _ref$scissor,
       _ref$debug = _ref.debug,
@@ -1018,7 +1014,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
       setInViewportProp = _ref$setInViewportPro === void 0 ? false : _ref$setInViewportPro,
       _ref$updateLayout = _ref.updateLayout,
       updateLayout = _ref$updateLayout === void 0 ? 0 : _ref$updateLayout,
-      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "margin", "inViewportMargin", "visible", "layoutOffset", "layoutLerp", "scissor", "debug", "softDirection", "setInViewportProp", "updateLayout"]);
+      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "margin", "inViewportMargin", "visible", "scissor", "debug", "softDirection", "setInViewportProp", "updateLayout"]);
 
   var scene = React.useRef();
   var group = React.useRef();
@@ -1069,7 +1065,6 @@ exports.ScrollScene = function ScrollScene(_ref) {
     },
     prevBounds: {
       y: 0,
-      x: 0,
       direction: 1,
       directionTime: 0
     }
@@ -1127,7 +1122,6 @@ exports.ScrollScene = function ScrollScene(_ref) {
 
     if (_transient.isFirstRender) {
       prevBounds.y = top - bounds.centerOffset;
-      prevBounds.x = bounds.x;
       _transient.isFirstRender = false;
     }
 
@@ -1140,19 +1134,14 @@ exports.ScrollScene = function ScrollScene(_ref) {
   }, [pageReflowCompleted, updateLayout]); // RENDER FRAME
 
   reactThreeFiber.useFrame(function (_ref2) {
-    var _layoutOffset, _layoutOffset2;
-
     var gl = _ref2.gl,
         camera = _ref2.camera,
         clock = _ref2.clock;
     var bounds = _transient.bounds,
-        prevBounds = _transient.prevBounds; // const clockDelta = clock.getDelta()
+        prevBounds = _transient.prevBounds;
+    var time = clock.getElapsedTime(); // Find new Y based on cached position and scroll
 
-    var time = clock.getElapsedTime();
-    var layoutOffsetX = bounds.x + (((_layoutOffset = layoutOffset(bounds)) == null ? void 0 : _layoutOffset.x) || 0);
-    var layoutOffsetY = ((_layoutOffset2 = layoutOffset(bounds)) == null ? void 0 : _layoutOffset2.y) || 0; // Find new Y based on cached position and scroll
-
-    var y = bounds.top - scrollY.get() - bounds.centerOffset + layoutOffsetY; // if previously hidden and now visible, update previous position to not get ghost easing when made visible
+    var y = bounds.top - scrollY.get() - bounds.centerOffset; // if previously hidden and now visible, update previous position to not get ghost easing when made visible
 
     if (scene.current.visible && !bounds.inViewport) {
       prevBounds.y = y;
@@ -1178,10 +1167,9 @@ exports.ScrollScene = function ScrollScene(_ref) {
     } // frame delta
 
 
-    var delta = Math.abs(prevBounds.y - y) + Math.abs(prevBounds.x - layoutOffsetX); // Lerp the distance to simulate easing
+    var delta = Math.abs(prevBounds.y - y); // Lerp the distance to simulate easing
 
-    var lerpY = three.Math.lerp(prevBounds.y, y, yLerp + lerpOffset);
-    var lerpX = three.Math.lerp(prevBounds.x, layoutOffsetX, layoutLerp); // Abort if element not in screen
+    var lerpY = three.Math.lerp(prevBounds.y, y, yLerp + lerpOffset); // Abort if element not in screen
 
     var scrollMargin = inViewportMargin || size.height * 0.33;
     var isOffscreen = lerpY + size.height * 0.5 + scale.pixelHeight * 0.5 < -scrollMargin || lerpY + size.height * 0.5 - scale.pixelHeight * 0.5 > size.height + scrollMargin; // store top value for next frame
@@ -1190,8 +1178,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
     setInViewportProp && requestIdleCallback(function () {
       return _transient.mounted && setInViewport(!isOffscreen);
     });
-    prevBounds.y = lerpY;
-    prevBounds.x = lerpX; // hide/show scene
+    prevBounds.y = lerpY; // hide/show scene
 
     if (isOffscreen && scene.current.visible) {
       scene.current.visible = false;
@@ -1202,7 +1189,6 @@ exports.ScrollScene = function ScrollScene(_ref) {
     if (scene.current.visible) {
       // move scene
       scene.current.position.y = -lerpY * config.scaleMultiplier;
-      scene.current.position.x = lerpX * config.scaleMultiplier;
       var positiveYUpBottom = size.height * 0.5 - (lerpY + scale.pixelHeight * 0.5); // inverse Y
 
       if (scissor) {
@@ -1261,11 +1247,9 @@ exports.ScrollScene = function ScrollScene(_ref) {
     el: el,
     lerp: lerp,
     lerpOffset: lerpOffset,
-    layoutLerp: layoutLerp,
     margin: margin,
     visible: visible,
     renderOrder: renderOrder,
-    layoutOffset: layoutOffset,
     // new props
     scale: scale,
     state: _transient,

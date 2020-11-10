@@ -2,7 +2,7 @@ import React, { useRef, Suspense } from 'react'
 import './App.css'
 
 import { GlobalCanvas, VirtualScrollbar } from '@14islands/r3f-scroll-rig'
-import { Loader, useProgress } from '@react-three/drei'
+import { Loader } from '@react-three/drei'
 
 import PerspectiveCamera from './components/PerspectiveCamera'
 import OrthographicCamera from './components/OrthographicCamera'
@@ -28,10 +28,6 @@ import RotatingImage from './components/image/RotatingImage'
 
 function App() {
   const el = useRef()
-  const p = useProgress()
-
-  console.log('p', p)
-
   return (
     <>
       <Suspense fallback={null}>
