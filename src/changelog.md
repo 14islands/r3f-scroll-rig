@@ -1,6 +1,17 @@
 # Changelog
 
-## v2.1.0
+## v1.4.0
+
+### ScrollScene
+
+- Deprecated `state` prop passed to child. Replaced by `scrollState`
+
+### PerspectiveCameraScene
+
+- Deprecated `state` prop passed to child. Replaced by `scrollState`
+- Accepts `scaleMultiplier` prop which overrides global setting
+
+## v1.3.0
 
 ### GlobalCanvas
 
@@ -19,14 +30,14 @@
 
 - Fix broken resize logic under some race conditions
 
-## v2.0.0
+## v1.2.0
 
 ### GlobalRenderer
 
 - Viewport scenes can now renderOnTop to render after global queue
 - depth is no longer disabled
 - config.fbo is removed, implement in your app instead
-- `renderScissor`is deprecated - to complex - not enough perf gain.
+- `renderScissor`is deprecated
 
 ### PerspectiveScrollScene
 
