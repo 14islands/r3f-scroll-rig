@@ -7,7 +7,7 @@ import { useGLTF, Shadow } from '@react-three/drei'
 
 // softShadows()
 
-const ModelMesh = ({ url, scale, camera, scene, state, parallax = 0, size = 1, position = [0, 0, 0] }) => {
+const ModelMesh = ({ url, scale, camera, scene, scrollState, parallax = 0, size = 1, position = [0, 0, 0] }) => {
   const mesh = useRef()
   const light = useRef()
   const { requestFrame, preloadScene } = useScrollRig()
@@ -37,16 +37,16 @@ const ModelMesh = ({ url, scale, camera, scene, state, parallax = 0, size = 1, p
   }, [mesh])
 
   useFrame(() => {
-    if (!state.bounds.inViewport) return
+    if (!scrollState.inViewport) return
 
-    mesh.current.rotation.y = Math.PI / 2 + state.bounds.progress * Math.PI * 1
-    mesh.current.rotation.x = Math.PI / 3 - state.bounds.progress * Math.PI * 0.5 * 1
+    mesh.current.rotation.y = Math.PI / 2 + scrollState.progress * Math.PI * 1
+    mesh.current.rotation.x = Math.PI / 3 - scrollState.progress * Math.PI * 0.5 * 1
 
-    // light.current.intensity = MathUtils.lerp(0.0, 1.0, state.bounds.viewport*2)
-    //   const parallaxProgress = state.bounds.progress * 2 - 1
+    // light.current.intensity = MathUtils.lerp(0.0, 1.0, scrollState.viewport*2)
+    //   const parallaxProgress = scrollState.progress * 2 - 1
     //   mesh.current.position.y = parallax * parallaxProgress
 
-    if (state.bounds.inViewport) {
+    if (scrollState.inViewport) {
       requestFrame()
     }
   })
@@ -122,7 +122,7 @@ const ModelViewport = ({ src, aspectRatio, url, parallax, size, position, render
   const ref = useRef()
 
   useCanvas(
-    <PerspectiveCameraScene el={ref} debug={false} renderOnTop={renderOnTop}>
+    <PerspectiveCameraScene el={ref} debug={false} renderOnTop={renderOnTop} scaleMultiplier={0.001}>
       {(props) => {
         return <ModelMesh {...props} url={url} parallax={parallax} size={size} position={position} />
       }}

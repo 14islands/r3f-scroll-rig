@@ -4,27 +4,27 @@ import { useFrame } from 'react-three-fiber'
 import { ScrollScene } from '@14islands/r3f-scroll-rig'
 
 // Sticky mesh that covers full viewport size
-export const StickyMesh = ({ children, state, lerp, scale, priority, stickyLerp = 1.0 }) => {
+export const StickyMesh = ({ children, scrollState, lerp, scale, priority, stickyLerp = 1.0 }) => {
   const mesh = useRef()
   const local = useRef({ lerp: 1 }).current
 
   useFrame(() => {
-    if (!state.bounds.inViewport) return
+    if (!scrollState.inViewport) return
 
     //  move to top of sticky area
-    let yTop = (state.bounds.height / 2 - state.bounds.window.height * 0.5) *  scale.multiplier
-    let yBottom = (-state.bounds.height / 2 + state.bounds.window.height * 0.5) * scale.multiplier
-    let ySticky = yTop - (state.bounds.viewport - 1) * state.bounds.window.height * scale.multiplier
+    let yTop = (scale.height / 2 - scale.viewportHeight * 0.5)
+    let yBottom = (-scale.height / 2 + scale.viewportHeight * 0.5)
+    let ySticky = yTop - (scrollState.viewport - 1) * scale.viewportHeight
 
     let y, targetLerp
 
     // enter
-    if (state.bounds.viewport < 1) {
+    if (scrollState.viewport < 1) {
       y = yTop
       targetLerp = 1
     }
     // sticky
-    else if (state.bounds.viewport > 1 && state.bounds.visibility < 1) {
+    else if (scrollState.viewport > 1 && scrollState.visibility < 1) {
       y = ySticky
       targetLerp = stickyLerp
     }
@@ -43,13 +43,14 @@ export const StickyMesh = ({ children, state, lerp, scale, priority, stickyLerp 
 }
 
 export const renderAsSticky = (children, { stickyLerp, scaleToViewport }) => {
-  return ({ scale, state, ...props }) => {
+  return ({ scale, ...props }) => {
     // set child's scale to 100vh/100vw instead of the full DOM el
     // the DOM el should be taller to indicate how far the scene stays sticky
+    let childScale = scale
     if (scaleToViewport) {
-      scale = { ...scale, width: state.bounds.window.width * scale.multiplier, height: state.bounds.window.height * scale.multiplier}
+      childScale = { ...scale, width: scale.viewportWidth, height: scale.viewportHeight }
     }
-    return <StickyMesh state={state} scale={scale} stickyLerp={stickyLerp} {...props}>{children({scale, state, ...props})}</StickyMesh>
+    return <StickyMesh scale={scale} stickyLerp={stickyLerp} {...props}>{children({scale: childScale, ...props})}</StickyMesh>
   }
 }
 

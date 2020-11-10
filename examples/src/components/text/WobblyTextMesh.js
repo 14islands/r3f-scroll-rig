@@ -5,14 +5,14 @@ import { MeshWobbleMaterial } from '@react-three/drei'
 
 import WebGLText from './WebGLText'
 
-const WobblyTextMesh = ({ children, state, scale, el, font }) => {
+const WobblyTextMesh = ({ children, scrollState, scale, el, font }) => {
   const material = useResource()
   const { requestFrame } = useScrollRig()
 
   useFrame(() => {
-    if (material.current && state.bounds.inViewport) {
+    if (material.current && scrollState.inViewport) {
       requestFrame()
-      material.current.factor = Math.max(0, state.bounds.progress - 0.5) * 2
+      material.current.factor = Math.max(0, scrollState.progress - 0.5) * 2
     }
   })
 

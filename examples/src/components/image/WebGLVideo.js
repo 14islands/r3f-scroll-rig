@@ -4,7 +4,7 @@ import { useFrame, useThree } from 'react-three-fiber'
 
 import { LinearFilter, VideoTexture, sRGBEncoding, Math as MathUtils } from 'three'
 
-const WebGLVideo = ({ image, scale, state, scene }) => {
+const WebGLVideo = ({ image, scale, scrollState, scene }) => {
   const material = useRef()
   const mesh = useRef()
   const { requestFrame, pixelRatio, preloadScene } = useScrollRig()
@@ -37,7 +37,7 @@ const WebGLVideo = ({ image, scale, state, scene }) => {
   }, [])
 
   useFrame(({clock}) => {
-    if (!state.bounds.inViewport) return
+    if (!scrollState.inViewport) return
     // texture && (texture.needsUpdate = true)
     // if (material.current && material.current.map) {
     //   material.current.map.needsUpdate = true

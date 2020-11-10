@@ -3,13 +3,13 @@ import { useFrame } from 'react-three-fiber'
 import { ScrollScene } from '@14islands/r3f-scroll-rig'
 
 // Sticky mesh that covers full viewport size
-export const ParallaxMesh = ({ children, state, scale, parallax }) => {
+export const ParallaxMesh = ({ children, scrollState, scale, parallax }) => {
   const mesh = useRef()
 
   useFrame(() => {
-    if (!state.bounds.inViewport) return
+    if (!scrollState.inViewport) return
 
-    const parallaxProgress = state.bounds.progress * 2 - 1
+    const parallaxProgress = scrollState.progress * 2 - 1
     mesh.current.position.y = parallax * parallaxProgress * scale.multiplier
   })
 

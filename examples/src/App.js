@@ -2,7 +2,7 @@ import React, { useRef, Suspense } from 'react'
 import './App.css'
 
 import { GlobalCanvas, VirtualScrollbar } from '@14islands/r3f-scroll-rig'
-import { Loader } from '@react-three/drei'
+import { Loader, useProgress } from '@react-three/drei'
 
 import PerspectiveCamera from './components/PerspectiveCamera'
 import OrthographicCamera from './components/OrthographicCamera'
@@ -28,6 +28,10 @@ import RotatingImage from './components/image/RotatingImage'
 
 function App() {
   const el = useRef()
+  const p = useProgress()
+
+  console.log('p', p)
+
   return (
     <>
       <Suspense fallback={null}>
@@ -44,7 +48,7 @@ function App() {
               </header>
               <main>
                 <Text>A ScrollScene with a Cube mesh inside</Text>
-                <div style={{ margin: '20vw auto 0', width: '80vw', height: '80vw', border: '1px solid red' }}>
+                <div style={{ margin: '20vw auto 0', width: '80vw', height: '80vw' }}>
                   <InlineBox />
                 </div>
 

@@ -4,7 +4,7 @@ import { Color, Vector2 } from 'three'
 import { useFrame, useThree } from 'react-three-fiber'
 
 
-const WebGLImage = ({ image, scale, state, scene, vertexShader, fragmentShader, invalidateFrameLoop = false }) => {
+const WebGLImage = ({ image, scale, scrollState, scene, vertexShader, fragmentShader, invalidateFrameLoop = false }) => {
   const material = useRef()
   const mesh = useRef()
   const { requestFrame, pixelRatio, preloadScene } = useScrollRig()
@@ -40,17 +40,19 @@ const WebGLImage = ({ image, scale, state, scene, vertexShader, fragmentShader, 
   }, [size])
 
   useFrame(() => {
-    if (!state.bounds.inViewport) return
+    if (!scrollState.inViewport) return
 
     material.current.uniforms.u_time.value += 0.01
+    
     // px velocity
-    material.current.uniforms.u_velocity.value = state.bounds.velocity
+    // material.current.uniforms.u_velocity.value = scrollState.velocity
+
     // percent of total visible distance that was scrolled (0 = just outside bottom of screen, 1 = just outside top of screen)
-    material.current.uniforms.u_progress.value = state.bounds.progress
+    material.current.uniforms.u_progress.value = scrollState.progress
     // percent of item height in view
-    material.current.uniforms.u_visibility.value = state.bounds.visibility
+    material.current.uniforms.u_visibility.value = scrollState.visibility
     // percent of window height scrolled since visible
-    material.current.uniforms.u_viewport.value = state.bounds.viewport
+    material.current.uniforms.u_viewport.value = scrollState.viewport
 
     if (invalidateFrameLoop) requestFrame()
  })

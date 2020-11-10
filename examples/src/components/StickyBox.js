@@ -1,34 +1,34 @@
 import React, { useRef } from 'react'
-import { useScrollRig, useCanvas, config } from '@14islands/r3f-scroll-rig'
+import { useScrollRig, useCanvas } from '@14islands/r3f-scroll-rig'
 import { useFrame } from 'react-three-fiber'
 import { useSpring, animated } from 'react-spring/three'
 
 import StickyScrollScene from './StickyScrollScene'
 
 
-const BoxMesh = ({scale, state, lerp }) => {
+const BoxMesh = ({scale, scrollState, lerp }) => {
   const mesh = useRef()
   const { requestFrame } = useScrollRig()
 
   const size = scale.width * 0.25
 
-  const [rotationProps, set] = useSpring(() => ({ scale: [0, 0, 0], position: [0, 0, 0], config: { tension: 100, friction: 10, velocity: -5, precision: 0.01 * config.scaleMultiplier } }))
+  const [rotationProps, set] = useSpring(() => ({ scale: [0, 0, 0], position: [0, 0, 0], config: { tension: 100, friction: 10, velocity: -5, precision: 0.01 * scale.multiplier } }))
 
   useFrame(() => {
-    if (!state.bounds.inViewport) return
+    if (!scrollState.inViewport) return
 
     // enter
-    if (state.bounds.viewport < 1) {
+    if (scrollState.viewport < 1) {
       set({
         scale: [0.5, 0.5, 0.5],
         position: [0, size * 0.5, 0]
       })
     }
     // sticky
-    else if (state.bounds.viewport > 1 && state.bounds.visibility < 1) {
+    else if (scrollState.viewport > 1 && scrollState.visibility < 1) {
       set({
         scale: [1, 1, 1],
-        position: [-state.bounds.width * config.scaleMultiplier * 0.25 , 0, 0]
+        position: [-scale.viewportWidth * 0.25 , 0, 0]
       })
     }
     // exit
@@ -39,8 +39,8 @@ const BoxMesh = ({scale, state, lerp }) => {
       })
     }
 
-    mesh.current.rotation.y = (Math.PI / 8) + state.bounds.progress * Math.PI * 3
-    mesh.current.rotation.x = Math.PI / 8 - state.bounds.progress * Math.PI * 0.25
+    mesh.current.rotation.y = (Math.PI / 8) + scrollState.progress * Math.PI * 3
+    mesh.current.rotation.x = Math.PI / 8 - scrollState.progress * Math.PI * 0.25
 
     requestFrame()
   })

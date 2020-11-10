@@ -8,11 +8,11 @@ const Text = ({ children, className, style, as ='div' }) => {
 
   useCanvas(
     <ScrollScene el={ref} debug={false} margin={100}>
-      {({ scale, state }) => (
+      {({ scale, scrollState }) => (
         <WobblyTextMesh
           el={ref}
           font={'https://fonts.gstatic.com/s/philosopher/v9/vEFV2_5QCwIS4_Dhez5jcWBuT0s.woff'}
-          state={state}
+          scrollState={scrollState}
           scale={scale}
         >
           {children}
