@@ -1,15 +1,9 @@
-import React, { useRef, useMemo } from 'react'
-import { useFrame, useThree } from 'react-three-fiber'
-import { useScrollRig } from '@14islands/r3f-scroll-rig'
+import React, { useMemo } from 'react'
 import { Color } from 'three'
-import { MeshWobbleMaterial } from '@react-three/drei'
-
+import { useThree } from 'react-three-fiber'
 import { Text } from '@react-three/drei'
 
-
-const WebGLText = ({ el, children, state, ...props }) => {
-  const mesh = useRef()
-  const { requestFrame } = useScrollRig()
+const WebGLText = ({ el, children, material, scale, font, offset = 0, ...props }) => {
   const { size } = useThree()
 
   const { color, fontSize, textAlign, lineHeight, letterSpacing } = useMemo(() => {
@@ -23,36 +17,28 @@ const WebGLText = ({ el, children, state, ...props }) => {
       ...cs,
       letterSpacing,
       color: new Color(cs.color).convertSRGBToLinear(),
+      fontSize: parseInt(cs.fontSize, 10) * scale.multiplier,
     }
-  }, [el, size])
-
-  useFrame(() => {
-    if (mesh.current && state.bounds.inViewport) {
-      requestFrame()
-      mesh.current.material.factor = Math.max(0, state.bounds.progress - 0.5) * 2
-    }
-  })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [el, size, scale]) // recalc on resize
 
   return (
     <>
-      <ambientLight />
       <Text
-        ref={mesh}
-        state={state}
-        fontSize={parseInt(fontSize, 10)}
-        maxWidth={state.bounds.width}
+        fontSize={fontSize}
+        maxWidth={scale ? scale.width : size.width}
         lineHeight={lineHeight}
         textAlign={textAlign}
         letterSpacing={letterSpacing}
-        // font={fontSrc}
-        font={'https://fonts.gstatic.com/s/philosopher/v9/vEFV2_5QCwIS4_Dhez5jcWBuT0s.woff'}
+        font={font}
+        color={color}
         anchorX="center"
         anchorY="middle"
-        position={[0, 13, 0]} // font specific
+        position={[0, fontSize * offset, 0]} // font specific
+        material={material}
+        {...props}
       >
         {children}
-        <MeshWobbleMaterial attach="material" color={color} factor={0} />
-        {/* <meshBasicMaterial attach="material" color={color} /> */}
       </Text>
     </>
   )

@@ -29,7 +29,6 @@ const WebGLVideo = ({ image, scale, state, scene }) => {
       const texture = createVideoTexture(video)
 
       setTexture(texture)
-      console.log('LOAD')
 
       var api = window.Wistia.api("ylmlt1f62d");
       api.play()

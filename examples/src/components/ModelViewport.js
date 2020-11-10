@@ -1,20 +1,11 @@
-import React, { useRef, Suspense, useEffect } from 'react'
-import { useScrollRig, useCanvas, ScrollScene, PerspectiveCameraScene, ScrollDomPortal } from '@14islands/r3f-scroll-rig'
-import { MathUtils, CameraHelper, FrontSide, BackSide, DoubleSide } from 'three'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
-import { useFrame, useThree, useLoader, addTail } from 'react-three-fiber'
-import { useGLTF, Shadow, useHelper, softShadows } from '@react-three/drei'
-import { StandardEffects } from './StandardEffects'
-
-import WebGLImage from './image/WebGLImage'
+import React, { useRef, useEffect } from 'react'
+import { useScrollRig, useCanvas, PerspectiveCameraScene } from '@14islands/r3f-scroll-rig'
+// import { MathUtils, CameraHelper, FrontSide, BackSide, DoubleSide } from 'three'
+import { useFrame } from 'react-three-fiber'
+import { useGLTF, Shadow } from '@react-three/drei'
+// import { StandardEffects } from './StandardEffects'
 
 // softShadows()
-
-// function GltfModel({ url, size }) {
-//   const gltf = useGLTF(url)
-//   // const gltf = useLoader(GLTFLoader, url)
-//   return <primitive object={gltf.scene} position={[0, 0, 0]} scale={[size, size, size]} />
-// }
 
 const ModelMesh = ({ url, scale, camera, scene, state, parallax = 0, size = 1, position = [0, 0, 0] }) => {
   const mesh = useRef()
@@ -43,7 +34,7 @@ const ModelMesh = ({ url, scale, camera, scene, state, parallax = 0, size = 1, p
         }
       })
     }
-  }, [mesh.current])
+  }, [mesh])
 
   useFrame(() => {
     if (!state.bounds.inViewport) return
@@ -63,6 +54,7 @@ const ModelMesh = ({ url, scale, camera, scene, state, parallax = 0, size = 1, p
   // preload Model
   useEffect(() => {
     preloadScene(scene, camera)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gltf])
 
 
@@ -126,11 +118,11 @@ const ModelMesh = ({ url, scale, camera, scene, state, parallax = 0, size = 1, p
   )
 }
 
-const ModelViewport = ({ src, aspectRatio, url, parallax, size, position }) => {
+const ModelViewport = ({ src, aspectRatio, url, parallax, size, position, renderOnTop }) => {
   const ref = useRef()
 
   useCanvas(
-    <PerspectiveCameraScene el={ref} debug={false}>
+    <PerspectiveCameraScene el={ref} debug={false} renderOnTop={renderOnTop}>
       {(props) => {
         return <ModelMesh {...props} url={url} parallax={parallax} size={size} position={position} />
       }}

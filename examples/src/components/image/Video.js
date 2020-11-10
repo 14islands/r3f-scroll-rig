@@ -9,7 +9,6 @@ const Video = ({ src, aspectRatio = 16/9, style, parallax }) => {
   useCanvas(
     <ScrollScene
       el={ref}
-      scissor={false}
       debug={false}
     >
       {(props) => {

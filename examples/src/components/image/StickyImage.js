@@ -1,6 +1,5 @@
 import React, { useRef } from 'react'
-import { useCanvas, ScrollScene, ScrollDomPortal } from '@14islands/r3f-scroll-rig'
-
+import { useCanvas } from '@14islands/r3f-scroll-rig'
 
 import vertexShader from './shader.vert'
 import fragmentShader from './shader.frag'
@@ -12,7 +11,7 @@ const StickyImage = ({ src }) => {
   const ref = useRef()
 
   useCanvas(
-    <StickyScrollScene el={ref} scissor={false} stickyLerp={1} debug={false}>
+    <StickyScrollScene el={ref} stickyLerp={1} debug={false}>
       {props => <WebGLImage image={ref} {...props} vertexShader={vertexShader} fragmentShader={fragmentShader} />}
     </StickyScrollScene>
   )

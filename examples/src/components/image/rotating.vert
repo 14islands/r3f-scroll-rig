@@ -8,6 +8,7 @@ uniform float u_progress;
 uniform float u_visibility;
 uniform float u_viewport;
 uniform float u_velocity;
+uniform float u_scaleMultiplier;
 
 varying vec2 v_uv;
 
@@ -76,7 +77,7 @@ void main() {
   pos = (vec4(pos, 0.0) * rotMat).xyz;
   // pos.z += progZ * 400.;
   // pos.z += progZ * u_res.y*0.5;
-  pos.z += progZ * u_res.y*.9;
+  pos.z += progZ * u_res.y * 0.9 * u_scaleMultiplier;
 
   // mat4 rotateIt = inverse(translate) * rotMat * translate;
   // pos = (vec4(pos, 0.0) * rotateIt).xyz;

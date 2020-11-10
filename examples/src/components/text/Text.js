@@ -1,21 +1,32 @@
-import React, { useEffect, useRef, useMemo } from 'react'
+import React, {useRef } from 'react'
 import { useCanvas, ScrollScene } from '@14islands/r3f-scroll-rig'
-import WebGLText from './WebGLText'
+import WobblyTextMesh from './WobblyTextMesh'
 
 
-const Text = ({ children, className, style }) => {
+const Text = ({ children, className, style, as ='div' }) => {
   const ref = useRef()
 
-  const updateTextMesh = useCanvas(
+  useCanvas(
     <ScrollScene el={ref} debug={false} margin={100}>
-      { (props) => <WebGLText el={ref} {...props}>{children}</WebGLText> }
+      {({ scale, state }) => (
+        <WobblyTextMesh
+          el={ref}
+          font={'https://fonts.gstatic.com/s/philosopher/v9/vEFV2_5QCwIS4_Dhez5jcWBuT0s.woff'}
+          state={state}
+          scale={scale}
+        >
+          {children}
+        </WobblyTextMesh>
+      )}
     </ScrollScene>,
   )
 
+  const Element = as
+
   return (
-    <div ref={ref} className={className} style={{ ...style }}>
+    <Element ref={ref} className={className} style={{ ...style }}>
       {children}
-    </div>
+    </Element>
   )
 }
 

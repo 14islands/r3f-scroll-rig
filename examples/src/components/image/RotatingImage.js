@@ -10,7 +10,7 @@ const RotatingImage = ({ children, src, aspectRatio, style }) => {
   const ref = useRef()
 
   useCanvas(
-    <ScrollScene el={ref} scissor={false} debug={false}>
+    <ScrollScene el={ref} debug={false}>
       {(props) => {
         return <WebGLImage image={ref} {...props} vertexShader={vertexShader} fragmentShader={fragmentShader} />
       }}

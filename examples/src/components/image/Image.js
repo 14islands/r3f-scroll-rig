@@ -12,7 +12,6 @@ const Image = ({ src, aspectRatio, style, parallax, mesh = WebGLImage }) => {
   useCanvas(
     <ScrollScene
       el={ref}
-      scissor={false}
       debug={false}
     >
       {(props) => {

@@ -11,7 +11,7 @@ const ParallaxImage = ({ src, aspectRatio, style, parallax }) => {
   const ref = useRef()
 
   useCanvas(
-    <ParallaxScrollScene el={ref} scissor={false} parallax={parallax}>
+    <ParallaxScrollScene el={ref} parallax={parallax}>
       {(props) => {
         return <WebGLImage image={ref} {...props} vertexShader={vertexShader} fragmentShader={fragmentShader} />
       }}

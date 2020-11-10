@@ -1,7 +1,6 @@
 import React, { useRef } from 'react'
-import { useScrollRig, useCanvas, ScrollScene } from '@14islands/r3f-scroll-rig'
-import { MathUtils } from 'three'
-import { useFrame, useThree } from 'react-three-fiber'
+import { useScrollRig, useCanvas, config } from '@14islands/r3f-scroll-rig'
+import { useFrame } from 'react-three-fiber'
 import { useSpring, animated } from 'react-spring/three'
 
 import StickyScrollScene from './StickyScrollScene'
@@ -10,27 +9,34 @@ import StickyScrollScene from './StickyScrollScene'
 const BoxMesh = ({scale, state, lerp }) => {
   const mesh = useRef()
   const { requestFrame } = useScrollRig()
-  const rotation = useRef({ scale: 0 }).current
 
-  // const size = Math.min(scale.width, scale.height) * 0.5
-  const size = scale.width * 0.33
+  const size = scale.width * 0.25
 
-  const [rotationProps, set, stop] = useSpring(() => ({ scale: [0, 0, 0], position: [0, 0, 0], config: { tension: 100, friction: 10, velocity: -5 } }))
+  const [rotationProps, set] = useSpring(() => ({ scale: [0, 0, 0], position: [0, 0, 0], config: { tension: 100, friction: 10, velocity: -5, precision: 0.01 * config.scaleMultiplier } }))
 
   useFrame(() => {
     if (!state.bounds.inViewport) return
 
     // enter
     if (state.bounds.viewport < 1) {
-      set({ scale: [0.5, 0.5, 0.5], position: [0, size * 0.5, 0] })
+      set({
+        scale: [0.5, 0.5, 0.5],
+        position: [0, size * 0.5, 0]
+      })
     }
     // sticky
     else if (state.bounds.viewport > 1 && state.bounds.visibility < 1) {
-      set({ scale: [1, 1, 1], position: [-state.bounds.width * 0.25, 0, 0] })
+      set({
+        scale: [1, 1, 1],
+        position: [-state.bounds.width * config.scaleMultiplier * 0.25 , 0, 0]
+      })
     }
     // exit
     else {
-      set({ scale: [0.5, 0.5, 0.5], position: [0, size * -0.5, 0] })
+      set({
+        scale: [0.5, 0.5, 0.5],
+        position: [0, size * -0.5, 0]
+      })
     }
 
     mesh.current.rotation.y = (Math.PI / 8) + state.bounds.progress * Math.PI * 3
@@ -54,7 +60,7 @@ const StickyBox = ({ src, aspectRatio }) => {
   const ref = useRef()
 
   useCanvas(
-    <StickyScrollScene el={ref} scissor={false} stickyLerp={0.2} debug={false} inViewportMargin={100}>
+    <StickyScrollScene el={ref} stickyLerp={0.2} debug={false} inViewportMargin={100}>
       {props => <BoxMesh {...props} />}
     </StickyScrollScene>
   )

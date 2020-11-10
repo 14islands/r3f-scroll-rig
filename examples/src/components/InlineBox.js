@@ -1,9 +1,8 @@
 import React, { useRef } from 'react'
-import { useScrollRig, useCanvas, ScrollScene, ScrollDomPortal } from '@14islands/r3f-scroll-rig'
-import { MathUtils } from 'three'
+import { useScrollRig, useCanvas, ScrollScene } from '@14islands/r3f-scroll-rig'
 import { useFrame } from 'react-three-fiber'
 
-const BoxMesh = ({scale, state, parallax = 0, layers }) => {
+const BoxMesh = ({scale, state, parallax = 0 }) => {
   const mesh = useRef()
   const { requestFrame } = useScrollRig()
 
@@ -20,6 +19,7 @@ const BoxMesh = ({scale, state, parallax = 0, layers }) => {
   })
 
   const size = Math.min(scale.width, scale.height) * 0.5
+
   return (
     <mesh ref={mesh} position={[0, 0, -size/2]}
     rotation={[Math.PI / 8, Math.PI / 8, 0]}
@@ -34,7 +34,7 @@ const InlineBox = ({ src, aspectRatio, parallax }) => {
   const ref = useRef()
 
   useCanvas(
-    <ScrollScene el={ref} debug={false}>
+    <ScrollScene el={ref} debug={true} scissor={true}>
       {(props) => {
         return <BoxMesh {...props} parallax={parallax} />
       }}
