@@ -731,9 +731,10 @@ exports.PerspectiveCameraScene = function PerspectiveCameraScene(_ref) {
       setInViewportProp = _ref$setInViewportPro === void 0 ? false : _ref$setInViewportPro,
       _ref$renderOnTop = _ref.renderOnTop,
       renderOnTop = _ref$renderOnTop === void 0 ? false : _ref$renderOnTop,
-      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "margin", "visible", "renderOrder", "debug", "setInViewportProp", "renderOnTop"]);
+      _ref$scaleMultiplier = _ref.scaleMultiplier,
+      scaleMultiplier = _ref$scaleMultiplier === void 0 ? config.scaleMultiplier : _ref$scaleMultiplier,
+      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "margin", "visible", "renderOrder", "debug", "setInViewportProp", "renderOnTop", "scaleMultiplier"]);
 
-  // const scene = useRef()
   var camera = React.useRef();
 
   var _useState = React.useState(function () {
@@ -748,7 +749,7 @@ exports.PerspectiveCameraScene = function PerspectiveCameraScene(_ref) {
   var _useState3 = React.useState({
     width: 1,
     height: 1,
-    multiplier: config.scaleMultiplier,
+    multiplier: scaleMultiplier,
     pixelWidth: 1,
     pixelHeight: 1
   }),
@@ -771,10 +772,10 @@ exports.PerspectiveCameraScene = function PerspectiveCameraScene(_ref) {
 
   var _useState4 = React.useState(0),
       cameraDistance = _useState4[0],
-      setCameraDistance = _useState4[1]; // transient state
+      setCameraDistance = _useState4[1]; // non-reactive state
 
 
-  var state = React.useRef({
+  var _transient = React.useRef({
     mounted: false,
     bounds: {
       top: 0,
@@ -783,7 +784,8 @@ exports.PerspectiveCameraScene = function PerspectiveCameraScene(_ref) {
       height: 0,
       inViewport: false,
       progress: 0,
-      window: size
+      viewport: 0,
+      visibility: 0
     },
     prevBounds: {
       top: 0,
@@ -794,9 +796,9 @@ exports.PerspectiveCameraScene = function PerspectiveCameraScene(_ref) {
   }).current; // Clear scene from canvas on unmount
 
   React.useEffect(function () {
-    state.mounted = true;
+    _transient.mounted = true;
     return function () {
-      state.mounted = false; // gl.clear()
+      _transient.mounted = false;
     };
   }, []); // El is rendered
 
@@ -816,26 +818,32 @@ exports.PerspectiveCameraScene = function PerspectiveCameraScene(_ref) {
 
   var updateSizeAndPosition = function updateSizeAndPosition() {
     if (!el || !el.current) return;
+    var bounds = _transient.bounds,
+        prevBounds = _transient.prevBounds;
 
     var _el$current$getBoundi = el.current.getBoundingClientRect(),
         top = _el$current$getBoundi.top,
         left = _el$current$getBoundi.left,
         width = _el$current$getBoundi.width,
-        height = _el$current$getBoundi.height;
+        height = _el$current$getBoundi.height; // pixel bounds
 
-    state.bounds.top = top + window.pageYOffset;
-    state.bounds.left = left;
-    state.bounds.width = width;
-    state.bounds.height = height;
-    state.prevBounds.top = top;
-    var viewportWidth = width * config.scaleMultiplier;
-    var viewportHeight = height * config.scaleMultiplier;
+
+    bounds.top = top + window.pageYOffset;
+    bounds.left = left;
+    bounds.width = width;
+    bounds.height = height;
+    prevBounds.top = top;
+    var viewportWidth = width * scaleMultiplier;
+    var viewportHeight = height * scaleMultiplier; // scale in viewport units and pixel
+
     setScale({
       width: viewportWidth,
       height: viewportHeight,
-      multiplier: config.scaleMultiplier,
+      multiplier: scaleMultiplier,
       pixelWidth: width,
-      pixelHeight: height
+      pixelHeight: height,
+      viewportWidth: size.width * scaleMultiplier,
+      viewportHeight: size.height * scaleMultiplier
     });
     var cameraDistance = Math.max(viewportWidth, viewportHeight);
     setCameraDistance(cameraDistance);
@@ -859,8 +867,8 @@ exports.PerspectiveCameraScene = function PerspectiveCameraScene(_ref) {
 
   reactThreeFiber.useFrame(function () {
     if (!scene) return;
-    var bounds = state.bounds,
-        prevBounds = state.prevBounds; // add scroll value to bounds to get current position
+    var bounds = _transient.bounds,
+        prevBounds = _transient.prevBounds; // add scroll value to bounds to get current position
 
     var topY = bounds.top - scrollY.get(); // frame delta
 
@@ -872,7 +880,7 @@ exports.PerspectiveCameraScene = function PerspectiveCameraScene(_ref) {
 
     bounds.inViewport = !isOffscreen;
     setInViewportProp && requestIdleCallback(function () {
-      return state.mounted && setInViewport(!isOffscreen);
+      return _transient.mounted && setInViewport(!isOffscreen);
     });
     prevBounds.top = lerpTop; // hide/show scene
 
@@ -940,11 +948,16 @@ exports.PerspectiveCameraScene = function PerspectiveCameraScene(_ref) {
     visible: visible,
     renderOrder: renderOrder,
     // new props
-    state: state,
+    scale: scale,
+    state: _transient,
+    // @deprecated
+    scrollState: _transient.bounds,
+    "transient": _transient,
     scene: scene,
     camera: camera.current,
-    scale: scale,
-    inViewport: inViewport
+    inViewport: inViewport,
+    // useFrame render priority (in case children need to run after)
+    priority: config.PRIORITY_VIEWPORTS + renderOrder
   }, props)))), scene);
 };
 
@@ -1037,9 +1050,9 @@ exports.ScrollScene = function ScrollScene(_ref) {
 
   var pageReflowCompleted = useCanvasStore(function (state) {
     return state.pageReflowCompleted;
-  }); // transient state
+  }); // non-reactive state
 
-  var state = React.useRef({
+  var _transient = React.useRef({
     mounted: false,
     isFirstRender: true,
     bounds: {
@@ -1052,9 +1065,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
       inViewport: false,
       progress: 0,
       viewport: 0,
-      visibility: 0,
-      window: size,
-      velocity: 0
+      visibility: 0
     },
     prevBounds: {
       y: 0,
@@ -1064,9 +1075,9 @@ exports.ScrollScene = function ScrollScene(_ref) {
     }
   }).current;
   React.useEffect(function () {
-    state.mounted = true;
+    _transient.mounted = true;
     return function () {
-      return state.mounted = false;
+      return _transient.mounted = false;
     };
   }, []);
   React.useLayoutEffect(function () {
@@ -1085,36 +1096,39 @@ exports.ScrollScene = function ScrollScene(_ref) {
 
   var updateSizeAndPosition = function updateSizeAndPosition() {
     if (!el || !el.current) return;
-    var bounds = state.bounds,
-        prevBounds = state.prevBounds;
+    var bounds = _transient.bounds,
+        prevBounds = _transient.prevBounds;
 
     var _el$current$getBoundi = el.current.getBoundingClientRect(),
         top = _el$current$getBoundi.top,
         left = _el$current$getBoundi.left,
         width = _el$current$getBoundi.width,
-        height = _el$current$getBoundi.height;
+        height = _el$current$getBoundi.height; // pixel bounds
+
 
     bounds.top = top + window.pageYOffset;
     bounds.left = left;
     bounds.width = width;
     bounds.height = height;
-    bounds.centerOffset = size.height * 0.5 - height * 0.5;
+    bounds.centerOffset = size.height * 0.5 - height * 0.5; // scale in viewport units and pixel
+
     setScale({
       width: width * config.scaleMultiplier,
       height: height * config.scaleMultiplier,
       multiplier: config.scaleMultiplier,
       pixelWidth: width,
-      pixelHeight: height
-    });
-    bounds.window = size; // place horizontally
+      pixelHeight: height,
+      viewportWidth: size.width * config.scaleMultiplier,
+      viewportHeight: size.height * config.scaleMultiplier
+    }); // place horizontally
 
     bounds.x = left - size.width * 0.5 + width * 0.5;
     scene.current.position.x = bounds.x * config.scaleMultiplier; // prevents ghost lerp on first render
 
-    if (state.isFirstRender) {
+    if (_transient.isFirstRender) {
       prevBounds.y = top - bounds.centerOffset;
       prevBounds.x = bounds.x;
-      state.isFirstRender = false;
+      _transient.isFirstRender = false;
     }
 
     requestFrame(); // trigger render
@@ -1131,8 +1145,8 @@ exports.ScrollScene = function ScrollScene(_ref) {
     var gl = _ref2.gl,
         camera = _ref2.camera,
         clock = _ref2.clock;
-    var bounds = state.bounds,
-        prevBounds = state.prevBounds; // const clockDelta = clock.getDelta()
+    var bounds = _transient.bounds,
+        prevBounds = _transient.prevBounds; // const clockDelta = clock.getDelta()
 
     var time = clock.getElapsedTime();
     var layoutOffsetX = bounds.x + (((_layoutOffset = layoutOffset(bounds)) == null ? void 0 : _layoutOffset.x) || 0);
@@ -1170,13 +1184,11 @@ exports.ScrollScene = function ScrollScene(_ref) {
     var lerpX = three.Math.lerp(prevBounds.x, layoutOffsetX, layoutLerp); // Abort if element not in screen
 
     var scrollMargin = inViewportMargin || size.height * 0.33;
-    var isOffscreen = lerpY + size.height * 0.5 + bounds.height * 0.5 < -scrollMargin || lerpY + size.height * 0.5 - bounds.height * 0.5 > size.height + scrollMargin; // store top value for next frame
+    var isOffscreen = lerpY + size.height * 0.5 + scale.pixelHeight * 0.5 < -scrollMargin || lerpY + size.height * 0.5 - scale.pixelHeight * 0.5 > size.height + scrollMargin; // store top value for next frame
 
-    bounds.inViewport = !isOffscreen; // const velocity = MathUtils.clamp((prevBounds.y - lerpY) / clockDelta / 1000 / 1000 / 100, -1, 1)
-    // bounds.velocity = MathUtils.lerp(bounds.velocity, velocity, 0.05)
-
+    bounds.inViewport = !isOffscreen;
     setInViewportProp && requestIdleCallback(function () {
-      return state.mounted && setInViewport(!isOffscreen);
+      return _transient.mounted && setInViewport(!isOffscreen);
     });
     prevBounds.y = lerpY;
     prevBounds.x = lerpX; // hide/show scene
@@ -1191,7 +1203,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
       // move scene
       scene.current.position.y = -lerpY * config.scaleMultiplier;
       scene.current.position.x = lerpX * config.scaleMultiplier;
-      var positiveYUpBottom = size.height * 0.5 - (lerpY + bounds.height * 0.5); // inverse Y
+      var positiveYUpBottom = size.height * 0.5 - (lerpY + scale.pixelHeight * 0.5); // inverse Y
 
       if (scissor) {
         renderScissor({
@@ -1208,9 +1220,9 @@ exports.ScrollScene = function ScrollScene(_ref) {
 
 
       var pxInside = bounds.top - lerpY - bounds.top + size.height - bounds.centerOffset;
-      bounds.progress = three.Math.mapLinear(pxInside, 0, size.height + bounds.height, 0, 1); // percent of total visible distance
+      bounds.progress = three.Math.mapLinear(pxInside, 0, size.height + scale.pixelHeight, 0, 1); // percent of total visible distance
 
-      bounds.visibility = three.Math.mapLinear(pxInside, 0, bounds.height, 0, 1); // percent of item height in view
+      bounds.visibility = three.Math.mapLinear(pxInside, 0, scale.pixelHeight, 0, 1); // percent of item height in view
 
       bounds.viewport = three.Math.mapLinear(pxInside, 0, size.height, 0, 1); // percent of window height scrolled since visible
     } // render another frame if delta is large enough
@@ -1241,7 +1253,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
 
   return /*#__PURE__*/React__default.createElement("scene", {
     ref: scene,
-    visible: state.bounds.inViewport && visible
+    visible: _transient.bounds.inViewport && visible
   }, /*#__PURE__*/React__default.createElement("group", {
     renderOrder: renderOrder
   }, (!children || debug) && renderDebugMesh(), children && children(_extends({
@@ -1250,13 +1262,15 @@ exports.ScrollScene = function ScrollScene(_ref) {
     lerp: lerp,
     lerpOffset: lerpOffset,
     layoutLerp: layoutLerp,
-    renderOrder: renderOrder,
-    visible: visible,
-    layoutOffset: layoutOffset,
     margin: margin,
+    visible: visible,
+    renderOrder: renderOrder,
+    layoutOffset: layoutOffset,
     // new props
     scale: scale,
-    state: state,
+    state: _transient,
+    // @deprecated
+    scrollState: _transient.bounds,
     scene: scene.current,
     inViewport: inViewport,
     // useFrame render priority (in case children need to run after)

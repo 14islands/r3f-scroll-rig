@@ -628,18 +628,18 @@ let PerspectiveCameraScene = (_ref) => {
     renderOrder,
     debug = false,
     setInViewportProp = false,
-    renderOnTop = false
+    renderOnTop = false,
+    scaleMultiplier = config.scaleMultiplier
   } = _ref,
-      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "margin", "visible", "renderOrder", "debug", "setInViewportProp", "renderOnTop"]);
+      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "margin", "visible", "renderOrder", "debug", "setInViewportProp", "renderOnTop", "scaleMultiplier"]);
 
-  // const scene = useRef()
   const camera = useRef();
   const [scene] = useState(() => new Scene());
   const [inViewport, setInViewport] = useState(false);
   const [scale, setScale] = useState({
     width: 1,
     height: 1,
-    multiplier: config.scaleMultiplier,
+    multiplier: scaleMultiplier,
     pixelWidth: 1,
     pixelHeight: 1
   });
@@ -654,9 +654,9 @@ let PerspectiveCameraScene = (_ref) => {
     renderViewport
   } = useScrollRig();
   const pageReflowCompleted = useCanvasStore(state => state.pageReflowCompleted);
-  const [cameraDistance, setCameraDistance] = useState(0); // transient state
+  const [cameraDistance, setCameraDistance] = useState(0); // non-reactive state
 
-  const state = useRef({
+  const transient = useRef({
     mounted: false,
     bounds: {
       top: 0,
@@ -665,7 +665,8 @@ let PerspectiveCameraScene = (_ref) => {
       height: 0,
       inViewport: false,
       progress: 0,
-      window: size
+      viewport: 0,
+      visibility: 0
     },
     prevBounds: {
       top: 0,
@@ -676,9 +677,9 @@ let PerspectiveCameraScene = (_ref) => {
   }).current; // Clear scene from canvas on unmount
 
   useEffect(() => {
-    state.mounted = true;
+    transient.mounted = true;
     return () => {
-      state.mounted = false; // gl.clear()
+      transient.mounted = false;
     };
   }, []); // El is rendered
 
@@ -697,24 +698,32 @@ let PerspectiveCameraScene = (_ref) => {
   const updateSizeAndPosition = () => {
     if (!el || !el.current) return;
     const {
+      bounds,
+      prevBounds
+    } = transient;
+    const {
       top,
       left,
       width,
       height
-    } = el.current.getBoundingClientRect();
-    state.bounds.top = top + window.pageYOffset;
-    state.bounds.left = left;
-    state.bounds.width = width;
-    state.bounds.height = height;
-    state.prevBounds.top = top;
-    const viewportWidth = width * config.scaleMultiplier;
-    const viewportHeight = height * config.scaleMultiplier;
+    } = el.current.getBoundingClientRect(); // pixel bounds
+
+    bounds.top = top + window.pageYOffset;
+    bounds.left = left;
+    bounds.width = width;
+    bounds.height = height;
+    prevBounds.top = top;
+    const viewportWidth = width * scaleMultiplier;
+    const viewportHeight = height * scaleMultiplier; // scale in viewport units and pixel
+
     setScale({
       width: viewportWidth,
       height: viewportHeight,
-      multiplier: config.scaleMultiplier,
+      multiplier: scaleMultiplier,
       pixelWidth: width,
-      pixelHeight: height
+      pixelHeight: height,
+      viewportWidth: size.width * scaleMultiplier,
+      viewportHeight: size.height * scaleMultiplier
     });
     const cameraDistance = Math.max(viewportWidth, viewportHeight);
     setCameraDistance(cameraDistance);
@@ -741,7 +750,7 @@ let PerspectiveCameraScene = (_ref) => {
     const {
       bounds,
       prevBounds
-    } = state; // add scroll value to bounds to get current position
+    } = transient; // add scroll value to bounds to get current position
 
     const topY = bounds.top - scrollY.get(); // frame delta
 
@@ -752,7 +761,7 @@ let PerspectiveCameraScene = (_ref) => {
     const isOffscreen = lerpTop + bounds.height < -100 || lerpTop > size.height + 100; // store top value for next frame
 
     bounds.inViewport = !isOffscreen;
-    setInViewportProp && requestIdleCallback(() => state.mounted && setInViewport(!isOffscreen));
+    setInViewportProp && requestIdleCallback(() => transient.mounted && setInViewport(!isOffscreen));
     prevBounds.top = lerpTop; // hide/show scene
 
     if (isOffscreen && scene.visible) {
@@ -815,11 +824,16 @@ let PerspectiveCameraScene = (_ref) => {
     visible,
     renderOrder,
     // new props
-    state,
+    scale,
+    state: transient,
+    // @deprecated
+    scrollState: transient.bounds,
+    transient,
     scene,
     camera: camera.current,
-    scale,
-    inViewport
+    inViewport,
+    // useFrame render priority (in case children need to run after)
+    priority: config.PRIORITY_VIEWPORTS + renderOrder
   }, props)))), scene);
 };
 
@@ -896,9 +910,9 @@ let ScrollScene = (_ref) => {
     renderFullscreen,
     renderScissor
   } = useScrollRig();
-  const pageReflowCompleted = useCanvasStore(state => state.pageReflowCompleted); // transient state
+  const pageReflowCompleted = useCanvasStore(state => state.pageReflowCompleted); // non-reactive state
 
-  const state = useRef({
+  const transient = useRef({
     mounted: false,
     isFirstRender: true,
     bounds: {
@@ -911,9 +925,7 @@ let ScrollScene = (_ref) => {
       inViewport: false,
       progress: 0,
       viewport: 0,
-      visibility: 0,
-      window: size,
-      velocity: 0
+      visibility: 0
     },
     prevBounds: {
       y: 0,
@@ -923,8 +935,8 @@ let ScrollScene = (_ref) => {
     }
   }).current;
   useEffect(() => {
-    state.mounted = true;
-    return () => state.mounted = false;
+    transient.mounted = true;
+    return () => transient.mounted = false;
   }, []);
   useLayoutEffect(() => {
     // hide image - leave in DOM to measure and get events
@@ -943,34 +955,37 @@ let ScrollScene = (_ref) => {
     const {
       bounds,
       prevBounds
-    } = state;
+    } = transient;
     const {
       top,
       left,
       width,
       height
-    } = el.current.getBoundingClientRect();
+    } = el.current.getBoundingClientRect(); // pixel bounds
+
     bounds.top = top + window.pageYOffset;
     bounds.left = left;
     bounds.width = width;
     bounds.height = height;
-    bounds.centerOffset = size.height * 0.5 - height * 0.5;
+    bounds.centerOffset = size.height * 0.5 - height * 0.5; // scale in viewport units and pixel
+
     setScale({
       width: width * config.scaleMultiplier,
       height: height * config.scaleMultiplier,
       multiplier: config.scaleMultiplier,
       pixelWidth: width,
-      pixelHeight: height
-    });
-    bounds.window = size; // place horizontally
+      pixelHeight: height,
+      viewportWidth: size.width * config.scaleMultiplier,
+      viewportHeight: size.height * config.scaleMultiplier
+    }); // place horizontally
 
     bounds.x = left - size.width * 0.5 + width * 0.5;
     scene.current.position.x = bounds.x * config.scaleMultiplier; // prevents ghost lerp on first render
 
-    if (state.isFirstRender) {
+    if (transient.isFirstRender) {
       prevBounds.y = top - bounds.centerOffset;
       prevBounds.x = bounds.x;
-      state.isFirstRender = false;
+      transient.isFirstRender = false;
     }
 
     requestFrame(); // trigger render
@@ -991,7 +1006,7 @@ let ScrollScene = (_ref) => {
     const {
       bounds,
       prevBounds
-    } = state; // const clockDelta = clock.getDelta()
+    } = transient; // const clockDelta = clock.getDelta()
 
     const time = clock.getElapsedTime();
     const layoutOffsetX = bounds.x + (((_layoutOffset = layoutOffset(bounds)) == null ? void 0 : _layoutOffset.x) || 0);
@@ -1029,12 +1044,10 @@ let ScrollScene = (_ref) => {
     const lerpX = Math$1.lerp(prevBounds.x, layoutOffsetX, layoutLerp); // Abort if element not in screen
 
     const scrollMargin = inViewportMargin || size.height * 0.33;
-    const isOffscreen = lerpY + size.height * 0.5 + bounds.height * 0.5 < -scrollMargin || lerpY + size.height * 0.5 - bounds.height * 0.5 > size.height + scrollMargin; // store top value for next frame
+    const isOffscreen = lerpY + size.height * 0.5 + scale.pixelHeight * 0.5 < -scrollMargin || lerpY + size.height * 0.5 - scale.pixelHeight * 0.5 > size.height + scrollMargin; // store top value for next frame
 
-    bounds.inViewport = !isOffscreen; // const velocity = MathUtils.clamp((prevBounds.y - lerpY) / clockDelta / 1000 / 1000 / 100, -1, 1)
-    // bounds.velocity = MathUtils.lerp(bounds.velocity, velocity, 0.05)
-
-    setInViewportProp && requestIdleCallback(() => state.mounted && setInViewport(!isOffscreen));
+    bounds.inViewport = !isOffscreen;
+    setInViewportProp && requestIdleCallback(() => transient.mounted && setInViewport(!isOffscreen));
     prevBounds.y = lerpY;
     prevBounds.x = lerpX; // hide/show scene
 
@@ -1048,7 +1061,7 @@ let ScrollScene = (_ref) => {
       // move scene
       scene.current.position.y = -lerpY * config.scaleMultiplier;
       scene.current.position.x = lerpX * config.scaleMultiplier;
-      const positiveYUpBottom = size.height * 0.5 - (lerpY + bounds.height * 0.5); // inverse Y
+      const positiveYUpBottom = size.height * 0.5 - (lerpY + scale.pixelHeight * 0.5); // inverse Y
 
       if (scissor) {
         renderScissor({
@@ -1065,9 +1078,9 @@ let ScrollScene = (_ref) => {
 
 
       const pxInside = bounds.top - lerpY - bounds.top + size.height - bounds.centerOffset;
-      bounds.progress = Math$1.mapLinear(pxInside, 0, size.height + bounds.height, 0, 1); // percent of total visible distance
+      bounds.progress = Math$1.mapLinear(pxInside, 0, size.height + scale.pixelHeight, 0, 1); // percent of total visible distance
 
-      bounds.visibility = Math$1.mapLinear(pxInside, 0, bounds.height, 0, 1); // percent of item height in view
+      bounds.visibility = Math$1.mapLinear(pxInside, 0, scale.pixelHeight, 0, 1); // percent of item height in view
 
       bounds.viewport = Math$1.mapLinear(pxInside, 0, size.height, 0, 1); // percent of window height scrolled since visible
     } // render another frame if delta is large enough
@@ -1096,7 +1109,7 @@ let ScrollScene = (_ref) => {
 
   return /*#__PURE__*/React.createElement("scene", {
     ref: scene,
-    visible: state.bounds.inViewport && visible
+    visible: transient.bounds.inViewport && visible
   }, /*#__PURE__*/React.createElement("group", {
     renderOrder: renderOrder
   }, (!children || debug) && renderDebugMesh(), children && children(_extends({
@@ -1105,13 +1118,15 @@ let ScrollScene = (_ref) => {
     lerp,
     lerpOffset,
     layoutLerp,
-    renderOrder,
-    visible,
-    layoutOffset,
     margin,
+    visible,
+    renderOrder,
+    layoutOffset,
     // new props
     scale,
-    state,
+    state: transient,
+    // @deprecated
+    scrollState: transient.bounds,
     scene: scene.current,
     inViewport,
     // useFrame render priority (in case children need to run after)
