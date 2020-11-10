@@ -1,8 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useWindowSize } from '@react-hook/window-size'
-
-import { useCanvasStore } from './store'
-
+import config from './config'
 /**
  * Manages Scroll rig resize events by trigger a reflow instead of individual resize listeners in each component
  * The order is carefully scripted:
@@ -10,19 +8,19 @@ import { useCanvasStore } from './store'
  *  2. VirtualScrollbar triggers `pageReflowCompleted`
  *  3. Canvas scroll components listen to  `pageReflowCompleted` and recalc positions
  */
-const ResizeManager = ({ useScrollRig, resizeOnHeight = true, resizeOnWebFontLoaded = true }) => {
+const ResizeManager = ({ reflow, resizeOnHeight = true, resizeOnWebFontLoaded = true }) => {
   const mounted = useRef(false)
-  const [windowWidth, windowHeight] = useWindowSize()
-  const reflow = useCanvasStore((state) => state.requestReflow)
+  // must be debounced more than the GlobalCanvas so all components have the correct value from useThree({ size })
+  const [windowWidth, windowHeight] = useWindowSize({ wait: 300 })
 
   // The reason for not resizing on height on "mobile" is because the height changes when the URL bar disapears in the browser chrome
   // Can we base this on something better - or is there another way to avoid?
-  const height = resizeOnHeight ? null : windowHeight
+  const height = resizeOnHeight ? windowHeight : null
 
   // Detect only resize events
   useEffect(() => {
     if (mounted.current) {
-      console.log('ResizeManager.reflow')
+      config.debug && console.log('ResizeManager', 'reflow()')
       reflow()
     } else {
       mounted.current = true
