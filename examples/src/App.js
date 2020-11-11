@@ -69,8 +69,8 @@ function App() {
                 </div>
 
                 <Text>Moree ScrollScenes with Parallaxing images</Text>
-                <div style={{ display: 'flex', justifyContent: 'space-between', margin: '10vw' }}>
-                  <ParallaxImage src={testImage} aspectRatio={2 / 1} style={{ width: '45%' }} parallax={-200} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', margin: '20vw 10vw' }}>
+                  <ParallaxImage src={testImage} aspectRatio={2 / 1} style={{ width: '45%' }} parallax={-100} />
                   <ParallaxImage
                     src={testImage}
                     aspectRatio={2 / 1}
@@ -79,7 +79,7 @@ function App() {
                   />
                 </div>
                 <Text>A sticky scrollscene that covers 300vh with a fullscreen image</Text>
-                <div style={{ height: '300vh', margin: '5vw' }} ref={el}>
+                <div style={{ height: '300vh', margin: '-5vw 5vw 15vw' }} ref={el}>
                   <StickyImage src={testPower2Image} />
                 </div>
 

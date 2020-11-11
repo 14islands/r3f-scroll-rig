@@ -16,10 +16,10 @@ export const ParallaxMesh = ({ children, scrollState, scale, parallax }) => {
   return <mesh ref={mesh}>{children}</mesh>
 }
 
-export const ParallaxScrollScene = ({ children, stickyLerp, ...props }) => {
+export const ParallaxScrollScene = ({ children, parallax, stickyLerp, ...props }) => {
   return (
-    <ScrollScene {...props} scissor={false}>
-      { props => <ParallaxMesh {...props}>{children(props)}</ParallaxMesh> }
+    <ScrollScene scissor={false} {...props} inViewportMargin={Math.abs(parallax*3)}>
+      { props => <ParallaxMesh parallax={parallax} {...props}>{children(props)}</ParallaxMesh> }
     </ScrollScene>
   )
 }

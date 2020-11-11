@@ -1,5 +1,6 @@
 import React, { useRef } from 'react'
 import { useCanvas } from '@14islands/r3f-scroll-rig'
+import { useFrame } from 'react-three-fiber'
 
 import vertexShader from './shader.vert'
 import fragmentShader from './shader.frag'
@@ -7,12 +8,29 @@ import fragmentShader from './shader.frag'
 import WebGLImage from './WebGLImage'
 import StickyScrollScene from '../StickyScrollScene'
 
-const StickyImage = ({ src }) => {
+const ImageMesh = ({ scrollState, ...props }) => {
+  const scaleWrapper = useRef()
+  
+  useFrame(() => {  
+    if (!scrollState.inViewport) return
+    scaleWrapper.current.scale.setScalar(0.5 + scrollState.visibility * 0.5)
+  })
+
+  return (
+    <mesh ref={scaleWrapper}>
+      <WebGLImage {...props} scrollState={scrollState} vertexShader={vertexShader} fragmentShader={fragmentShader} />
+    </mesh>
+  )
+}
+
+
+const StickyImage = ({ src, scrollState }) => {
   const ref = useRef()
 
+  
   useCanvas(
     <StickyScrollScene el={ref} stickyLerp={1} debug={false}>
-      {props => <WebGLImage image={ref} {...props} vertexShader={vertexShader} fragmentShader={fragmentShader} />}
+      {props => <ImageMesh image={ref} {...props} />}
     </StickyScrollScene>
   )
 
