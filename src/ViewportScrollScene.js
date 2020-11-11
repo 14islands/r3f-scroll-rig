@@ -17,7 +17,7 @@ import useScrollRig from './useScrollRig'
  * Adapted to react-three-fiber from https://threejsfundamentals.org/threejs/lessons/threejs-multiple-scenes.html
  * @author david@14islands.com
  */
-let PerspectiveCameraScene = ({
+let ViewportScrollScene = ({
   el,
   lerp = config.scrollLerp,
   lerpOffset = 0,
@@ -29,6 +29,7 @@ let PerspectiveCameraScene = ({
   setInViewportProp = false,
   renderOnTop = false,
   scaleMultiplier = config.scaleMultiplier, // use global setting as default
+  orthographic = false,
   ...props
 }) => {
   const camera = useRef()
@@ -118,7 +119,7 @@ let PerspectiveCameraScene = ({
     const cameraDistance = Math.max(viewportWidth, viewportHeight)
     setCameraDistance(cameraDistance)
 
-    if (camera.current) {
+    if (camera.current && !orthographic) {
       camera.current.aspect = (viewportWidth + margin * 2) / (viewportHeight + margin * 2)
       camera.current.fov = 2 * (180 / Math.PI) * Math.atan((viewportHeight + margin * 2) / (2 * cameraDistance))
       camera.current.updateProjectionMatrix()
@@ -202,11 +203,26 @@ let PerspectiveCameraScene = ({
   return createPortal(
     <>
       {/* Use local camera for viewport rendering */}
-      <perspectiveCamera
-        ref={camera}
-        position={[0, 0, cameraDistance]}
-        onUpdate={(self) => self.updateProjectionMatrix()}
-      />
+      {!orthographic && (
+        <perspectiveCamera
+          ref={camera}
+          position={[0, 0, cameraDistance]}
+          onUpdate={(self) => self.updateProjectionMatrix()}
+        />
+      )}
+      {orthographic && (
+        <orthographicCamera
+          ref={camera}
+          position={[0, 0, cameraDistance]}
+          onUpdate={(self) => self.updateProjectionMatrix()}
+          left={scale.width / -2}
+          right={scale.width / 2}
+          top={scale.height / 2}
+          bottom={scale.height / -2}
+          far={cameraDistance * 2}
+          near={0.001}
+        />
+      )}
 
       <group renderOrder={renderOrder}>
         {(!children || debug) && renderDebugMesh()}
@@ -238,9 +254,9 @@ let PerspectiveCameraScene = ({
   )
 }
 
-PerspectiveCameraScene = React.memo(PerspectiveCameraScene)
+ViewportScrollScene = React.memo(ViewportScrollScene)
 
-PerspectiveCameraScene.propTypes = {
+ViewportScrollScene.propTypes = {
   el: PropTypes.object, // DOM element to track,
   lerp: PropTypes.number, // Base lerp ratio
   lerpOffset: PropTypes.number, // Offset applied to `lerp`
@@ -249,10 +265,11 @@ PerspectiveCameraScene.propTypes = {
   renderOrder: PropTypes.number,
   debug: PropTypes.bool, // show debug mesh
   setInViewportProp: PropTypes.bool, // update inViewport property on child (might cause lag)
+  orthographic: PropTypes.bool, // use orthographic of perspective camera
 }
 
-PerspectiveCameraScene.childPropTypes = {
-  ...PerspectiveCameraScene.propTypes,
+ViewportScrollScene.childPropTypes = {
+  ...ViewportScrollScene.propTypes,
   scale: PropTypes.shape({
     width: PropTypes.number,
     height: PropTypes.number,
@@ -271,5 +288,5 @@ PerspectiveCameraScene.childPropTypes = {
   inViewport: PropTypes.bool, // {x,y} to scale
 }
 
-export { PerspectiveCameraScene }
-export default PerspectiveCameraScene
+export { ViewportScrollScene }
+export default ViewportScrollScene

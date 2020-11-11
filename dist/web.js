@@ -5,7 +5,7 @@ import { useThree, useFrame, Canvas, createPortal } from 'react-three-fiber';
 import { ResizeObserver } from '@juggle/resize-observer';
 import queryString from 'query-string';
 import create from 'zustand';
-import { sRGBEncoding, NoToneMapping, Scene, Math as Math$1, MathUtils, ImageBitmapLoader, TextureLoader, CanvasTexture, LinearFilter, RGBFormat, RGBAFormat } from 'three';
+import { sRGBEncoding, NoToneMapping, Math as Math$1, MathUtils, ImageBitmapLoader, TextureLoader, CanvasTexture, LinearFilter, RGBFormat, RGBAFormat, Scene } from 'three';
 import { useWindowSize, useWindowHeight } from '@react-hook/window-size';
 import PropTypes from 'prop-types';
 import { useViewportScroll } from 'framer-motion';
@@ -610,257 +610,6 @@ const GlobalCanvas = (_ref) => {
 
 /**
  * Generic THREE.js Scene that tracks the dimensions and position of a DOM element while scrolling
- * Scene is rendered into a GL viewport matching the DOM position for better performance
- *
- * Adapted to react-three-fiber from https://threejsfundamentals.org/threejs/lessons/threejs-multiple-scenes.html
- * @author david@14islands.com
- */
-
-let PerspectiveCameraScene = (_ref) => {
-  let {
-    el,
-    lerp = config.scrollLerp,
-    lerpOffset = 0,
-    children,
-    margin = 0,
-    // Margin outside viewport to avoid clipping vertex displacement (px)
-    visible = true,
-    renderOrder,
-    debug = false,
-    setInViewportProp = false,
-    renderOnTop = false,
-    scaleMultiplier = config.scaleMultiplier
-  } = _ref,
-      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "margin", "visible", "renderOrder", "debug", "setInViewportProp", "renderOnTop", "scaleMultiplier"]);
-
-  const camera = useRef();
-  const [scene] = useState(() => new Scene());
-  const [inViewport, setInViewport] = useState(false);
-  const [scale, setScale] = useState({
-    width: 1,
-    height: 1,
-    multiplier: scaleMultiplier,
-    pixelWidth: 1,
-    pixelHeight: 1
-  });
-  const {
-    scrollY
-  } = useViewportScroll();
-  const {
-    size
-  } = useThree();
-  const {
-    requestFrame,
-    renderViewport
-  } = useScrollRig();
-  const pageReflowCompleted = useCanvasStore(state => state.pageReflowCompleted);
-  const [cameraDistance, setCameraDistance] = useState(0); // non-reactive state
-
-  const transient = useRef({
-    mounted: false,
-    bounds: {
-      top: 0,
-      left: 0,
-      width: 0,
-      height: 0,
-      inViewport: false,
-      progress: 0,
-      viewport: 0,
-      visibility: 0
-    },
-    prevBounds: {
-      top: 0,
-      left: 0,
-      width: 0,
-      height: 0
-    }
-  }).current; // Clear scene from canvas on unmount
-
-  useEffect(() => {
-    transient.mounted = true;
-    return () => {
-      transient.mounted = false;
-    };
-  }, []); // El is rendered
-
-  useLayoutEffect(() => {
-    // hide image - leave in DOM to measure and get events
-    if (!(el == null ? void 0 : el.current)) return;
-    el.current.style.opacity = debug ? 0.5 : 0;
-    return () => {
-      if (!(el == null ? void 0 : el.current)) return;
-      el.current.style.opacity = '';
-    };
-  }, [el.current]); // Trigger render on scroll
-
-  useEffect(() => scrollY.onChange(requestFrame), []);
-
-  const updateSizeAndPosition = () => {
-    if (!el || !el.current) return;
-    const {
-      bounds,
-      prevBounds
-    } = transient;
-    const {
-      top,
-      left,
-      width,
-      height
-    } = el.current.getBoundingClientRect(); // pixel bounds
-
-    bounds.top = top + window.pageYOffset;
-    bounds.left = left;
-    bounds.width = width;
-    bounds.height = height;
-    prevBounds.top = top;
-    const viewportWidth = width * scaleMultiplier;
-    const viewportHeight = height * scaleMultiplier; // scale in viewport units and pixel
-
-    setScale({
-      width: viewportWidth,
-      height: viewportHeight,
-      multiplier: scaleMultiplier,
-      pixelWidth: width,
-      pixelHeight: height,
-      viewportWidth: size.width * scaleMultiplier,
-      viewportHeight: size.height * scaleMultiplier
-    });
-    const cameraDistance = Math.max(viewportWidth, viewportHeight);
-    setCameraDistance(cameraDistance);
-
-    if (camera.current) {
-      camera.current.aspect = (viewportWidth + margin * 2) / (viewportHeight + margin * 2);
-      camera.current.fov = 2 * (180 / Math.PI) * Math.atan((viewportHeight + margin * 2) / (2 * cameraDistance));
-      camera.current.updateProjectionMatrix(); // https://github.com/react-spring/react-three-fiber/issues/178
-      // Update matrix world since the renderer is a frame late
-
-      camera.current.updateMatrixWorld();
-    }
-
-    requestFrame(); // trigger render
-  }; // Find bounding box & scale mesh on resize
-
-
-  useLayoutEffect(() => {
-    updateSizeAndPosition();
-  }, [pageReflowCompleted]); // RENDER FRAME
-
-  useFrame(() => {
-    if (!scene) return;
-    const {
-      bounds,
-      prevBounds
-    } = transient; // add scroll value to bounds to get current position
-
-    const topY = bounds.top - scrollY.get(); // frame delta
-
-    const delta = Math.abs(prevBounds.top - topY); // Lerp the distance to simulate easing
-
-    const lerpTop = Math$1.lerp(prevBounds.top, topY, lerp + lerpOffset); // Abort if element not in screen
-
-    const isOffscreen = lerpTop + bounds.height < -100 || lerpTop > size.height + 100; // store top value for next frame
-
-    bounds.inViewport = !isOffscreen;
-    setInViewportProp && requestIdleCallback(() => transient.mounted && setInViewport(!isOffscreen));
-    prevBounds.top = lerpTop; // hide/show scene
-
-    if (isOffscreen && scene.visible) {
-      scene.visible = false;
-    } else if (!isOffscreen && !scene.visible) {
-      scene.visible = visible;
-    } // Render scene to viewport using local camera and limit updates using scissor test
-    // Performance improvement - faster than always rendering full canvas
-
-
-    if (scene.visible) {
-      const positiveYUpBottom = size.height - (lerpTop + bounds.height); // inverse Y
-
-      renderViewport({
-        scene,
-        camera: camera.current,
-        left: bounds.left - margin,
-        top: positiveYUpBottom - margin,
-        width: bounds.width + margin * 2,
-        height: bounds.height + margin * 2,
-        renderOnTop
-      }); // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
-
-      const pxInside = bounds.top - lerpTop - bounds.top + size.height;
-      bounds.progress = Math$1.mapLinear(pxInside, 0, size.height + bounds.height, 0, 1); // percent of total visible distance
-
-      bounds.visibility = Math$1.mapLinear(pxInside, 0, bounds.height, 0, 1); // percent of item height in view
-
-      bounds.viewport = Math$1.mapLinear(pxInside, 0, size.height, 0, 1); // percent of window height scrolled since visible
-    } // render another frame if delta is large enough
-
-
-    if (!isOffscreen && delta > config.scrollRestDelta) {
-      requestFrame();
-    }
-  }, config.PRIORITY_VIEWPORTS + renderOrder);
-
-  const renderDebugMesh = () => /*#__PURE__*/React.createElement("mesh", null, /*#__PURE__*/React.createElement("planeBufferGeometry", {
-    attach: "geometry",
-    args: [scale.width, scale.height, 1, 1]
-  }), /*#__PURE__*/React.createElement("meshBasicMaterial", {
-    color: "pink",
-    attach: "material",
-    transparent: true,
-    opacity: 0.5
-  }));
-
-  return createPortal( /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("perspectiveCamera", {
-    ref: camera,
-    position: [0, 0, cameraDistance],
-    onUpdate: self => self.updateProjectionMatrix()
-  }), /*#__PURE__*/React.createElement("group", {
-    renderOrder: renderOrder
-  }, (!children || debug) && renderDebugMesh(), children && children(_extends({
-    // inherited props
-    el,
-    lerp,
-    lerpOffset,
-    margin,
-    visible,
-    renderOrder,
-    // new props
-    scale,
-    state: transient,
-    // @deprecated
-    scrollState: transient.bounds,
-    transient,
-    scene,
-    camera: camera.current,
-    inViewport,
-    // useFrame render priority (in case children need to run after)
-    priority: config.PRIORITY_VIEWPORTS + renderOrder
-  }, props)))), scene);
-};
-
-PerspectiveCameraScene = /*#__PURE__*/React.memo(PerspectiveCameraScene);
-PerspectiveCameraScene.childPropTypes = _extends({}, PerspectiveCameraScene.propTypes, {
-  scale: PropTypes.shape({
-    width: PropTypes.number,
-    height: PropTypes.number
-  }),
-  state: PropTypes.shape({
-    bounds: PropTypes.shape({
-      left: PropTypes.number,
-      top: PropTypes.number,
-      width: PropTypes.number,
-      height: PropTypes.number,
-      inViewport: PropTypes.bool,
-      progress: PropTypes.number
-    })
-  }),
-  scene: PropTypes.object,
-  // Parent scene,
-  inViewport: PropTypes.bool // {x,y} to scale
-
-});
-
-/**
- * Generic THREE.js Scene that tracks the dimensions and position of a DOM element while scrolling
  * Scene is positioned and scaled exactly above DOM element
  *
  * @author david@14islands.com
@@ -1146,237 +895,6 @@ ScrollScene.priority = config.PRIORITY_SCISSORS;
 
 const LAYOUT_LERP = 0.1;
 /**
- * Make DOM element fixed and move using useFrame so we can and match the lerp of a ScrollScene
- * The referenced DOM element will be cloned and made position:fixed. The original el is hidden.
- * @author david@14islands.com
- */
-
-const ScrollDom = /*#__PURE__*/forwardRef(({
-  el,
-  appendTo,
-  lerp = config.scrollLerp,
-  lerpOffset = 0,
-  children,
-  zIndex = 0,
-  getOffset = () => {},
-  live = false,
-  // detect new changes from the DOM (useful if aimating el position with CSS)
-  layoutLerp = LAYOUT_LERP,
-  // easing to apply to layout transition
-  style
-}, ref) => {
-  const copyEl = useRef();
-  const local = useRef({
-    needUpdate: false,
-    offsetY: 0,
-    offsetX: 0
-  }).current;
-  const bounds = useRef({
-    top: 0,
-    left: 0,
-    width: 0,
-    height: 0,
-    windowHeight: -1,
-    windowWidth: -1
-  }).current;
-  const prevBounds = useRef({
-    top: 0,
-    wasOffscreen: false
-  }).current;
-  const {
-    scrollY
-  } = useViewportScroll();
-  const {
-    size
-  } = useThree();
-  const {
-    requestFrame
-  } = useScrollRig();
-  const pageReflowCompleted = useCanvasStore(state => state.pageReflowCompleted); // El is rendered
-
-  useEffect(() => {
-    // hide DOM element visually - leave in DOM to measure and get events
-    if (!(el == null ? void 0 : el.current)) return;
-    copyEl.current = el.current.cloneNode(true);
-    copyEl.current.style.position = 'fixed';
-    copyEl.current.style.visibility = 'visible';
-    copyEl.current.style.zIndex = zIndex;
-    ((appendTo == null ? void 0 : appendTo.current) || document.documentElement).appendChild(copyEl.current);
-    el.current.style.visibility = 'hidden';
-    ref && ref(copyEl.current);
-    return () => {
-      ((appendTo == null ? void 0 : appendTo.current) || document.documentElement).removeChild(copyEl.current);
-
-      if (el && el.current) {
-        el.current.style.visibility = '';
-      }
-    };
-  }, [el.current]); // Trigger render on scroll
-
-  useEffect(() => scrollY.onChange(() => {
-    local.needUpdate = true;
-    requestFrame();
-  }), []); // Find initial position of proxy element on mount
-
-  useEffect(() => {
-    if (!el || !el.current) return;
-    copyEl.current.className = el.current.className;
-    const {
-      top,
-      left,
-      width,
-      height
-    } = el.current.getBoundingClientRect();
-    bounds.top = top + window.pageYOffset;
-    bounds.left = left;
-    bounds.width = width;
-    bounds.height = height;
-    prevBounds.top = -window.pageYOffset;
-    prevBounds.left = 0;
-    prevBounds.x = 0;
-    prevBounds.y = 0;
-    copyEl.current.style.top = bounds.top + 'px';
-    copyEl.current.style.left = left + 'px';
-    copyEl.current.style.width = width + 'px';
-    copyEl.current.style.height = height + 'px';
-    local.windowWidth = size.width;
-    local.windowHeight = size.height; // trigger render
-
-    local.needUpdate = true;
-    requestFrame();
-  }, [el]); // TODO: decide if react to size.height to avoid mobile viewport scroll bugs
-  // Update position on window resize or if `live` flag changes
-
-  useEffect(() => {
-    if (!el || !el.current) return;
-    const id = requestIdleCallback(() => {
-      if (!el || !el.current) return;
-      const classNames = el.current.className;
-
-      if (!classNames !== copyEl.current.className) {
-        copyEl.current.className = classNames;
-      }
-
-      const {
-        top,
-        left
-      } = bounds;
-      const {
-        top: newTop,
-        left: newLeft,
-        height: newHeight,
-        width: newWidth
-      } = el.current.getBoundingClientRect();
-
-      if (bounds.height !== newHeight) {
-        copyEl.current.style.height = newHeight + 'px';
-      }
-
-      if (bounds.width !== newWidth) {
-        copyEl.current.style.width = newWidth + 'px'; // TODO adjust left position if floating from right. possible to detect?
-      }
-
-      local.offsetY = newTop - top + window.pageYOffset;
-      local.offsetX = newLeft - left;
-      bounds.height = newHeight;
-      bounds.width = newWidth;
-      prevBounds.top = -window.pageYOffset; // trigger render
-
-      local.needUpdate = true;
-      requestFrame();
-    }, {
-      timeout: 100
-    });
-    return () => cancelIdleCallback(id);
-  }, [live, pageReflowCompleted]);
-  useEffect(() => {
-    local.needUpdate = true;
-    requestFrame();
-  }, [style]); // RENDER FRAME
-
-  useFrame(({
-    gl
-  }) => {
-    var _getOffset, _getOffset2;
-
-    const {
-      top,
-      height
-    } = bounds; // get offset from resizing window + offset from callback function from parent
-
-    const offsetX = local.offsetX + (live && ((_getOffset = getOffset()) == null ? void 0 : _getOffset.x) || 0);
-    const offsetY = local.offsetY + (live && ((_getOffset2 = getOffset()) == null ? void 0 : _getOffset2.y) || 0); // add scroll value to bounds to get current position
-
-    const scrollTop = -scrollY.get(); // frame delta
-
-    const deltaScroll = prevBounds.top - scrollTop;
-    const delta = Math.abs(deltaScroll) + Math.abs(prevBounds.x - offsetX) + Math.abs(prevBounds.y - offsetY);
-
-    if (!local.needUpdate && delta < config.scrollRestDelta) {
-      // abort if no delta change
-      return;
-    } // parallax position
-    // const progress = MathUtils.lerp(1, -1, MathUtils.clamp((size.height - scrollTop) / (size.height + height), 0, 1))
-    // const offset = transform(progress, [1, 0, -1], [0, 0, 400])
-    // scrollTop += offset
-    // Lerp the distance to simulate easing
-
-
-    const lerpScroll = Math$1.lerp(prevBounds.top, scrollTop, lerp + lerpOffset);
-    const lerpX = Math$1.lerp(prevBounds.x, offsetX, layoutLerp);
-    const lerpY = Math$1.lerp(prevBounds.y, offsetY, layoutLerp); // Abort if element not in screen
-
-    const elTop = top + lerpScroll + lerpY;
-    const isOffscreen = elTop + height < -100 || elTop > size.height + 100; // Update DOM element position if in view, or if was in view last frame
-
-    if (!isOffscreen) {
-      if (copyEl.current) {
-        Object.assign(copyEl.current.style, _extends({
-          visibility: ''
-        }, style, {
-          transform: "translate3d(" + lerpX + "px, " + (lerpScroll + lerpY) + "px, 0)"
-        }));
-      }
-    } else {
-      if (copyEl.current) {
-        copyEl.current.style.visibility = 'hidden';
-      }
-    } // store values for next frame
-
-
-    prevBounds.top = lerpScroll;
-    prevBounds.wasOffscreen = isOffscreen;
-    prevBounds.x = lerpX;
-    prevBounds.y = lerpY;
-    local.needUpdate = false; // render another frame if delta is large enough
-
-    if (!isOffscreen && delta > config.scrollRestDelta) {
-      requestFrame();
-      local.needUpdate = true;
-    }
-  });
-  return /*#__PURE__*/React.createElement(React.Fragment, null);
-});
-ScrollDom.displayName = 'ScrollDom';
-ScrollDom.propTypes = {
-  el: PropTypes.object,
-  // DOM element to track,
-  lerp: PropTypes.number,
-  // Base lerp ratio
-  lerpOffset: PropTypes.number,
-  // Offset applied to `lerp`
-  zIndex: PropTypes.number,
-  // z-index to apply to the cloned element
-  getOffset: PropTypes.func,
-  // called for every frame to get {x,y} translation offset
-  appendTo: PropTypes.any,
-  live: PropTypes.bool,
-  layoutLerp: PropTypes.number,
-  style: PropTypes.object
-};
-
-const LAYOUT_LERP$1 = 0.1;
-/**
  * Render child element in portal and move using useFrame so we can and match the lerp of the VirtualScrollbar
  * TThe original el used for position
  * @author david@14islands.com
@@ -1391,7 +909,7 @@ const ScrollDomPortal = /*#__PURE__*/forwardRef(({
   getOffset = () => {},
   live = false,
   // detect new changes from the DOM (useful if aimating el position with CSS)
-  layoutLerp = LAYOUT_LERP$1,
+  layoutLerp = LAYOUT_LERP,
   // easing to apply to layout transition
   style
 }, ref) => {
@@ -1611,42 +1129,6 @@ const useCanvas = (object, deps = [], key) => {
   return set;
 };
 
-const useDelayedEffect = (fn, deps, ms = 0) => {
-  let timer;
-  useEffect(() => {
-    timer = setTimeout(fn, ms);
-    return () => clearTimeout(timer);
-  }, deps);
-};
-
-/**
- * Adds THREE.js object to the GlobalCanvas while the component is mounted after initial delay (ms)
- * @param {object} object THREE.js object3d
- */
-
-const useDelayedCanvas = (object, ms, deps = [], key) => {
-  const updateCanvas = useCanvasStore(state => state.updateCanvas);
-  const renderToCanvas = useCanvasStore(state => state.renderToCanvas);
-  const removeFromCanvas = useCanvasStore(state => state.removeFromCanvas); // auto generate uuid v4 key
-
-  const uniqueKey = useMemo(() => key || MathUtils.generateUUID(), []); // remove on unmount
-
-  useLayoutEffect(() => {
-    return () => removeFromCanvas(uniqueKey);
-  }, []);
-  useDelayedEffect(() => {
-    renderToCanvas(uniqueKey, object);
-  }, deps, ms); // return function that can set new props on the canvas component
-
-  const set = props => {
-    requestIdleCallback(() => updateCanvas(uniqueKey, props), {
-      timeout: 100
-    });
-  };
-
-  return set;
-};
-
 /**
  *  Reasons for why this exists:
  *
@@ -1762,6 +1244,536 @@ const useImgTagAsTexture = (imgEl, dimensions, opts) => {
     }
   }, [imgEl]);
   return [texture, disposeBitmap];
+};
+
+/**
+ * Generic THREE.js Scene that tracks the dimensions and position of a DOM element while scrolling
+ * Scene is rendered into a GL viewport matching the DOM position for better performance
+ *
+ * Adapted to react-three-fiber from https://threejsfundamentals.org/threejs/lessons/threejs-multiple-scenes.html
+ * @author david@14islands.com
+ */
+
+let ViewportScrollScene = (_ref) => {
+  let {
+    el,
+    lerp = config.scrollLerp,
+    lerpOffset = 0,
+    children,
+    margin = 0,
+    // Margin outside viewport to avoid clipping vertex displacement (px)
+    visible = true,
+    renderOrder,
+    debug = false,
+    setInViewportProp = false,
+    renderOnTop = false,
+    scaleMultiplier = config.scaleMultiplier,
+    // use global setting as default
+    orthographic = false
+  } = _ref,
+      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "margin", "visible", "renderOrder", "debug", "setInViewportProp", "renderOnTop", "scaleMultiplier", "orthographic"]);
+
+  const camera = useRef();
+  const [scene] = useState(() => new Scene());
+  const [inViewport, setInViewport] = useState(false);
+  const [scale, setScale] = useState({
+    width: 1,
+    height: 1,
+    multiplier: scaleMultiplier,
+    pixelWidth: 1,
+    pixelHeight: 1
+  });
+  const {
+    scrollY
+  } = useViewportScroll();
+  const {
+    size
+  } = useThree();
+  const {
+    requestFrame,
+    renderViewport
+  } = useScrollRig();
+  const pageReflowCompleted = useCanvasStore(state => state.pageReflowCompleted);
+  const [cameraDistance, setCameraDistance] = useState(0); // non-reactive state
+
+  const transient = useRef({
+    mounted: false,
+    bounds: {
+      top: 0,
+      left: 0,
+      width: 0,
+      height: 0,
+      inViewport: false,
+      progress: 0,
+      viewport: 0,
+      visibility: 0
+    },
+    prevBounds: {
+      top: 0,
+      left: 0,
+      width: 0,
+      height: 0
+    }
+  }).current; // Clear scene from canvas on unmount
+
+  useEffect(() => {
+    transient.mounted = true;
+    return () => {
+      transient.mounted = false;
+    };
+  }, []); // El is rendered
+
+  useLayoutEffect(() => {
+    // hide image - leave in DOM to measure and get events
+    if (!(el == null ? void 0 : el.current)) return;
+    el.current.style.opacity = debug ? 0.5 : 0;
+    return () => {
+      if (!(el == null ? void 0 : el.current)) return;
+      el.current.style.opacity = '';
+    };
+  }, [el.current]); // Trigger render on scroll
+
+  useEffect(() => scrollY.onChange(requestFrame), []);
+
+  const updateSizeAndPosition = () => {
+    if (!el || !el.current) return;
+    const {
+      bounds,
+      prevBounds
+    } = transient;
+    const {
+      top,
+      left,
+      width,
+      height
+    } = el.current.getBoundingClientRect(); // pixel bounds
+
+    bounds.top = top + window.pageYOffset;
+    bounds.left = left;
+    bounds.width = width;
+    bounds.height = height;
+    prevBounds.top = top;
+    const viewportWidth = width * scaleMultiplier;
+    const viewportHeight = height * scaleMultiplier; // scale in viewport units and pixel
+
+    setScale({
+      width: viewportWidth,
+      height: viewportHeight,
+      multiplier: scaleMultiplier,
+      pixelWidth: width,
+      pixelHeight: height,
+      viewportWidth: size.width * scaleMultiplier,
+      viewportHeight: size.height * scaleMultiplier
+    });
+    const cameraDistance = Math.max(viewportWidth, viewportHeight);
+    setCameraDistance(cameraDistance);
+
+    if (camera.current && !orthographic) {
+      camera.current.aspect = (viewportWidth + margin * 2) / (viewportHeight + margin * 2);
+      camera.current.fov = 2 * (180 / Math.PI) * Math.atan((viewportHeight + margin * 2) / (2 * cameraDistance));
+      camera.current.updateProjectionMatrix(); // https://github.com/react-spring/react-three-fiber/issues/178
+      // Update matrix world since the renderer is a frame late
+
+      camera.current.updateMatrixWorld();
+    }
+
+    requestFrame(); // trigger render
+  }; // Find bounding box & scale mesh on resize
+
+
+  useLayoutEffect(() => {
+    updateSizeAndPosition();
+  }, [pageReflowCompleted]); // RENDER FRAME
+
+  useFrame(() => {
+    if (!scene) return;
+    const {
+      bounds,
+      prevBounds
+    } = transient; // add scroll value to bounds to get current position
+
+    const topY = bounds.top - scrollY.get(); // frame delta
+
+    const delta = Math.abs(prevBounds.top - topY); // Lerp the distance to simulate easing
+
+    const lerpTop = Math$1.lerp(prevBounds.top, topY, lerp + lerpOffset); // Abort if element not in screen
+
+    const isOffscreen = lerpTop + bounds.height < -100 || lerpTop > size.height + 100; // store top value for next frame
+
+    bounds.inViewport = !isOffscreen;
+    setInViewportProp && requestIdleCallback(() => transient.mounted && setInViewport(!isOffscreen));
+    prevBounds.top = lerpTop; // hide/show scene
+
+    if (isOffscreen && scene.visible) {
+      scene.visible = false;
+    } else if (!isOffscreen && !scene.visible) {
+      scene.visible = visible;
+    } // Render scene to viewport using local camera and limit updates using scissor test
+    // Performance improvement - faster than always rendering full canvas
+
+
+    if (scene.visible) {
+      const positiveYUpBottom = size.height - (lerpTop + bounds.height); // inverse Y
+
+      renderViewport({
+        scene,
+        camera: camera.current,
+        left: bounds.left - margin,
+        top: positiveYUpBottom - margin,
+        width: bounds.width + margin * 2,
+        height: bounds.height + margin * 2,
+        renderOnTop
+      }); // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
+
+      const pxInside = bounds.top - lerpTop - bounds.top + size.height;
+      bounds.progress = Math$1.mapLinear(pxInside, 0, size.height + bounds.height, 0, 1); // percent of total visible distance
+
+      bounds.visibility = Math$1.mapLinear(pxInside, 0, bounds.height, 0, 1); // percent of item height in view
+
+      bounds.viewport = Math$1.mapLinear(pxInside, 0, size.height, 0, 1); // percent of window height scrolled since visible
+    } // render another frame if delta is large enough
+
+
+    if (!isOffscreen && delta > config.scrollRestDelta) {
+      requestFrame();
+    }
+  }, config.PRIORITY_VIEWPORTS + renderOrder);
+
+  const renderDebugMesh = () => /*#__PURE__*/React.createElement("mesh", null, /*#__PURE__*/React.createElement("planeBufferGeometry", {
+    attach: "geometry",
+    args: [scale.width, scale.height, 1, 1]
+  }), /*#__PURE__*/React.createElement("meshBasicMaterial", {
+    color: "pink",
+    attach: "material",
+    transparent: true,
+    opacity: 0.5
+  }));
+
+  return createPortal( /*#__PURE__*/React.createElement(React.Fragment, null, !orthographic && /*#__PURE__*/React.createElement("perspectiveCamera", {
+    ref: camera,
+    position: [0, 0, cameraDistance],
+    onUpdate: self => self.updateProjectionMatrix()
+  }), orthographic && /*#__PURE__*/React.createElement("orthographicCamera", {
+    ref: camera,
+    position: [0, 0, cameraDistance],
+    onUpdate: self => self.updateProjectionMatrix(),
+    left: scale.width / -2,
+    right: scale.width / 2,
+    top: scale.height / 2,
+    bottom: scale.height / -2,
+    far: cameraDistance * 2,
+    near: 0.001
+  }), /*#__PURE__*/React.createElement("group", {
+    renderOrder: renderOrder
+  }, (!children || debug) && renderDebugMesh(), children && children(_extends({
+    // inherited props
+    el,
+    lerp,
+    lerpOffset,
+    margin,
+    visible,
+    renderOrder,
+    // new props
+    scale,
+    state: transient,
+    // @deprecated
+    scrollState: transient.bounds,
+    transient,
+    scene,
+    camera: camera.current,
+    inViewport,
+    // useFrame render priority (in case children need to run after)
+    priority: config.PRIORITY_VIEWPORTS + renderOrder
+  }, props)))), scene);
+};
+
+ViewportScrollScene = /*#__PURE__*/React.memo(ViewportScrollScene);
+ViewportScrollScene.childPropTypes = _extends({}, ViewportScrollScene.propTypes, {
+  scale: PropTypes.shape({
+    width: PropTypes.number,
+    height: PropTypes.number
+  }),
+  state: PropTypes.shape({
+    bounds: PropTypes.shape({
+      left: PropTypes.number,
+      top: PropTypes.number,
+      width: PropTypes.number,
+      height: PropTypes.number,
+      inViewport: PropTypes.bool,
+      progress: PropTypes.number
+    })
+  }),
+  scene: PropTypes.object,
+  // Parent scene,
+  inViewport: PropTypes.bool // {x,y} to scale
+
+});
+
+const useDelayedEffect = (fn, deps, ms = 0) => {
+  let timer;
+  useEffect(() => {
+    timer = setTimeout(fn, ms);
+    return () => clearTimeout(timer);
+  }, deps);
+};
+
+/**
+ * Adds THREE.js object to the GlobalCanvas while the component is mounted after initial delay (ms)
+ * @param {object} object THREE.js object3d
+ */
+
+const useDelayedCanvas = (object, ms, deps = [], key) => {
+  const updateCanvas = useCanvasStore(state => state.updateCanvas);
+  const renderToCanvas = useCanvasStore(state => state.renderToCanvas);
+  const removeFromCanvas = useCanvasStore(state => state.removeFromCanvas); // auto generate uuid v4 key
+
+  const uniqueKey = useMemo(() => key || MathUtils.generateUUID(), []); // remove on unmount
+
+  useLayoutEffect(() => {
+    return () => removeFromCanvas(uniqueKey);
+  }, []);
+  useDelayedEffect(() => {
+    renderToCanvas(uniqueKey, object);
+  }, deps, ms); // return function that can set new props on the canvas component
+
+  const set = props => {
+    requestIdleCallback(() => updateCanvas(uniqueKey, props), {
+      timeout: 100
+    });
+  };
+
+  return set;
+};
+
+const LAYOUT_LERP$1 = 0.1;
+/**
+ * Make DOM element fixed and move using useFrame so we can and match the lerp of a ScrollScene
+ * The referenced DOM element will be cloned and made position:fixed. The original el is hidden.
+ * @author david@14islands.com
+ */
+
+const ScrollDom = /*#__PURE__*/forwardRef(({
+  el,
+  appendTo,
+  lerp = config.scrollLerp,
+  lerpOffset = 0,
+  children,
+  zIndex = 0,
+  getOffset = () => {},
+  live = false,
+  // detect new changes from the DOM (useful if aimating el position with CSS)
+  layoutLerp = LAYOUT_LERP$1,
+  // easing to apply to layout transition
+  style
+}, ref) => {
+  const copyEl = useRef();
+  const local = useRef({
+    needUpdate: false,
+    offsetY: 0,
+    offsetX: 0
+  }).current;
+  const bounds = useRef({
+    top: 0,
+    left: 0,
+    width: 0,
+    height: 0,
+    windowHeight: -1,
+    windowWidth: -1
+  }).current;
+  const prevBounds = useRef({
+    top: 0,
+    wasOffscreen: false
+  }).current;
+  const {
+    scrollY
+  } = useViewportScroll();
+  const {
+    size
+  } = useThree();
+  const {
+    requestFrame
+  } = useScrollRig();
+  const pageReflowCompleted = useCanvasStore(state => state.pageReflowCompleted); // El is rendered
+
+  useEffect(() => {
+    // hide DOM element visually - leave in DOM to measure and get events
+    if (!(el == null ? void 0 : el.current)) return;
+    copyEl.current = el.current.cloneNode(true);
+    copyEl.current.style.position = 'fixed';
+    copyEl.current.style.visibility = 'visible';
+    copyEl.current.style.zIndex = zIndex;
+    ((appendTo == null ? void 0 : appendTo.current) || document.documentElement).appendChild(copyEl.current);
+    el.current.style.visibility = 'hidden';
+    ref && ref(copyEl.current);
+    return () => {
+      ((appendTo == null ? void 0 : appendTo.current) || document.documentElement).removeChild(copyEl.current);
+
+      if (el && el.current) {
+        el.current.style.visibility = '';
+      }
+    };
+  }, [el.current]); // Trigger render on scroll
+
+  useEffect(() => scrollY.onChange(() => {
+    local.needUpdate = true;
+    requestFrame();
+  }), []); // Find initial position of proxy element on mount
+
+  useEffect(() => {
+    if (!el || !el.current) return;
+    copyEl.current.className = el.current.className;
+    const {
+      top,
+      left,
+      width,
+      height
+    } = el.current.getBoundingClientRect();
+    bounds.top = top + window.pageYOffset;
+    bounds.left = left;
+    bounds.width = width;
+    bounds.height = height;
+    prevBounds.top = -window.pageYOffset;
+    prevBounds.left = 0;
+    prevBounds.x = 0;
+    prevBounds.y = 0;
+    copyEl.current.style.top = bounds.top + 'px';
+    copyEl.current.style.left = left + 'px';
+    copyEl.current.style.width = width + 'px';
+    copyEl.current.style.height = height + 'px';
+    local.windowWidth = size.width;
+    local.windowHeight = size.height; // trigger render
+
+    local.needUpdate = true;
+    requestFrame();
+  }, [el]); // TODO: decide if react to size.height to avoid mobile viewport scroll bugs
+  // Update position on window resize or if `live` flag changes
+
+  useEffect(() => {
+    if (!el || !el.current) return;
+    const id = requestIdleCallback(() => {
+      if (!el || !el.current) return;
+      const classNames = el.current.className;
+
+      if (!classNames !== copyEl.current.className) {
+        copyEl.current.className = classNames;
+      }
+
+      const {
+        top,
+        left
+      } = bounds;
+      const {
+        top: newTop,
+        left: newLeft,
+        height: newHeight,
+        width: newWidth
+      } = el.current.getBoundingClientRect();
+
+      if (bounds.height !== newHeight) {
+        copyEl.current.style.height = newHeight + 'px';
+      }
+
+      if (bounds.width !== newWidth) {
+        copyEl.current.style.width = newWidth + 'px'; // TODO adjust left position if floating from right. possible to detect?
+      }
+
+      local.offsetY = newTop - top + window.pageYOffset;
+      local.offsetX = newLeft - left;
+      bounds.height = newHeight;
+      bounds.width = newWidth;
+      prevBounds.top = -window.pageYOffset; // trigger render
+
+      local.needUpdate = true;
+      requestFrame();
+    }, {
+      timeout: 100
+    });
+    return () => cancelIdleCallback(id);
+  }, [live, pageReflowCompleted]);
+  useEffect(() => {
+    local.needUpdate = true;
+    requestFrame();
+  }, [style]); // RENDER FRAME
+
+  useFrame(({
+    gl
+  }) => {
+    var _getOffset, _getOffset2;
+
+    const {
+      top,
+      height
+    } = bounds; // get offset from resizing window + offset from callback function from parent
+
+    const offsetX = local.offsetX + (live && ((_getOffset = getOffset()) == null ? void 0 : _getOffset.x) || 0);
+    const offsetY = local.offsetY + (live && ((_getOffset2 = getOffset()) == null ? void 0 : _getOffset2.y) || 0); // add scroll value to bounds to get current position
+
+    const scrollTop = -scrollY.get(); // frame delta
+
+    const deltaScroll = prevBounds.top - scrollTop;
+    const delta = Math.abs(deltaScroll) + Math.abs(prevBounds.x - offsetX) + Math.abs(prevBounds.y - offsetY);
+
+    if (!local.needUpdate && delta < config.scrollRestDelta) {
+      // abort if no delta change
+      return;
+    } // parallax position
+    // const progress = MathUtils.lerp(1, -1, MathUtils.clamp((size.height - scrollTop) / (size.height + height), 0, 1))
+    // const offset = transform(progress, [1, 0, -1], [0, 0, 400])
+    // scrollTop += offset
+    // Lerp the distance to simulate easing
+
+
+    const lerpScroll = Math$1.lerp(prevBounds.top, scrollTop, lerp + lerpOffset);
+    const lerpX = Math$1.lerp(prevBounds.x, offsetX, layoutLerp);
+    const lerpY = Math$1.lerp(prevBounds.y, offsetY, layoutLerp); // Abort if element not in screen
+
+    const elTop = top + lerpScroll + lerpY;
+    const isOffscreen = elTop + height < -100 || elTop > size.height + 100; // Update DOM element position if in view, or if was in view last frame
+
+    if (!isOffscreen) {
+      if (copyEl.current) {
+        Object.assign(copyEl.current.style, _extends({
+          visibility: ''
+        }, style, {
+          transform: "translate3d(" + lerpX + "px, " + (lerpScroll + lerpY) + "px, 0)"
+        }));
+      }
+    } else {
+      if (copyEl.current) {
+        copyEl.current.style.visibility = 'hidden';
+      }
+    } // store values for next frame
+
+
+    prevBounds.top = lerpScroll;
+    prevBounds.wasOffscreen = isOffscreen;
+    prevBounds.x = lerpX;
+    prevBounds.y = lerpY;
+    local.needUpdate = false; // render another frame if delta is large enough
+
+    if (!isOffscreen && delta > config.scrollRestDelta) {
+      requestFrame();
+      local.needUpdate = true;
+    }
+  });
+  return /*#__PURE__*/React.createElement(React.Fragment, null);
+});
+ScrollDom.displayName = 'ScrollDom';
+ScrollDom.propTypes = {
+  el: PropTypes.object,
+  // DOM element to track,
+  lerp: PropTypes.number,
+  // Base lerp ratio
+  lerpOffset: PropTypes.number,
+  // Offset applied to `lerp`
+  zIndex: PropTypes.number,
+  // z-index to apply to the cloned element
+  getOffset: PropTypes.func,
+  // called for every frame to get {x,y} translation offset
+  appendTo: PropTypes.any,
+  live: PropTypes.bool,
+  layoutLerp: PropTypes.number,
+  style: PropTypes.object
 };
 
 const DEFAULT_LERP = 0.1;
@@ -2098,4 +2110,4 @@ const useScrollbar = () => {
   };
 };
 
-export { GlobalCanvas, PerspectiveCameraScene, ScrollDom, ScrollDomPortal, ScrollScene, VirtualScrollbar, canvasStoreApi, config, useCanvas, useCanvasStore, useDelayedCanvas, useImgTagAsTexture, useScrollRig, useScrollbar, useTextureLoader, utils };
+export { GlobalCanvas, ViewportScrollScene as PerspectiveCameraScene, ScrollDom, ScrollDomPortal, ScrollScene, ViewportScrollScene, VirtualScrollbar, canvasStoreApi, config, useCanvas, useCanvasStore, useDelayedCanvas, useImgTagAsTexture, useScrollRig, useScrollbar, useTextureLoader, utils };

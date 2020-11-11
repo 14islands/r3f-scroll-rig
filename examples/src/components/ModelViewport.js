@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react'
-import { useScrollRig, useCanvas, PerspectiveCameraScene } from '@14islands/r3f-scroll-rig'
+import { useScrollRig, useCanvas, ViewportScrollScene } from '@14islands/r3f-scroll-rig'
 // import { MathUtils, CameraHelper, FrontSide, BackSide, DoubleSide } from 'three'
 import { useFrame } from 'react-three-fiber'
 import { useGLTF, Shadow } from '@react-three/drei'
@@ -122,11 +122,11 @@ const ModelViewport = ({ src, aspectRatio, url, parallax, size, position, render
   const ref = useRef()
 
   useCanvas(
-    <PerspectiveCameraScene el={ref} debug={false} renderOnTop={renderOnTop} scaleMultiplier={0.001}>
+    <ViewportScrollScene el={ref} debug={false} renderOnTop={renderOnTop} scaleMultiplier={0.001}>
       {(props) => {
         return <ModelMesh {...props} url={url} parallax={parallax} size={size} position={position} />
       }}
-    </PerspectiveCameraScene>,
+    </ViewportScrollScene>,
   )
 
   return <div style={{ width: '100%', height: '100%', background: 'green' }} ref={ref}></div>

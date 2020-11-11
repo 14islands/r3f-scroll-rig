@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.6.0
+
+### ViewportScrollScene
+
+- `PerspectiveCameraScene` renamed to `ViewportScrollScene` with optional property `orthographic` to switch between orthographic and perspective cameras. Both are scaled to fit the viewport exactly.
+
 ## v1.5.0
 
 ### ScrollScene
