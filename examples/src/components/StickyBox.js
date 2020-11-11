@@ -21,7 +21,7 @@ const BoxMesh = ({scale, scrollState, lerp }) => {
     if (scrollState.viewport < 1) {
       set({
         scale: [0.5, 0.5, 0.5],
-        position: [0, size * 0.5, 0]
+        position: [0, size * 0.75, 0]
       })
     }
     // sticky

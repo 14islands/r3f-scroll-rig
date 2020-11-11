@@ -139,7 +139,7 @@ function App() {
           config={{
             debug: false,
             fps: true,
-            scaleMultiplier: 0.001, // make 1000px = 1 in three to avoid depth buffer sorting issues etc
+            scaleMultiplier: 0.01, // make 100px = 1 unit in three because the text wobbly looks better
           }}
           // use our own default camera
           camera={null}

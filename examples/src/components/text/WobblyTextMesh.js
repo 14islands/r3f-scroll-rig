@@ -12,7 +12,7 @@ const WobblyTextMesh = ({ children, scrollState, scale, el, font }) => {
   useFrame(() => {
     if (material.current && scrollState.inViewport) {
       requestFrame()
-      material.current.factor = Math.max(0, scrollState.progress - 0.5) * 2
+      material.current.factor = scrollState.progress * 0.5 //Math.max(0, scrollState.progress - 0.5) * 2
     }
   })
 
