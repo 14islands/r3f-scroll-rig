@@ -11,6 +11,7 @@ var React__default = _interopDefault(React);
 var reactThreeFiber = require('react-three-fiber');
 var resizeObserver = require('@juggle/resize-observer');
 var queryString = _interopDefault(require('query-string'));
+var drei = require('@react-three/drei');
 var create = _interopDefault(require('zustand'));
 var three = require('three');
 var windowSize = require('@react-hook/window-size');
@@ -46,6 +47,7 @@ var utils = /*#__PURE__*/Object.freeze({
 // usContext() causes re-rendering which can drop frames
 var config = {
   debug: false,
+  fps: false,
   // Global lerp settings
   scrollLerp: 0.1,
   // Linear interpolation - high performance easing
@@ -304,13 +306,79 @@ var preloadScene = function preloadScene(scene, camera, layer, callback) {
     callback && callback();
   });
 };
+
+/**
+ * Public interface for ScrollRig
+ */
+
+var useScrollRig = function useScrollRig() {
+  var isCanvasAvailable = useCanvasStore(function (state) {
+    return state.isCanvasAvailable;
+  });
+  var hasVirtualScrollbar = useCanvasStore(function (state) {
+    return state.hasVirtualScrollbar;
+  });
+  var paused = useCanvasStore(function (state) {
+    return state.paused;
+  });
+  var suspended = useCanvasStore(function (state) {
+    return state.suspended;
+  });
+  var setPaused = useCanvasStore(function (state) {
+    return state.setPaused;
+  });
+  var requestReflow = useCanvasStore(function (state) {
+    return state.requestReflow;
+  });
+  var pageReflowCompleted = useCanvasStore(function (state) {
+    return state.pageReflowCompleted;
+  });
+  var pixelRatio = useCanvasStore(function (state) {
+    return state.pixelRatio;
+  });
+
+  var _useThree = reactThreeFiber.useThree(),
+      invalidate = _useThree.invalidate;
+
+  var requestFrame = React.useCallback(function () {
+    if (!paused && !suspended) {
+      invalidate();
+    }
+  }, [paused, suspended]);
+
+  var pause = function pause() {
+    config.debug && console.log('GlobalRenderer.pause()');
+    setPaused(true);
+  };
+
+  var resume = function resume() {
+    config.debug && console.log('GlobalRenderer.resume()');
+    setPaused(false);
+    requestFrame();
+  };
+
+  return {
+    isCanvasAvailable: isCanvasAvailable,
+    hasVirtualScrollbar: hasVirtualScrollbar,
+    pixelRatio: pixelRatio,
+    requestFrame: requestFrame,
+    pause: pause,
+    resume: resume,
+    preloadScene: preloadScene,
+    renderFullscreen: renderFullscreen,
+    renderScissor: renderScissor,
+    renderViewport: renderViewport,
+    reflow: requestReflow,
+    reflowCompleted: pageReflowCompleted
+  };
+};
+
 /**
  * Global render loop to avoid double renders on the same frame
  */
 
-var GlobalRenderer = function GlobalRenderer(_ref3) {
-  var useScrollRig = _ref3.useScrollRig,
-      children = _ref3.children;
+var GlobalRenderer = function GlobalRenderer(_ref) {
+  var children = _ref.children;
   var scene = React.useRef();
 
   var _useThree = reactThreeFiber.useThree(),
@@ -330,9 +398,9 @@ var GlobalRenderer = function GlobalRenderer(_ref3) {
     gl.toneMapping = three.NoToneMapping;
   }, []); // GLOBAL RENDER LOOP
 
-  reactThreeFiber.useFrame(function (_ref4) {
-    var camera = _ref4.camera,
-        scene = _ref4.scene;
+  reactThreeFiber.useFrame(function (_ref2) {
+    var camera = _ref2.camera,
+        scene = _ref2.scene;
     // Render preload frames first and clear directly
     config.preloadQueue.forEach(function (render) {
       return render(gl);
@@ -404,72 +472,6 @@ var GlobalRenderer = function GlobalRenderer(_ref3) {
       key: key
     }, props));
   }), children));
-};
-
-/**
- * Public interface for ScrollRig
- */
-
-var useScrollRig = function useScrollRig() {
-  var isCanvasAvailable = useCanvasStore(function (state) {
-    return state.isCanvasAvailable;
-  });
-  var hasVirtualScrollbar = useCanvasStore(function (state) {
-    return state.hasVirtualScrollbar;
-  });
-  var paused = useCanvasStore(function (state) {
-    return state.paused;
-  });
-  var suspended = useCanvasStore(function (state) {
-    return state.suspended;
-  });
-  var setPaused = useCanvasStore(function (state) {
-    return state.setPaused;
-  });
-  var requestReflow = useCanvasStore(function (state) {
-    return state.requestReflow;
-  });
-  var pageReflowCompleted = useCanvasStore(function (state) {
-    return state.pageReflowCompleted;
-  });
-  var pixelRatio = useCanvasStore(function (state) {
-    return state.pixelRatio;
-  });
-
-  var _useThree = reactThreeFiber.useThree(),
-      invalidate = _useThree.invalidate;
-
-  var requestFrame = React.useCallback(function () {
-    if (!paused && !suspended) {
-      invalidate();
-    }
-  }, [paused, suspended]);
-
-  var pause = function pause() {
-    config.debug && console.log('GlobalRenderer.pause()');
-    setPaused(true);
-  };
-
-  var resume = function resume() {
-    config.debug && console.log('GlobalRenderer.resume()');
-    setPaused(false);
-    requestFrame();
-  };
-
-  return {
-    isCanvasAvailable: isCanvasAvailable,
-    hasVirtualScrollbar: hasVirtualScrollbar,
-    pixelRatio: pixelRatio,
-    requestFrame: requestFrame,
-    pause: pause,
-    resume: resume,
-    preloadScene: preloadScene,
-    renderFullscreen: renderFullscreen,
-    renderScissor: renderScissor,
-    renderViewport: renderViewport,
-    reflow: requestReflow,
-    reflowCompleted: pageReflowCompleted
-  };
 };
 
 var PerformanceMonitor = function PerformanceMonitor() {
@@ -619,40 +621,29 @@ var GlobalCanvas = function GlobalCanvas(_ref) {
 
   var cameraDistance = React.useMemo(function () {
     return size ? Math.max(size.width, size.height) : Math.max(window.innerWidth, window.innerHeight);
-  }, [size]);
+  }, [size]); // override config
+
   React.useEffect(function () {
     Object.assign(config, confOverrides);
-  }, [confOverrides]);
+  }, [confOverrides]); // flag that global canvas is active
+
   React.useEffect(function () {
-    // flag that global canvas is active
     config.hasGlobalCanvas = true;
-    var qs = queryString.parse(window.location.search); // show FPS counter?
+    return function () {
+      config.hasGlobalCanvas = false;
+    };
+  }, []);
+  React.useEffect(function () {
+    var qs = queryString.parse(window.location.search); // show FPS counter on request
 
-    if (typeof qs.fps !== 'undefined') {
-      var script = document.createElement('script');
-
-      script.onload = function () {
-        // eslint-disable-next-line no-undef
-        var stats = new Stats();
-        document.body.appendChild(stats.dom);
-        window.requestAnimationFrame(function loop() {
-          stats.update();
-          window.requestAnimationFrame(loop);
-        });
-      };
-
-      script.src = '//mrdoob.github.io/stats.js/build/stats.min.js';
-      document.head.appendChild(script);
+    if (qs.fps !== 'undefined') {
+      config.fps = true;
     } // show debug statements
 
 
     if (typeof qs.debug !== 'undefined') {
       config.debug = true;
     }
-
-    return function () {
-      config.hasGlobalCanvas = false;
-    };
   }, []);
   return /*#__PURE__*/React__default.createElement(reactThreeFiber.Canvas, _extends({
     className: "ScrollRigCanvas",
@@ -697,9 +688,7 @@ var GlobalCanvas = function GlobalCanvas(_ref) {
       pointerEvents: noEvents ? 'none' : 'auto',
       transform: 'translateZ(0)'
     }
-  }, props), /*#__PURE__*/React__default.createElement(GlobalRenderer, {
-    useScrollRig: useScrollRig
-  }, children), config.debug && /*#__PURE__*/React__default.createElement(StatsDebug, null), /*#__PURE__*/React__default.createElement(PerformanceMonitor, null), /*#__PURE__*/React__default.createElement(ResizeManager, {
+  }, props), /*#__PURE__*/React__default.createElement(GlobalRenderer, null, children), config.debug && /*#__PURE__*/React__default.createElement(StatsDebug, null), config.fps && /*#__PURE__*/React__default.createElement(drei.Stats, null), /*#__PURE__*/React__default.createElement(PerformanceMonitor, null), /*#__PURE__*/React__default.createElement(ResizeManager, {
     reflow: requestReflow,
     resizeOnHeight: resizeOnHeight
   }));

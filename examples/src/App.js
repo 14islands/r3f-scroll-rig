@@ -138,7 +138,7 @@ function App() {
           noEvents={true}
           config={{
             debug: false,
-            fps: true,
+            fps: false,
             scaleMultiplier: 0.01, // make 100px = 1 unit in three because the text wobbly looks better
           }}
           // use our own default camera

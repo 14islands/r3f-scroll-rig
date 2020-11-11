@@ -32,6 +32,7 @@ var requestIdleCallback = function requestIdleCallback(callback, _temp) {
 // usContext() causes re-rendering which can drop frames
 var config = {
   debug: false,
+  fps: false,
   // Global lerp settings
   scrollLerp: 0.1,
   // Linear interpolation - high performance easing

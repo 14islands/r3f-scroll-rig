@@ -3,10 +3,10 @@ import PropTypes from 'prop-types'
 import { Canvas, useThree } from 'react-three-fiber'
 import { ResizeObserver } from '@juggle/resize-observer'
 import queryString from 'query-string'
+import { Stats } from '@react-three/drei'
 
 import config from './config'
 import { useCanvasStore } from './store'
-import useScrollRig from './useScrollRig'
 import GlobalRenderer from './GlobalRenderer'
 import PerformanceMonitor from './PerformanceMonitor'
 import StatsDebug from './StatsDebug'
@@ -23,39 +23,30 @@ export const GlobalCanvas = ({ children, gl, resizeOnHeight, noEvents = true, co
     return size ? Math.max(size.width, size.height) : Math.max(window.innerWidth, window.innerHeight)
   }, [size])
 
+  // override config
   useEffect(() => {
     Object.assign(config, confOverrides)
   }, [confOverrides])
 
+  // flag that global canvas is active
   useEffect(() => {
-    // flag that global canvas is active
     config.hasGlobalCanvas = true
+    return () => {
+      config.hasGlobalCanvas = false
+    }
+  }, [])
 
+  useEffect(() => {
     const qs = queryString.parse(window.location.search)
 
-    // show FPS counter?
-    if (typeof qs.fps !== 'undefined') {
-      const script = document.createElement('script')
-      script.onload = function () {
-        // eslint-disable-next-line no-undef
-        const stats = new Stats()
-        document.body.appendChild(stats.dom)
-        window.requestAnimationFrame(function loop() {
-          stats.update()
-          window.requestAnimationFrame(loop)
-        })
-      }
-      script.src = '//mrdoob.github.io/stats.js/build/stats.min.js'
-      document.head.appendChild(script)
+    // show FPS counter on request
+    if (qs.fps !== 'undefined') {
+      config.fps = true
     }
 
     // show debug statements
     if (typeof qs.debug !== 'undefined') {
       config.debug = true
-    }
-
-    return () => {
-      config.hasGlobalCanvas = false
     }
   }, [])
 
@@ -98,8 +89,9 @@ export const GlobalCanvas = ({ children, gl, resizeOnHeight, noEvents = true, co
       }}
       {...props}
     >
-      <GlobalRenderer useScrollRig={useScrollRig}>{children}</GlobalRenderer>
+      <GlobalRenderer>{children}</GlobalRenderer>
       {config.debug && <StatsDebug />}
+      {config.fps && <Stats />}
       <PerformanceMonitor />
       <ResizeManager reflow={requestReflow} resizeOnHeight={resizeOnHeight} />
     </Canvas>

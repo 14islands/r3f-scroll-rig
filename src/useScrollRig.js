@@ -4,7 +4,7 @@ import { useThree } from 'react-three-fiber'
 import config from './config'
 import { useCanvasStore } from './store'
 
-import { preloadScene, renderFullscreen, renderScissor, renderViewport } from './GlobalRenderer'
+import { preloadScene, renderFullscreen, renderScissor, renderViewport } from './renderer-api'
 
 /**
  * Public interface for ScrollRig

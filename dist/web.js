@@ -1,9 +1,10 @@
 import _extends from '@babel/runtime/helpers/esm/extends';
 import _objectWithoutPropertiesLoose from '@babel/runtime/helpers/esm/objectWithoutPropertiesLoose';
-import React, { useRef, useLayoutEffect, Suspense, Fragment, useCallback, useEffect, useMemo, useState, forwardRef } from 'react';
+import React, { useCallback, useRef, useLayoutEffect, Suspense, Fragment, useEffect, useMemo, useState, forwardRef } from 'react';
 import { useThree, useFrame, Canvas, createPortal } from 'react-three-fiber';
 import { ResizeObserver } from '@juggle/resize-observer';
 import queryString from 'query-string';
+import { Stats } from '@react-three/drei';
 import create from 'zustand';
 import { sRGBEncoding, NoToneMapping, Math as Math$1, MathUtils, ImageBitmapLoader, TextureLoader, CanvasTexture, LinearFilter, RGBFormat, RGBAFormat, Scene } from 'three';
 import { useWindowSize, useWindowHeight } from '@react-hook/window-size';
@@ -37,6 +38,7 @@ var utils = /*#__PURE__*/Object.freeze({
 // usContext() causes re-rendering which can drop frames
 const config = {
   debug: false,
+  fps: false,
   // Global lerp settings
   scrollLerp: 0.1,
   // Linear interpolation - high performance easing
@@ -250,12 +252,61 @@ const preloadScene = (scene, camera, layer = 0, callback) => {
     callback && callback();
   });
 };
+
+/**
+ * Public interface for ScrollRig
+ */
+
+const useScrollRig = () => {
+  const isCanvasAvailable = useCanvasStore(state => state.isCanvasAvailable);
+  const hasVirtualScrollbar = useCanvasStore(state => state.hasVirtualScrollbar);
+  const paused = useCanvasStore(state => state.paused);
+  const suspended = useCanvasStore(state => state.suspended);
+  const setPaused = useCanvasStore(state => state.setPaused);
+  const requestReflow = useCanvasStore(state => state.requestReflow);
+  const pageReflowCompleted = useCanvasStore(state => state.pageReflowCompleted);
+  const pixelRatio = useCanvasStore(state => state.pixelRatio);
+  const {
+    invalidate
+  } = useThree();
+  const requestFrame = useCallback(() => {
+    if (!paused && !suspended) {
+      invalidate();
+    }
+  }, [paused, suspended]);
+
+  const pause = () => {
+    config.debug && console.log('GlobalRenderer.pause()');
+    setPaused(true);
+  };
+
+  const resume = () => {
+    config.debug && console.log('GlobalRenderer.resume()');
+    setPaused(false);
+    requestFrame();
+  };
+
+  return {
+    isCanvasAvailable,
+    hasVirtualScrollbar,
+    pixelRatio,
+    requestFrame,
+    pause,
+    resume,
+    preloadScene,
+    renderFullscreen,
+    renderScissor,
+    renderViewport,
+    reflow: requestReflow,
+    reflowCompleted: pageReflowCompleted
+  };
+};
+
 /**
  * Global render loop to avoid double renders on the same frame
  */
 
 const GlobalRenderer = ({
-  useScrollRig,
   children
 }) => {
   const scene = useRef();
@@ -338,55 +389,6 @@ const GlobalRenderer = ({
       key
     }, props));
   }), children));
-};
-
-/**
- * Public interface for ScrollRig
- */
-
-const useScrollRig = () => {
-  const isCanvasAvailable = useCanvasStore(state => state.isCanvasAvailable);
-  const hasVirtualScrollbar = useCanvasStore(state => state.hasVirtualScrollbar);
-  const paused = useCanvasStore(state => state.paused);
-  const suspended = useCanvasStore(state => state.suspended);
-  const setPaused = useCanvasStore(state => state.setPaused);
-  const requestReflow = useCanvasStore(state => state.requestReflow);
-  const pageReflowCompleted = useCanvasStore(state => state.pageReflowCompleted);
-  const pixelRatio = useCanvasStore(state => state.pixelRatio);
-  const {
-    invalidate
-  } = useThree();
-  const requestFrame = useCallback(() => {
-    if (!paused && !suspended) {
-      invalidate();
-    }
-  }, [paused, suspended]);
-
-  const pause = () => {
-    config.debug && console.log('GlobalRenderer.pause()');
-    setPaused(true);
-  };
-
-  const resume = () => {
-    config.debug && console.log('GlobalRenderer.resume()');
-    setPaused(false);
-    requestFrame();
-  };
-
-  return {
-    isCanvasAvailable,
-    hasVirtualScrollbar,
-    pixelRatio,
-    requestFrame,
-    pause,
-    resume,
-    preloadScene,
-    renderFullscreen,
-    renderScissor,
-    renderViewport,
-    reflow: requestReflow,
-    reflowCompleted: pageReflowCompleted
-  };
 };
 
 const PerformanceMonitor = () => {
@@ -522,40 +524,29 @@ const GlobalCanvas = (_ref) => {
   } = useThree();
   const cameraDistance = useMemo(() => {
     return size ? Math.max(size.width, size.height) : Math.max(window.innerWidth, window.innerHeight);
-  }, [size]);
+  }, [size]); // override config
+
   useEffect(() => {
     Object.assign(config, confOverrides);
-  }, [confOverrides]);
+  }, [confOverrides]); // flag that global canvas is active
+
   useEffect(() => {
-    // flag that global canvas is active
     config.hasGlobalCanvas = true;
-    const qs = queryString.parse(window.location.search); // show FPS counter?
+    return () => {
+      config.hasGlobalCanvas = false;
+    };
+  }, []);
+  useEffect(() => {
+    const qs = queryString.parse(window.location.search); // show FPS counter on request
 
-    if (typeof qs.fps !== 'undefined') {
-      const script = document.createElement('script');
-
-      script.onload = function () {
-        // eslint-disable-next-line no-undef
-        const stats = new Stats();
-        document.body.appendChild(stats.dom);
-        window.requestAnimationFrame(function loop() {
-          stats.update();
-          window.requestAnimationFrame(loop);
-        });
-      };
-
-      script.src = '//mrdoob.github.io/stats.js/build/stats.min.js';
-      document.head.appendChild(script);
+    if (qs.fps !== 'undefined') {
+      config.fps = true;
     } // show debug statements
 
 
     if (typeof qs.debug !== 'undefined') {
       config.debug = true;
     }
-
-    return () => {
-      config.hasGlobalCanvas = false;
-    };
   }, []);
   return /*#__PURE__*/React.createElement(Canvas, _extends({
     className: "ScrollRigCanvas",
@@ -600,9 +591,7 @@ const GlobalCanvas = (_ref) => {
       pointerEvents: noEvents ? 'none' : 'auto',
       transform: 'translateZ(0)'
     }
-  }, props), /*#__PURE__*/React.createElement(GlobalRenderer, {
-    useScrollRig: useScrollRig
-  }, children), config.debug && /*#__PURE__*/React.createElement(StatsDebug, null), /*#__PURE__*/React.createElement(PerformanceMonitor, null), /*#__PURE__*/React.createElement(ResizeManager, {
+  }, props), /*#__PURE__*/React.createElement(GlobalRenderer, null, children), config.debug && /*#__PURE__*/React.createElement(StatsDebug, null), config.fps && /*#__PURE__*/React.createElement(Stats, null), /*#__PURE__*/React.createElement(PerformanceMonitor, null), /*#__PURE__*/React.createElement(ResizeManager, {
     reflow: requestReflow,
     resizeOnHeight: resizeOnHeight
   }));
