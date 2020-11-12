@@ -6,6 +6,14 @@
 
 - `PerspectiveCameraScene` renamed to `ViewportScrollScene` with optional property `orthographic` to switch between orthographic and perspective cameras. Both are scaled to fit the viewport exactly.
 
+### GlobalCanvas
+
+- Uses custom cameras for global `scaleMultiplier` to work properly. Bypasses all built-in react-three-fiber camera logic. Property `orthogonal` is used to select which camera.
+- added `fps` setting to the `config` propery which overrides scroll-rig config Querystring value for `fps` and `debug` override this config.
+- Default pixelRatio scaling can now be turned off with `config={{autoPixelRatio: false}}`
+- turned stencil buffer on by default (not sure disabling did anything good for perf anyway)
+- removed gl properties `preserveDrawingBuffer: false` and `premultipliedAlpha: true` that are default in threejs anyway to simplify
+
 ## v1.5.0
 
 ### ScrollScene

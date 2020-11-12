@@ -15,12 +15,13 @@ const PerformanceMonitor = () => {
 
       // TODO Can we allow better resolution on more powerful computers somehow?
       // Calculate avg frame rate and lower pixelRatio on demand?
+      // scale down when scrolling fast?
       let scale
       scale = size.width > 1500 ? 0.9 : 1.0
       scale = size.width > 1900 ? 0.8 : scale
 
       const pixelRatio = Math.max(1.0, Math.min(MAX_PIXEL_RATIO, devicePixelRatio * scale))
-      config.debug && console.info('GlobalCanvas', 'Set pixelRatio', pixelRatio)
+      config.debug && console.info('PerformanceMonitor', 'Set pixelRatio', pixelRatio)
       setPixelRatio(pixelRatio)
     }
   }, [size])

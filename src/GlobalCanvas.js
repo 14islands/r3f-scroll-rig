@@ -1,6 +1,6 @@
 import React, { useEffect, useLayoutEffect, useRef, useMemo } from 'react'
 import PropTypes from 'prop-types'
-import { Canvas, useThree } from 'react-three-fiber'
+import { Canvas } from 'react-three-fiber'
 import { ResizeObserver } from '@juggle/resize-observer'
 import queryString from 'query-string'
 import { Stats } from '@react-three/drei'
@@ -11,20 +11,25 @@ import GlobalRenderer from './GlobalRenderer'
 import PerformanceMonitor from './PerformanceMonitor'
 import StatsDebug from './StatsDebug'
 import ResizeManager from './ResizeManager'
+import PerspectiveCamera from './PerspectiveCamera'
+import OrthographicCamera from './OrthographicCamera'
 
 import CanvasErrorBoundary from './CanvasErrorBoundary'
 
-export const GlobalCanvas = ({ children, gl, resizeOnHeight, noEvents = true, config: confOverrides, ...props }) => {
+export const GlobalCanvas = ({
+  children,
+  gl,
+  resizeOnHeight,
+  orthographic,
+  noEvents = true,
+  config: confOverrides,
+  ...props
+}) => {
   const pixelRatio = useCanvasStore((state) => state.pixelRatio)
   const requestReflow = useCanvasStore((state) => state.requestReflow)
-  const { size } = useThree()
-
-  const cameraDistance = useMemo(() => {
-    return size ? Math.max(size.width, size.height) : Math.max(window.innerWidth, window.innerHeight)
-  }, [size])
 
   // override config
-  useEffect(() => {
+  useMemo(() => {
     Object.assign(config, confOverrides)
   }, [confOverrides])
 
@@ -40,7 +45,7 @@ export const GlobalCanvas = ({ children, gl, resizeOnHeight, noEvents = true, co
     const qs = queryString.parse(window.location.search)
 
     // show FPS counter on request
-    if (qs.fps !== 'undefined') {
+    if (typeof qs.fps !== 'undefined') {
       config.fps = true
     }
 
@@ -57,26 +62,17 @@ export const GlobalCanvas = ({ children, gl, resizeOnHeight, noEvents = true, co
       gl={{
         antialias: false,
         alpha: true,
-        stencil: false,
-        depth: false,
+        depth: false, // turned off by default as optimization
         powerPreference: 'high-performance',
         // https://blog.tojicode.com/2013/12/failifmajorperformancecaveat-with-great.html
         failIfMajorPerformanceCaveat: true, // skip webgl if slow device
-        preserveDrawingBuffer: false,
-        premultipliedAlpha: true, // if false, shader antialias becomes a grey-isch outline
         ...gl,
       }}
       colorManagement={true} // ACESFilmic seems incorrect for non-HDR settings - images get weird colors?
       noEvents={noEvents}
       resize={{ scroll: false, debounce: 0, polyfill: ResizeObserver }}
       // concurrent // zustand (state mngr) is not compatible with concurrent mode yet
-      orthographic
       pixelRatio={pixelRatio}
-      camera={{
-        near: 0.1,
-        far: cameraDistance * 2,
-        position: [0, 0, cameraDistance],
-      }}
       style={{
         position: 'fixed',
         top: 0,
@@ -87,12 +83,18 @@ export const GlobalCanvas = ({ children, gl, resizeOnHeight, noEvents = true, co
         pointerEvents: noEvents ? 'none' : 'auto',
         transform: 'translateZ(0)',
       }}
+      // use our own default camera
+      camera={null}
+      updateDefaultCamera={false}
+      // allow to override anything of the above
       {...props}
     >
       <GlobalRenderer>{children}</GlobalRenderer>
+      {!orthographic && <PerspectiveCamera makeDefault={true} />}
+      {orthographic && <OrthographicCamera makeDefault={true} />}
       {config.debug && <StatsDebug />}
       {config.fps && <Stats />}
-      <PerformanceMonitor />
+      {config.autoPixelRatio && <PerformanceMonitor />}
       <ResizeManager reflow={requestReflow} resizeOnHeight={resizeOnHeight} />
     </Canvas>
   )
@@ -101,6 +103,7 @@ export const GlobalCanvas = ({ children, gl, resizeOnHeight, noEvents = true, co
 GlobalCanvas.propTypes = {
   gl: PropTypes.object,
   resizeOnHeight: PropTypes.bool,
+  orthographic: PropTypes.bool,
   noEvents: PropTypes.bool,
   config: PropTypes.bool, // scrollrig config overrides
 }
