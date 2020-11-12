@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from 'react'
 import { useScrollRig, useCanvas, ViewportScrollScene } from '@14islands/r3f-scroll-rig'
 // import { MathUtils, CameraHelper, FrontSide, BackSide, DoubleSide } from 'three'
 import { useFrame } from 'react-three-fiber'
-import { useGLTF, Shadow } from '@react-three/drei'
+import { useGLTF, Shadow, softShadows } from '@react-three/drei'
 // import { StandardEffects } from './StandardEffects'
 
 // softShadows()
@@ -58,7 +58,6 @@ const ModelMesh = ({ url, scale, camera, scene, scrollState, parallax = 0, size 
   }, [gltf])
 
 
-  // const size = Math.min(scale.width, scale.height) * 0.5 * 1
   size = Math.min(scale.width, scale.height) * size
   return (
     <>
@@ -83,6 +82,8 @@ const ModelMesh = ({ url, scale, camera, scene, scrollState, parallax = 0, size 
       <mesh position={[0, 0, 0]} ref={mesh}>
         <primitive
           // ref={mesh}
+          // receiveShadow
+          // castShadow
           object={gltf.scene}
           // position={[0, -size * 1.5, 0]}
           position={position}

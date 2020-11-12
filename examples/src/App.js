@@ -4,8 +4,6 @@ import './App.css'
 import { GlobalCanvas, VirtualScrollbar } from '@14islands/r3f-scroll-rig'
 import { Loader } from '@react-three/drei'
 
-import PerspectiveCamera from './components/PerspectiveCamera'
-import OrthographicCamera from './components/OrthographicCamera'
 import Text from './components/text/Text'
 import Image from './components/image'
 import ParallaxImage from './components/image/ParallaxImage'
@@ -129,7 +127,7 @@ function App() {
           // shadowMap={{
           //   enabled: true,
           //   autoUpdate: true,
-          //   type: BasicShadowMap,
+          //   type: PCFSoftShadowMap,
           // }}
           gl={{
             antialias: true,
@@ -137,17 +135,11 @@ function App() {
           }}
           noEvents={true}
           config={{
-            debug: false,
             fps: false,
+            debug: false,
             scaleMultiplier: 0.01, // make 100px = 1 unit in three because the text wobbly looks better
           }}
-          // use our own default camera
-          camera={null}
-          updateDefaultCamera={false}
-        >
-          <PerspectiveCamera makeDefault={true} />
-          {/* <OrthographicCamera makeDefault={true} /> */}
-        </GlobalCanvas>
+        />
       </Suspense>
       <Loader/>
     </>
