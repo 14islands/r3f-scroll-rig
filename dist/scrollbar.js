@@ -24,6 +24,8 @@ const requestIdleCallback = (callback, {
 const config = {
   debug: false,
   fps: false,
+  autoPixelRatio: true,
+  // use PerformanceMonitor
   // Global lerp settings
   scrollLerp: 0.1,
   // Linear interpolation - high performance easing

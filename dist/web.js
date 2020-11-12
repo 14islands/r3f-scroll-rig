@@ -1,13 +1,15 @@
 import _extends from '@babel/runtime/helpers/esm/extends';
 import _objectWithoutPropertiesLoose from '@babel/runtime/helpers/esm/objectWithoutPropertiesLoose';
-import React, { useCallback, useRef, useLayoutEffect, Suspense, Fragment, useEffect, useMemo, useState, forwardRef } from 'react';
-import { useThree, useFrame, Canvas, createPortal } from 'react-three-fiber';
+import React, { useCallback, useRef, useLayoutEffect, Suspense, Fragment, useEffect, forwardRef, useMemo, useState } from 'react';
+import { useThree, useFrame, useUpdate, Canvas, createPortal } from 'react-three-fiber';
 import { ResizeObserver } from '@juggle/resize-observer';
 import queryString from 'query-string';
 import { Stats } from '@react-three/drei';
 import create from 'zustand';
 import { sRGBEncoding, NoToneMapping, Math as Math$1, MathUtils, ImageBitmapLoader, TextureLoader, CanvasTexture, LinearFilter, RGBFormat, RGBAFormat, Scene } from 'three';
 import { useWindowSize, useWindowHeight } from '@react-hook/window-size';
+import mergeRefs from 'react-merge-refs';
+import { config as config$1, useScrollRig as useScrollRig$1 } from '@14islands/r3f-scroll-rig';
 import PropTypes from 'prop-types';
 import { useViewportScroll } from 'framer-motion';
 import ReactDOM from 'react-dom';
@@ -39,6 +41,8 @@ var utils = /*#__PURE__*/Object.freeze({
 const config = {
   debug: false,
   fps: false,
+  autoPixelRatio: true,
+  // use PerformanceMonitor
   // Global lerp settings
   scrollLerp: 0.1,
   // Linear interpolation - high performance easing
@@ -402,12 +406,13 @@ const PerformanceMonitor = () => {
     if (devicePixelRatio > 1) {
       const MAX_PIXEL_RATIO = 2.5; // TODO Can we allow better resolution on more powerful computers somehow?
       // Calculate avg frame rate and lower pixelRatio on demand?
+      // scale down when scrolling fast?
 
       let scale;
       scale = size.width > 1500 ? 0.9 : 1.0;
       scale = size.width > 1900 ? 0.8 : scale;
       const pixelRatio = Math.max(1.0, Math.min(MAX_PIXEL_RATIO, devicePixelRatio * scale));
-      config.debug && console.info('GlobalCanvas', 'Set pixelRatio', pixelRatio);
+      config.debug && console.info('PerformanceMonitor', 'Set pixelRatio', pixelRatio);
       setPixelRatio(pixelRatio);
     }
   }, [size]);
@@ -507,26 +512,117 @@ const ResizeManager = ({
   return null;
 };
 
+const PerspectiveCamera = /*#__PURE__*/forwardRef((_ref, ref) => {
+  let {
+    makeDefault = false,
+    scaleMultiplier = config$1.scaleMultiplier
+  } = _ref,
+      props = _objectWithoutPropertiesLoose(_ref, ["makeDefault", "scaleMultiplier"]);
+
+  const {
+    setDefaultCamera,
+    camera,
+    size
+  } = useThree();
+  const {
+    reflowCompleted
+  } = useScrollRig$1();
+  const distance = useMemo(() => {
+    const width = size.width * scaleMultiplier;
+    const height = size.height * scaleMultiplier;
+    return Math.max(width, height);
+  }, [size, reflowCompleted, scaleMultiplier]);
+  const cameraRef = useUpdate(cam => {
+    const width = size.width * scaleMultiplier;
+    const height = size.height * scaleMultiplier;
+    cam.aspect = width / height;
+    cam.near = 0.1;
+    cam.far = distance * 2;
+    cam.fov = 2 * (180 / Math.PI) * Math.atan(height / (2 * distance));
+    cam.lookAt(0, 0, 0);
+    cam.updateProjectionMatrix(); // https://github.com/react-spring/react-three-fiber/issues/178
+    // Update matrix world since the renderer is a frame late
+
+    cam.updateMatrixWorld();
+  }, [distance, size]);
+  useLayoutEffect(() => {
+    if (makeDefault && cameraRef.current) {
+      const oldCam = camera;
+      setDefaultCamera(cameraRef.current);
+      return () => setDefaultCamera(oldCam);
+    }
+  }, [camera, cameraRef, makeDefault, setDefaultCamera]);
+  return /*#__PURE__*/React.createElement("perspectiveCamera", _extends({
+    ref: mergeRefs([cameraRef, ref]),
+    position: [0, 0, distance],
+    onUpdate: self => self.updateProjectionMatrix()
+  }, props));
+});
+PerspectiveCamera.displayName = 'PerspectiveCamera';
+
+const OrthographicCamera = /*#__PURE__*/forwardRef((_ref, ref) => {
+  let {
+    makeDefault = false,
+    scaleMultiplier = config$1.scaleMultiplier
+  } = _ref,
+      props = _objectWithoutPropertiesLoose(_ref, ["makeDefault", "scaleMultiplier"]);
+
+  const {
+    setDefaultCamera,
+    camera,
+    size
+  } = useThree();
+  const {
+    reflowCompleted
+  } = useScrollRig$1();
+  const distance = useMemo(() => {
+    const width = size.width * scaleMultiplier;
+    const height = size.height * scaleMultiplier;
+    return Math.max(width, height);
+  }, [size, reflowCompleted, scaleMultiplier]);
+  const cameraRef = useUpdate(cam => {
+    cam.lookAt(0, 0, 0);
+    cam.updateProjectionMatrix(); // https://github.com/react-spring/react-three-fiber/issues/178
+    // Update matrix world since the renderer is a frame late
+
+    cam.updateMatrixWorld();
+  }, [distance, size]);
+  useLayoutEffect(() => {
+    if (makeDefault && cameraRef.current) {
+      const oldCam = camera;
+      setDefaultCamera(cameraRef.current);
+      return () => setDefaultCamera(oldCam);
+    }
+  }, [camera, cameraRef, makeDefault, setDefaultCamera]);
+  return /*#__PURE__*/React.createElement("orthographicCamera", _extends({
+    left: size.width * scaleMultiplier / -2,
+    right: size.width * scaleMultiplier / 2,
+    top: size.height * scaleMultiplier / 2,
+    bottom: size.height * scaleMultiplier / -2,
+    far: distance * 2,
+    position: [0, 0, distance],
+    near: 0.001,
+    ref: mergeRefs([cameraRef, ref]),
+    onUpdate: self => self.updateProjectionMatrix()
+  }, props));
+});
+OrthographicCamera.displayName = 'OrthographicCamera';
+
 const GlobalCanvas = (_ref) => {
   let {
     children,
     gl,
     resizeOnHeight,
+    orthographic,
     noEvents = true,
     config: confOverrides
   } = _ref,
-      props = _objectWithoutPropertiesLoose(_ref, ["children", "gl", "resizeOnHeight", "noEvents", "config"]);
+      props = _objectWithoutPropertiesLoose(_ref, ["children", "gl", "resizeOnHeight", "orthographic", "noEvents", "config"]);
 
   const pixelRatio = useCanvasStore(state => state.pixelRatio);
-  const requestReflow = useCanvasStore(state => state.requestReflow);
-  const {
-    size
-  } = useThree();
-  const cameraDistance = useMemo(() => {
-    return size ? Math.max(size.width, size.height) : Math.max(window.innerWidth, window.innerHeight);
-  }, [size]); // override config
+  const requestReflow = useCanvasStore(state => state.requestReflow); // override config
 
-  useEffect(() => {
+  useMemo(() => {
     Object.assign(config, confOverrides);
   }, [confOverrides]); // flag that global canvas is active
 
@@ -539,7 +635,7 @@ const GlobalCanvas = (_ref) => {
   useEffect(() => {
     const qs = queryString.parse(window.location.search); // show FPS counter on request
 
-    if (qs.fps !== 'undefined') {
+    if (typeof qs.fps !== 'undefined') {
       config.fps = true;
     } // show debug statements
 
@@ -554,14 +650,11 @@ const GlobalCanvas = (_ref) => {
     gl: _extends({
       antialias: false,
       alpha: true,
-      stencil: false,
       depth: false,
+      // turned off by default as optimization
       powerPreference: 'high-performance',
       // https://blog.tojicode.com/2013/12/failifmajorperformancecaveat-with-great.html
-      failIfMajorPerformanceCaveat: true,
-      // skip webgl if slow device
-      preserveDrawingBuffer: false,
-      premultipliedAlpha: true
+      failIfMajorPerformanceCaveat: true
     }, gl),
     colorManagement: true // ACESFilmic seems incorrect for non-HDR settings - images get weird colors?
     ,
@@ -572,13 +665,7 @@ const GlobalCanvas = (_ref) => {
       polyfill: ResizeObserver
     } // concurrent // zustand (state mngr) is not compatible with concurrent mode yet
     ,
-    orthographic: true,
     pixelRatio: pixelRatio,
-    camera: {
-      near: 0.1,
-      far: cameraDistance * 2,
-      position: [0, 0, cameraDistance]
-    },
     style: {
       position: 'fixed',
       top: 0,
@@ -590,8 +677,16 @@ const GlobalCanvas = (_ref) => {
       // to sit on top of the page-transition-links styles
       pointerEvents: noEvents ? 'none' : 'auto',
       transform: 'translateZ(0)'
-    }
-  }, props), /*#__PURE__*/React.createElement(GlobalRenderer, null, children), config.debug && /*#__PURE__*/React.createElement(StatsDebug, null), config.fps && /*#__PURE__*/React.createElement(Stats, null), /*#__PURE__*/React.createElement(PerformanceMonitor, null), /*#__PURE__*/React.createElement(ResizeManager, {
+    } // use our own default camera
+    ,
+    camera: null,
+    updateDefaultCamera: false // allow to override anything of the above
+
+  }, props), /*#__PURE__*/React.createElement(GlobalRenderer, null, children), !orthographic && /*#__PURE__*/React.createElement(PerspectiveCamera, {
+    makeDefault: true
+  }), orthographic && /*#__PURE__*/React.createElement(OrthographicCamera, {
+    makeDefault: true
+  }), config.debug && /*#__PURE__*/React.createElement(StatsDebug, null), config.fps && /*#__PURE__*/React.createElement(Stats, null), config.autoPixelRatio && /*#__PURE__*/React.createElement(PerformanceMonitor, null), /*#__PURE__*/React.createElement(ResizeManager, {
     reflow: requestReflow,
     resizeOnHeight: resizeOnHeight
   }));
