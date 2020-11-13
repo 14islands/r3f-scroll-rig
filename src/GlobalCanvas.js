@@ -17,6 +17,7 @@ import OrthographicCamera from './OrthographicCamera'
 import CanvasErrorBoundary from './CanvasErrorBoundary'
 
 export const GlobalCanvas = ({
+  as = Canvas,
   children,
   gl,
   resizeOnHeight,
@@ -55,8 +56,10 @@ export const GlobalCanvas = ({
     }
   }, [])
 
+  const CanvasElement = as
+
   return (
-    <Canvas
+    <CanvasElement
       className="ScrollRigCanvas"
       invalidateFrameloop={true}
       gl={{
@@ -96,7 +99,7 @@ export const GlobalCanvas = ({
       {config.fps && <Stats />}
       {config.autoPixelRatio && <PerformanceMonitor />}
       <ResizeManager reflow={requestReflow} resizeOnHeight={resizeOnHeight} />
-    </Canvas>
+    </CanvasElement>
   )
 }
 
@@ -106,6 +109,7 @@ GlobalCanvas.propTypes = {
   orthographic: PropTypes.bool,
   noEvents: PropTypes.bool,
   config: PropTypes.bool, // scrollrig config overrides
+  as: PropTypes.any, // renders as react-three-fiber Canvas by default
 }
 
 const GlobalCanvasIfSupported = ({ onError, ...props }) => {
