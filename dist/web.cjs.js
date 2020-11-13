@@ -833,7 +833,9 @@ exports.ScrollScene = function ScrollScene(_ref) {
       setInViewportProp = _ref$setInViewportPro === void 0 ? false : _ref$setInViewportPro,
       _ref$updateLayout = _ref.updateLayout,
       updateLayout = _ref$updateLayout === void 0 ? 0 : _ref$updateLayout,
-      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "margin", "inViewportMargin", "visible", "scissor", "debug", "softDirection", "setInViewportProp", "updateLayout"]);
+      _ref$positionFixed = _ref.positionFixed,
+      positionFixed = _ref$positionFixed === void 0 ? false : _ref$positionFixed,
+      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "margin", "inViewportMargin", "visible", "scissor", "debug", "softDirection", "setInViewportProp", "updateLayout", "positionFixed"]);
 
   var scene = React.useRef();
   var group = React.useRef();
@@ -1007,7 +1009,10 @@ exports.ScrollScene = function ScrollScene(_ref) {
 
     if (scene.current.visible) {
       // move scene
-      scene.current.position.y = -lerpY * config.scaleMultiplier;
+      if (!positionFixed) {
+        scene.current.position.y = -lerpY * config.scaleMultiplier;
+      }
+
       var positiveYUpBottom = size.height * 0.5 - (lerpY + scale.pixelHeight * 0.5); // inverse Y
 
       if (scissor) {
