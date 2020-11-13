@@ -18,8 +18,7 @@ const GlobalRenderer = ({ children }) => {
 
   useLayoutEffect(() => {
     gl.outputEncoding = sRGBEncoding
-    gl.autoClear = false // we do our own rendering
-    gl.setClearColor(null, 0)
+    gl.setClearColor(0x000000, 0)
     gl.debug.checkShaderErrors = config.debug
     gl.toneMapping = NoToneMapping
   }, [])
@@ -31,7 +30,11 @@ const GlobalRenderer = ({ children }) => {
     if (config.preloadQueue.length) gl.clear()
 
     // Render viewport scissors first
-    config.viewportQueueBefore.forEach((render) => render(gl, size))
+    if (config.viewportQueueBefore.length) {
+      // prevents viewports from being cleared
+      gl.autoClear = false
+      config.viewportQueueBefore.forEach((render) => render(gl, size))
+    }
 
     if (config.globalRender) {
       // console.log('GLOBAL RENDER')
@@ -60,12 +63,14 @@ const GlobalRenderer = ({ children }) => {
     }
 
     // Render viewports last
-    config.viewportQueueAfter.forEach((render) => render(gl))
+    config.viewportQueueAfter.forEach((render) => render(gl, size))
 
     config.preloadQueue = []
     config.scissorQueue = []
     config.viewportQueueBefore = []
     config.viewportQueueAfter = []
+
+    gl.autoClear = true
   }, config.PRIORITY_GLOBAL) // Take over rendering
 
   config.debug && console.log('GlobalRenderer', Object.keys(canvasChildren).length)
