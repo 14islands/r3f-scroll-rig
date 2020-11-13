@@ -395,9 +395,7 @@ var GlobalRenderer = function GlobalRenderer(_ref) {
   var scrollRig = useScrollRig();
   React.useLayoutEffect(function () {
     gl.outputEncoding = three.sRGBEncoding;
-    gl.autoClear = false; // we do our own rendering
-
-    gl.setClearColor(null, 0);
+    gl.setClearColor(0x000000, 0);
     gl.debug.checkShaderErrors = config.debug;
     gl.toneMapping = three.NoToneMapping;
   }, []); // GLOBAL RENDER LOOP
@@ -411,9 +409,13 @@ var GlobalRenderer = function GlobalRenderer(_ref) {
     });
     if (config.preloadQueue.length) gl.clear(); // Render viewport scissors first
 
-    config.viewportQueueBefore.forEach(function (render) {
-      return render(gl, size);
-    });
+    if (config.viewportQueueBefore.length) {
+      // prevents viewports from being cleared
+      gl.autoClear = false;
+      config.viewportQueueBefore.forEach(function (render) {
+        return render(gl, size);
+      });
+    }
 
     if (config.globalRender) {
       // console.log('GLOBAL RENDER')
@@ -446,12 +448,13 @@ var GlobalRenderer = function GlobalRenderer(_ref) {
 
 
     config.viewportQueueAfter.forEach(function (render) {
-      return render(gl);
+      return render(gl, size);
     });
     config.preloadQueue = [];
     config.scissorQueue = [];
     config.viewportQueueBefore = [];
     config.viewportQueueAfter = [];
+    gl.autoClear = true;
   }, config.PRIORITY_GLOBAL); // Take over rendering
 
   config.debug && console.log('GlobalRenderer', Object.keys(canvasChildren).length);
@@ -710,14 +713,16 @@ var OrthographicCamera = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
 OrthographicCamera.displayName = 'OrthographicCamera';
 
 var GlobalCanvas = function GlobalCanvas(_ref) {
-  var children = _ref.children,
+  var _ref$as = _ref.as,
+      as = _ref$as === void 0 ? reactThreeFiber.Canvas : _ref$as,
+      children = _ref.children,
       gl = _ref.gl,
       resizeOnHeight = _ref.resizeOnHeight,
       orthographic = _ref.orthographic,
       _ref$noEvents = _ref.noEvents,
       noEvents = _ref$noEvents === void 0 ? true : _ref$noEvents,
       confOverrides = _ref.config,
-      props = _objectWithoutPropertiesLoose(_ref, ["children", "gl", "resizeOnHeight", "orthographic", "noEvents", "config"]);
+      props = _objectWithoutPropertiesLoose(_ref, ["as", "children", "gl", "resizeOnHeight", "orthographic", "noEvents", "config"]);
 
   var pixelRatio = useCanvasStore(function (state) {
     return state.pixelRatio;
@@ -748,7 +753,8 @@ var GlobalCanvas = function GlobalCanvas(_ref) {
       config.debug = true;
     }
   }, []);
-  return /*#__PURE__*/React__default.createElement(reactThreeFiber.Canvas, _extends({
+  var CanvasElement = as;
+  return /*#__PURE__*/React__default.createElement(CanvasElement, _extends({
     className: "ScrollRigCanvas",
     invalidateFrameloop: true,
     gl: _extends({

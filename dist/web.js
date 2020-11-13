@@ -322,9 +322,7 @@ const GlobalRenderer = ({
   const scrollRig = useScrollRig();
   useLayoutEffect(() => {
     gl.outputEncoding = sRGBEncoding;
-    gl.autoClear = false; // we do our own rendering
-
-    gl.setClearColor(null, 0);
+    gl.setClearColor(0x000000, 0);
     gl.debug.checkShaderErrors = config.debug;
     gl.toneMapping = NoToneMapping;
   }, []); // GLOBAL RENDER LOOP
@@ -337,7 +335,11 @@ const GlobalRenderer = ({
     config.preloadQueue.forEach(render => render(gl));
     if (config.preloadQueue.length) gl.clear(); // Render viewport scissors first
 
-    config.viewportQueueBefore.forEach(render => render(gl, size));
+    if (config.viewportQueueBefore.length) {
+      // prevents viewports from being cleared
+      gl.autoClear = false;
+      config.viewportQueueBefore.forEach(render => render(gl, size));
+    }
 
     if (config.globalRender) {
       // console.log('GLOBAL RENDER')
@@ -363,11 +365,12 @@ const GlobalRenderer = ({
     } // Render viewports last
 
 
-    config.viewportQueueAfter.forEach(render => render(gl));
+    config.viewportQueueAfter.forEach(render => render(gl, size));
     config.preloadQueue = [];
     config.scissorQueue = [];
     config.viewportQueueBefore = [];
     config.viewportQueueAfter = [];
+    gl.autoClear = true;
   }, config.PRIORITY_GLOBAL); // Take over rendering
 
   config.debug && console.log('GlobalRenderer', Object.keys(canvasChildren).length);
@@ -610,6 +613,7 @@ OrthographicCamera.displayName = 'OrthographicCamera';
 
 const GlobalCanvas = (_ref) => {
   let {
+    as = Canvas,
     children,
     gl,
     resizeOnHeight,
@@ -617,7 +621,7 @@ const GlobalCanvas = (_ref) => {
     noEvents = true,
     config: confOverrides
   } = _ref,
-      props = _objectWithoutPropertiesLoose(_ref, ["children", "gl", "resizeOnHeight", "orthographic", "noEvents", "config"]);
+      props = _objectWithoutPropertiesLoose(_ref, ["as", "children", "gl", "resizeOnHeight", "orthographic", "noEvents", "config"]);
 
   const pixelRatio = useCanvasStore(state => state.pixelRatio);
   const requestReflow = useCanvasStore(state => state.requestReflow); // override config
@@ -644,7 +648,8 @@ const GlobalCanvas = (_ref) => {
       config.debug = true;
     }
   }, []);
-  return /*#__PURE__*/React.createElement(Canvas, _extends({
+  const CanvasElement = as;
+  return /*#__PURE__*/React.createElement(CanvasElement, _extends({
     className: "ScrollRigCanvas",
     invalidateFrameloop: true,
     gl: _extends({

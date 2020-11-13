@@ -1,8 +1,8 @@
 {
   "web.js": {
-    "bundled": 66175,
-    "minified": 29425,
-    "gzipped": 8575,
+    "bundled": 66342,
+    "minified": 29498,
+    "gzipped": 8595,
     "treeshaked": {
       "rollup": {
         "code": 17030,
@@ -14,9 +14,9 @@
     }
   },
   "web.cjs.js": {
-    "bundled": 80326,
-    "minified": 34671,
-    "gzipped": 9117
+    "bundled": 80553,
+    "minified": 34759,
+    "gzipped": 9147
   },
   "vscroll.js": {
     "bundled": 12612,
