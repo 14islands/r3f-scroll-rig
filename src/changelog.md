@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.7.1
+
+### GlobalRenderer
+
+- `gl.autoClear` is now only turned off if we have viewports renderering before main global render call. This fixes background alpha glitch on Oculus browser and WebXR clearing issues.
+
+## v1.7.0
+
+### GlobalCanvas
+
+- New property `as` to support rendering the global canvas as a `VRCanvas` for instance.
+
 ## v1.6.0
 
 ### ViewportScrollScene
