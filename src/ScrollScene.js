@@ -30,6 +30,7 @@ let ScrollScene = ({
   softDirection = false, // experimental
   setInViewportProp = false,
   updateLayout = 0,
+  positionFixed = false,
   ...props
 }) => {
   const scene = useRef()
@@ -183,7 +184,9 @@ let ScrollScene = ({
 
     if (scene.current.visible) {
       // move scene
-      scene.current.position.y = -lerpY * config.scaleMultiplier
+      if (!positionFixed) {
+        scene.current.position.y = -lerpY * config.scaleMultiplier
+      }
 
       const positiveYUpBottom = size.height * 0.5 - (lerpY + scale.pixelHeight * 0.5) // inverse Y
       if (scissor) {
@@ -268,6 +271,7 @@ ScrollScene.propTypes = {
   scissor: PropTypes.bool, // render using scissor test for better peformance
   debug: PropTypes.bool, // show debug mesh
   setInViewportProp: PropTypes.bool, // update inViewport property on child (might cause lag)
+  positionFixed: PropTypes.bool, // scene stays fixed in viewport and doesn't follow scroll direction
 }
 
 ScrollScene.childPropTypes = {
