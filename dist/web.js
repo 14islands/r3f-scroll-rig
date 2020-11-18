@@ -2134,26 +2134,26 @@ const VirtualScrollbar = (_ref) => {
   let {
     disabled,
     resizeOnHeight,
-    children
+    children,
+    scrollToTop = false
   } = _ref,
-      rest = _objectWithoutPropertiesLoose(_ref, ["disabled", "resizeOnHeight", "children"]);
+      rest = _objectWithoutPropertiesLoose(_ref, ["disabled", "resizeOnHeight", "children", "scrollToTop"]);
 
   const ref = useRef();
   const [active, setActive] = useState(false); // FakeScroller wont trigger resize without touching the store here..
   // due to code splitting maybe? two instances of the store?
 
   const requestReflow = useCanvasStore(state => state.requestReflow);
-  const setVirtualScrollbar = useCanvasStore(state => state.setVirtualScrollbar); // NOT SURE THIS IS NEEDED ANY LONGER
-  // Make sure we are scrolled to top before measuring stuff
-  // `gatsby-plugin-transition-link` scrolls back to top in a `setTimeout()` which makes it delayed
+  const setVirtualScrollbar = useCanvasStore(state => state.setVirtualScrollbar); // Optional: scroll to top when scrollbar mounts
 
   useLayoutEffect(() => {
-    // __tl_back_button_pressed is set by `gatsby-plugin-transition-link`
+    if (!scrollToTop) return; // __tl_back_button_pressed is set by `gatsby-plugin-transition-link`
+
     if (!window.__tl_back_button_pressed) {
       // make sure we start at top if scrollbar is active (transition)
       !disabled && window.scrollTo(0, 0);
     }
-  }, []);
+  }, [scrollToTop, disabled]);
   useEffect(() => {
     document.documentElement.classList.toggle('js-has-virtual-scrollbar', !disabled);
     setVirtualScrollbar(!disabled); // allow webgl components to find positions first on page load

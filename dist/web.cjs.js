@@ -2362,7 +2362,9 @@ var VirtualScrollbar = function VirtualScrollbar(_ref4) {
   var disabled = _ref4.disabled,
       resizeOnHeight = _ref4.resizeOnHeight,
       children = _ref4.children,
-      rest = _objectWithoutPropertiesLoose(_ref4, ["disabled", "resizeOnHeight", "children"]);
+      _ref4$scrollToTop = _ref4.scrollToTop,
+      scrollToTop = _ref4$scrollToTop === void 0 ? false : _ref4$scrollToTop,
+      rest = _objectWithoutPropertiesLoose(_ref4, ["disabled", "resizeOnHeight", "children", "scrollToTop"]);
 
   var ref = React.useRef();
 
@@ -2377,17 +2379,16 @@ var VirtualScrollbar = function VirtualScrollbar(_ref4) {
   });
   var setVirtualScrollbar = useCanvasStore(function (state) {
     return state.setVirtualScrollbar;
-  }); // NOT SURE THIS IS NEEDED ANY LONGER
-  // Make sure we are scrolled to top before measuring stuff
-  // `gatsby-plugin-transition-link` scrolls back to top in a `setTimeout()` which makes it delayed
+  }); // Optional: scroll to top when scrollbar mounts
 
   React.useLayoutEffect(function () {
-    // __tl_back_button_pressed is set by `gatsby-plugin-transition-link`
+    if (!scrollToTop) return; // __tl_back_button_pressed is set by `gatsby-plugin-transition-link`
+
     if (!window.__tl_back_button_pressed) {
       // make sure we start at top if scrollbar is active (transition)
       !disabled && window.scrollTo(0, 0);
     }
-  }, []);
+  }, [scrollToTop, disabled]);
   React.useEffect(function () {
     document.documentElement.classList.toggle('js-has-virtual-scrollbar', !disabled);
     setVirtualScrollbar(!disabled); // allow webgl components to find positions first on page load
