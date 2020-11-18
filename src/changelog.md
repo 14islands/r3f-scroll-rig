@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.8.0
+
+### VirtualScrollbar
+
+- New prop `scrollToTop` (false by default) to automatically scroll to top of page when scrollbar mounts. (used to be true by default)
+
 ## v1.7.1
 
 ### GlobalRenderer
