@@ -241,7 +241,7 @@ FakeScroller.propTypes = {
  * Wrapper for virtual scrollbar
  * @param {*} param0
  */
-const VirtualScrollbar = ({ disabled, resizeOnHeight, children, ...rest }) => {
+const VirtualScrollbar = ({ disabled, resizeOnHeight, children, scrollToTop = false, ...rest }) => {
   const ref = useRef()
   const [active, setActive] = useState(false)
 
@@ -250,16 +250,15 @@ const VirtualScrollbar = ({ disabled, resizeOnHeight, children, ...rest }) => {
   const requestReflow = useCanvasStore((state) => state.requestReflow)
   const setVirtualScrollbar = useCanvasStore((state) => state.setVirtualScrollbar)
 
-  // NOT SURE THIS IS NEEDED ANY LONGER
-  // Make sure we are scrolled to top before measuring stuff
-  // `gatsby-plugin-transition-link` scrolls back to top in a `setTimeout()` which makes it delayed
+  // Optional: scroll to top when scrollbar mounts
   useLayoutEffect(() => {
+    if (!scrollToTop) return
     // __tl_back_button_pressed is set by `gatsby-plugin-transition-link`
     if (!window.__tl_back_button_pressed) {
       // make sure we start at top if scrollbar is active (transition)
       !disabled && window.scrollTo(0, 0)
     }
-  }, [])
+  }, [scrollToTop, disabled])
 
   useEffect(() => {
     document.documentElement.classList.toggle('js-has-virtual-scrollbar', !disabled)
@@ -300,6 +299,7 @@ VirtualScrollbar.propTypes = {
   disabled: PropTypes.bool,
   resizeOnHeight: PropTypes.bool,
   onUpdate: PropTypes.func,
+  scrollToTop: PropTypes.bool,
 }
 
 export { VirtualScrollbar }
