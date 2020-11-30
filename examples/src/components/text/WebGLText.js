@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useEffect } from 'react'
 import { Color } from 'three'
 import { useThree } from 'react-three-fiber'
 import { Text } from '@react-three/drei'
@@ -22,8 +22,14 @@ const WebGLText = ({ el, children, material, scale, font, offset = 0, ...props }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [el, size, scale]) // recalc on resize
 
+  useEffect(() => {
+    if (material) {
+      material.emissive = color
+    }
+  }, [material, color])
+
   return (
-    <>
+    <mesh  layers={[3]}>
       <Text
         fontSize={fontSize}
         maxWidth={scale ? scale.width : size.width}
@@ -40,7 +46,7 @@ const WebGLText = ({ el, children, material, scale, font, offset = 0, ...props }
       >
         {children}
       </Text>
-    </>
+    </mesh>
   )
 }
 

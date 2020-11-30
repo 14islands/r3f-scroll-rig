@@ -4,8 +4,9 @@ import ParallaxScrollScene from '../ParallaxScrollScene'
 
 import WebGLImage from './WebGLImage'
 
-import vertexShader from './shader.vert'
-import fragmentShader from './shader.frag'
+/* eslint import/no-webpack-loader-syntax: off */
+import vertexShader from '!raw-loader!./shader.vert'
+import fragmentShader from '!raw-loader!./shader.frag'
 
 const ParallaxImage = ({ src, aspectRatio, style, parallax }) => {
   const ref = useRef()

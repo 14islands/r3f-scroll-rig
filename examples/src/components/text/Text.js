@@ -7,8 +7,9 @@ const Text = ({ children, className, style, as ='div' }) => {
   const ref = useRef()
 
   useCanvas(
-    <ScrollScene el={ref} debug={false} margin={100}>
+    <ScrollScene el={ref} debug={false} scissor={true} margin={100}>
       {({ scale, scrollState }) => (
+
         <WobblyTextMesh
           el={ref}
           font={'https://fonts.gstatic.com/s/philosopher/v9/vEFV2_5QCwIS4_Dhez5jcWBuT0s.woff'}

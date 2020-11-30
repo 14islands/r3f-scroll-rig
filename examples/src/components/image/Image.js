@@ -3,8 +3,9 @@ import { useCanvas, ScrollScene } from '@14islands/r3f-scroll-rig'
 
 import WebGLImage from './WebGLImage'
 
-import vertexShader from './shader.vert'
-import fragmentShader from './shader.frag'
+/* eslint import/no-webpack-loader-syntax: off */
+import vertexShader from '!raw-loader!./shader.vert'
+import fragmentShader from '!raw-loader!./shader.frag'
 
 const Image = ({ src, aspectRatio, style, parallax, mesh = WebGLImage }) => {
   const ref = useRef()

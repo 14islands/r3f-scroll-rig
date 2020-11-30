@@ -12,6 +12,7 @@ import StickyImage from './components/image/StickyImage'
 import StickyBox from './components/StickyBox'
 import InlineBox from './components/InlineBox'
 import ModelViewport from './components/ModelViewport'
+import InlineModel from './components/InlineModel'
 
 import testImage from './assets/test.jpg'
 import testPower2Image from './assets/test-power2.jpg'
@@ -25,13 +26,76 @@ import hutModel from './assets/hut.glb'
 
 import RotatingImage from './components/image/RotatingImage'
 
+import VRBox from './components/VRBox'
+import { useThree } from 'react-three-fiber'
+import { useXR, useXREvent } from '@react-three/xr'
 
-function App() {
+const XRCam = () => {
+  const mesh = useRef()
+  const { gl, camera } = useThree()
+  const [isXR, setIsXR] = useState(false)
+
+  useEffect(() => {
+    gl.xr.addEventListener('sessionend', () => {
+      setIsXR(false)
+      camera.far = 2
+      camera.updateProjectionMatrix()
+      gl.setClearColor(0x000000, 0)
+    })
+
+    gl.xr.addEventListener('sessionstart', () => {
+      camera.far = 100
+      camera.updateProjectionMatrix()
+      gl.setClearColor(0x222, 1)
+      setIsXR(true)
+    })
+  }, [])
+
+  // // bundle add the controllers to the same object as the camera so it all stays together.
+  const { controllers } = useXR()
+  useEffect(() => {
+    if (controllers.length > 0) controllers.forEach((c) => mesh.current.add(c.grip))
+    return () => controllers.forEach((c) => mesh.current.remove(c.grip))
+  }, [controllers, mesh])
+
+  return (
+    <group ref={mesh} position={isXR? [0, -1.2, 0.5] : [0,0,0]}>
+        <primitive object={camera} />
+    </group>
+  )
+}
+
+function VRApp() {
   const el = useRef()
   return (
     <>
       <Suspense fallback={null}>
-        <VirtualScrollbar>
+
+        <header className="App-header">
+          <div style={{ margin: '-10vh 0 0', width: '100%' }}>
+            <Text style={{}}>VR Test</Text>
+          </div>
+        </header>
+        <div style={{ margin: '0vw auto 0', width: '80vw', height: '50vw' }}>
+          <InlineBox scissor={false} />
+        </div>
+
+        <div style={{ padding: '10vw 0 5vw' }}>
+          <Text>Scrollscenes with real *.gltf 3D models from Thodoris:</Text>
+          </div>
+        <div style={{ padding: '0 40vw 0 15vw' }}>
+          <RotatingImage src={t3} aspectRatio={1920 / 1464}>
+            <div className="RotatingImageModel" style={{ right: '-30vw' }}>
+              <InlineModel url={sailboatModel} size={0.15} position={[-0.02, -0.1, 0]} />
+            </div>
+          </RotatingImage>
+        </div>
+
+        <div style={{ margin: '0vw auto 0', width: '80vw', height: '50vw' }}>
+          <InlineBox scissor={false} />
+        </div>
+
+        {/* <VirtualScrollbar>
           {(bind) => (
             <div className="App" {...bind}>
               <header className="App-header">
@@ -123,8 +187,9 @@ function App() {
               </footer>
             </div>
           )}
-        </VirtualScrollbar>
+        </VirtualScrollbar> */}
         <GlobalCanvas
+          as={VRCanvas}
           // shadowMap
           // shadowMap={{
           //   enabled: true,
@@ -140,9 +205,13 @@ function App() {
           config={{
             fps: false,
             debug: false,
-            scaleMultiplier: 0.01, // make 100px = 1 unit in three because the text wobbly looks better
+            scaleMultiplier: 0.001,
           }}
         >
+          <ambientLight />
+          <XRCam />
+          <DefaultXRControllers />
+          <VRBox/>
         </GlobalCanvas>
       </Suspense>
       <Loader/>
@@ -150,4 +219,4 @@ function App() {
   )
 }
 
-export default App
+export default VRApp

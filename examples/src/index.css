@@ -8,6 +8,9 @@
   font-variant: normal;
 }
 
+html {
+  background: #fff;
+}
 
 body {
   margin: 0;

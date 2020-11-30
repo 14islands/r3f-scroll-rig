@@ -5,6 +5,7 @@
   "dependencies": {
     "@14islands/r3f-scroll-rig": "^1.2.0",
     "@react-three/drei": "^2.1.0",
+    "@react-three/xr": "^1.1.0",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
@@ -13,12 +14,14 @@
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-merge-refs": "^1.1.0",
+    "react-router-dom": "^5.2.0",
     "react-scripts": "3.4.1",
     "react-spring": "^8.0.27",
     "three": "^0.121.1"
   },
   "scripts": {
     "start": "rescripts start",
+    "start-https": "HTTPS=true react-scripts start",
     "build": "rescripts build",
     "test": "rescripts test",
     "eject": "rescripts eject"

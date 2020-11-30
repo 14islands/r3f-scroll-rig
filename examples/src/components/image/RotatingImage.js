@@ -3,8 +3,9 @@ import { useCanvas, ScrollScene } from '@14islands/r3f-scroll-rig'
 
 import WebGLImage from './WebGLImage'
 
-import vertexShader from './rotating.vert'
-import fragmentShader from './rotating.frag'
+/* eslint import/no-webpack-loader-syntax: off */
+import vertexShader from '!raw-loader!./rotating.vert'
+import fragmentShader from '!raw-loader!./rotating.frag'
 
 const RotatingImage = ({ children, src, aspectRatio, style }) => {
   const ref = useRef()

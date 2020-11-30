@@ -1,6 +1,7 @@
 import React, { useRef } from 'react'
 import { useScrollRig, useCanvas, ScrollScene } from '@14islands/r3f-scroll-rig'
 import { useFrame } from 'react-three-fiber'
+import { RayGrab, Hover } from '@react-three/xr'
 
 const BoxMesh = ({scale, scrollState, parallax = 0 }) => {
   const mesh = useRef()
@@ -21,20 +22,24 @@ const BoxMesh = ({scale, scrollState, parallax = 0 }) => {
   const size = Math.min(scale.width, scale.height) * 0.5
 
   return (
+    // <RayGrab>
+    // <Hover onChange={() => {}}>
     <mesh ref={mesh} position={[0, 0, -size/2]}
     rotation={[Math.PI / 8, Math.PI / 8, 0]}
     >
       <boxBufferGeometry attach="geometry" args={[size, size, size]} />
       <meshNormalMaterial attach="material" />
     </mesh>
+// </Hover>
+//     </RayGrab>
   )
 }
 
-const InlineBox = ({ src, aspectRatio, parallax }) => {
+const InlineBox = ({ src, aspectRatio, parallax, ...props }) => {
   const ref = useRef()
 
   useCanvas(
-    <ScrollScene el={ref} debug={false}>
+    <ScrollScene el={ref} debug={false} {...props}>
       {(props) => {
         return <BoxMesh {...props} parallax={parallax} />
       }}
