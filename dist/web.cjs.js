@@ -11,7 +11,6 @@ var React__default = _interopDefault(React);
 var reactThreeFiber = require('react-three-fiber');
 var resizeObserver = require('@juggle/resize-observer');
 var queryString = _interopDefault(require('query-string'));
-var drei = require('@react-three/drei');
 var create = _interopDefault(require('zustand'));
 var three = require('three');
 var windowSize = require('@react-hook/window-size');
@@ -805,7 +804,7 @@ var GlobalCanvas = function GlobalCanvas(_ref) {
     makeDefault: true
   }), orthographic && /*#__PURE__*/React__default.createElement(OrthographicCamera, {
     makeDefault: true
-  }), config.debug && /*#__PURE__*/React__default.createElement(StatsDebug, null), config.fps && /*#__PURE__*/React__default.createElement(drei.Stats, null), config.autoPixelRatio && /*#__PURE__*/React__default.createElement(PerformanceMonitor, null), /*#__PURE__*/React__default.createElement(ResizeManager, {
+  }), config.debug && /*#__PURE__*/React__default.createElement(StatsDebug, null), config.autoPixelRatio && /*#__PURE__*/React__default.createElement(PerformanceMonitor, null), /*#__PURE__*/React__default.createElement(ResizeManager, {
     reflow: requestReflow,
     resizeOnHeight: resizeOnHeight
   }));

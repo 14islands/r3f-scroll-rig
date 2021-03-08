@@ -4,7 +4,6 @@ import React, { useCallback, useRef, useLayoutEffect, Suspense, Fragment, useEff
 import { useThree, useFrame, useUpdate, Canvas, createPortal } from 'react-three-fiber';
 import { ResizeObserver } from '@juggle/resize-observer';
 import queryString from 'query-string';
-import { Stats } from '@react-three/drei';
 import create from 'zustand';
 import { sRGBEncoding, NoToneMapping, Math as Math$1, MathUtils, ImageBitmapLoader, TextureLoader, CanvasTexture, LinearFilter, RGBFormat, RGBAFormat, Scene } from 'three';
 import { useWindowSize, useWindowHeight } from '@react-hook/window-size';
@@ -700,7 +699,7 @@ const GlobalCanvas = (_ref) => {
     makeDefault: true
   }), orthographic && /*#__PURE__*/React.createElement(OrthographicCamera, {
     makeDefault: true
-  }), config.debug && /*#__PURE__*/React.createElement(StatsDebug, null), config.fps && /*#__PURE__*/React.createElement(Stats, null), config.autoPixelRatio && /*#__PURE__*/React.createElement(PerformanceMonitor, null), /*#__PURE__*/React.createElement(ResizeManager, {
+  }), config.debug && /*#__PURE__*/React.createElement(StatsDebug, null), config.autoPixelRatio && /*#__PURE__*/React.createElement(PerformanceMonitor, null), /*#__PURE__*/React.createElement(ResizeManager, {
     reflow: requestReflow,
     resizeOnHeight: resizeOnHeight
   }));

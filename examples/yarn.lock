@@ -2,15 +2,15 @@
 # yarn lockfile v1
 
 
-"@14islands/r3f-scroll-rig@^1.2.0":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@14islands/r3f-scroll-rig/-/r3f-scroll-rig-1.2.0.tgz#bafefc32879a8be32ffa2434a181a1e39297d5c4"
-  integrity sha512-Fs8vhv+nX08TvVz9Yvd+6lTTwY3UC77Umb+WFiPMX/KxZLppGyMr26ulnLuNkFdXf6/NyfmOKRDtpnAcVdcfKg==
+"@14islands/r3f-scroll-rig@^1.9.1":
+  version "1.9.1"
+  resolved "https://registry.yarnpkg.com/@14islands/r3f-scroll-rig/-/r3f-scroll-rig-1.9.1.tgz#d438aae960c1cccdd4c2dd0778119409137a8641"
+  integrity sha512-EVPzxKarWFU4Mqr8cdChiLY32zrjwPjJGtqoDJAR6fvmFksfXIgcKZePY32WjrVLAAnpyvG1w77dA6lmkH03zg==
   dependencies:
     "@juggle/resize-observer" "^3.2.0"
     "@react-hook/window-size" "^3.0.6"
     query-string "^6.13.5"
-    zustand "^2.2.3"
+    zustand "^3.1.4"
 
 "@alloc/types@^1.2.1":
   version "1.3.0"
@@ -12055,12 +12055,12 @@ yargs@^13.3.0:
     y18n "^4.0.0"
     yargs-parser "^13.1.2"
 
-zustand@^2.2.3:
-  version "2.2.4"
-  resolved "https://registry.yarnpkg.com/zustand/-/zustand-2.2.4.tgz#3b38f9192ae06e6a737ce2d78cbdc321b1c7f185"
-  integrity sha512-THkjmdAT3h7WzLGDFmC7LVdDOxplYXOdXy0rIEIe/Yn5NDUZNEpywurVdereUlL/hR0Yxm/P7uiSGNYw1eYxBA==
-
 zustand@^3.0.3:
   version "3.1.4"
   resolved "https://registry.yarnpkg.com/zustand/-/zustand-3.1.4.tgz#684bb863e27b5a04b551c621a0aa73a5ccafc368"
   integrity sha512-DB/r73Dm3YsUEo9KilbGWsKXQLOrM41aYItznvD68f44P2hYo+FY65D7N8m2ojKVzg6eIPgXZWqkFO60Utko8A==
+
+zustand@^3.1.4:
+  version "3.3.3"
+  resolved "https://registry.yarnpkg.com/zustand/-/zustand-3.3.3.tgz#88b930a873d0f13e406f96958c1409645ea8b370"
+  integrity sha512-KTN/O76rVc9muDoprsCDe/LQjbuq+GHYt5JdYahuXaGZ+8Gyk44SepzTFeQTF5J+b8+/Q+o90BaSEQ3WImKPog==
