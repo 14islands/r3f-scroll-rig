@@ -1,7 +1,7 @@
 import _extends from '@babel/runtime/helpers/esm/extends';
 import _objectWithoutPropertiesLoose from '@babel/runtime/helpers/esm/objectWithoutPropertiesLoose';
 import React, { useCallback, useRef, useLayoutEffect, Suspense, Fragment, useEffect, forwardRef, useMemo, useState } from 'react';
-import { useThree, useFrame, useUpdate, Canvas, createPortal } from 'react-three-fiber';
+import { invalidate, useThree, useFrame, useUpdate, Canvas, createPortal } from 'react-three-fiber';
 import { ResizeObserver } from '@juggle/resize-observer';
 import queryString from 'query-string';
 import create from 'zustand';
@@ -269,9 +269,6 @@ const useScrollRig = () => {
   const requestReflow = useCanvasStore(state => state.requestReflow);
   const pageReflowCompleted = useCanvasStore(state => state.pageReflowCompleted);
   const pixelRatio = useCanvasStore(state => state.pixelRatio);
-  const {
-    invalidate
-  } = useThree();
   const requestFrame = useCallback(() => {
     if (!paused && !suspended) {
       invalidate();

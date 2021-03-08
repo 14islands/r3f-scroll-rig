@@ -339,13 +339,9 @@ var useScrollRig = function useScrollRig() {
   var pixelRatio = useCanvasStore(function (state) {
     return state.pixelRatio;
   });
-
-  var _useThree = reactThreeFiber.useThree(),
-      invalidate = _useThree.invalidate;
-
   var requestFrame = React.useCallback(function () {
     if (!paused && !suspended) {
-      invalidate();
+      reactThreeFiber.invalidate();
     }
   }, [paused, suspended]);
 
