@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { useThree } from 'react-three-fiber'
+import { invalidate } from 'react-three-fiber'
 
 import config from './config'
 import { useCanvasStore } from './store'
@@ -18,8 +18,6 @@ export const useScrollRig = () => {
   const requestReflow = useCanvasStore((state) => state.requestReflow)
   const pageReflowCompleted = useCanvasStore((state) => state.pageReflowCompleted)
   const pixelRatio = useCanvasStore((state) => state.pixelRatio)
-
-  const { invalidate } = useThree()
 
   const requestFrame = useCallback(() => {
     if (!paused && !suspended) {
