@@ -1516,20 +1516,21 @@
     "@react-spring/core" "9.0.0-rc.3"
     "@react-spring/shared" "9.0.0-rc.3"
 
-"@react-three/drei@^2.1.0":
-  version "2.2.5"
-  resolved "https://registry.yarnpkg.com/@react-three/drei/-/drei-2.2.5.tgz#a29fe98eb479449f56201c01ed3488bdfc28cfe1"
-  integrity sha512-tZ6GQNvg3PXo0ieo36EesOzE1CH+2ursaQhJ7xyOEixT0rx2qzdRWeHu6dudi8CxFTOurwNAk+hdiY1BN/1YVQ==
+"@react-three/drei@^3.10.2":
+  version "3.10.2"
+  resolved "https://registry.yarnpkg.com/@react-three/drei/-/drei-3.10.2.tgz#1e62f199c231d6313147270d300b6e35e4728eee"
+  integrity sha512-sIpZrtz9cvENWqeiX5I7YwQ2SekOsqBXqF1fu3eqL5ReUgPGzMxBYtVcqBYgwRbT8ntlu9Su72sc2G8EWmkoNA==
   dependencies:
     "@babel/runtime" "^7.11.2"
     "@react-spring/web" "^9.0.0-rc.3"
-    detect-gpu "^1.5.1"
+    blob-polyfill "^4.0.20200601"
+    detect-gpu "^3.0.0"
     glsl-noise "^0.0.0"
     lodash.omit "^4.5.0"
     lodash.pick "^4.4.0"
     react-merge-refs "^1.0.0"
     stats.js "^0.17.0"
-    troika-three-text "^0.34.0"
+    troika-three-text "^0.38.1"
     utility-types "^3.10.0"
     zustand "^3.0.3"
 
@@ -2707,6 +2708,11 @@ bl@^2.2.1:
   dependencies:
     readable-stream "^2.3.5"
     safe-buffer "^5.1.1"
+
+blob-polyfill@^4.0.20200601:
+  version "4.0.20200601"
+  resolved "https://registry.yarnpkg.com/blob-polyfill/-/blob-polyfill-4.0.20200601.tgz#16430e9e50d63e122c6aac18b31f5f0bc8c0bf92"
+  integrity sha512-1jB6WOIp6IDxNyng5+9A8g/f0uiphib2ELCN+XAnlssinsW8s1k4VYG9b1TxIUd3pdm9RJSLQuBh6iohYmD4hA==
 
 bluebird@^3.5.5:
   version "3.7.2"
@@ -3991,12 +3997,12 @@ destroy@~1.0.4:
   resolved "https://registry.yarnpkg.com/destroy/-/destroy-1.0.4.tgz#978857442c44749e4206613e37946205826abd80"
   integrity sha1-l4hXRCxEdJ5CBmE+N5RiBYJqvYA=
 
-detect-gpu@^1.5.1:
-  version "1.5.1"
-  resolved "https://registry.yarnpkg.com/detect-gpu/-/detect-gpu-1.5.1.tgz#487c734334a0d41f64302cf77c7986b62aee19bc"
-  integrity sha512-Ws//qvt0Kv9uXli1xJbC4jvrJdm+KonOMBjkTkICy4Ko+6qIggOXaF567o4kpapsX+pqW9FXmxh4IIAmqB+q7Q==
+detect-gpu@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/detect-gpu/-/detect-gpu-3.0.0.tgz#d1ced721581c27fec29e24aee8c3eadf45450b5a"
+  integrity sha512-D/uxvKWDqhy7XoHHdC7By1Bzxuv0t8OwccsiW1DbRPsqOr0rTAjxdO//bSck6QS54jc9QHbaQoRczAy5KbCOCQ==
   dependencies:
-    detect-ua "^1.0.2"
+    webgl-constants "^1.1.1"
 
 detect-newline@^2.1.0:
   version "2.1.0"
@@ -4015,11 +4021,6 @@ detect-port-alt@1.1.6:
   dependencies:
     address "^1.0.1"
     debug "^2.6.0"
-
-detect-ua@^1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/detect-ua/-/detect-ua-1.0.2.tgz#4958d12a6af62adf522a26f0d9dec764ab3938c0"
-  integrity sha512-EsqFycxcggrkzRm3IaHr1nP1pSCDVLHW3haUvaSqws70B277a1SKk5hFtuJo3BKuPwTTRGTGsYYiJwS/97ptEg==
 
 diff-sequences@^24.9.0:
   version "24.9.0"
@@ -10989,10 +10990,10 @@ text-table@0.2.0, text-table@^0.2.0:
   resolved "https://registry.yarnpkg.com/text-table/-/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
   integrity sha1-f17oI66AUgfACvLfSoTsP8+lcLQ=
 
-three@^0.121.1:
-  version "0.121.1"
-  resolved "https://registry.yarnpkg.com/three/-/three-0.121.1.tgz#fda39cf4701d02be9c3be5c27ccea24b7a1ea59b"
-  integrity sha512-+rYhNpW5W1aBdLkPQDld/GA4Sj/uOKJJKVpCAZUbpk/HZEiYRUlPt8+s+9nmxRglWmRHdBa3ERvUwqg4nmoA5w==
+three@^0.126.1:
+  version "0.126.1"
+  resolved "https://registry.yarnpkg.com/three/-/three-0.126.1.tgz#cf4e4e52060fd952f6f0d5440cbd422c66bc4be7"
+  integrity sha512-eOEXnZeE1FDV0XgL1u08auIP13jxdN9LQBAEmlErYzMxtIIfuGIAZbijOyookALUhqVzVOx0Tywj6n192VM+nQ==
 
 throat@^4.0.0:
   version "4.1.0"
@@ -11121,23 +11122,23 @@ tr46@^1.0.1:
   dependencies:
     punycode "^2.1.0"
 
-troika-three-text@^0.34.0:
-  version "0.34.1"
-  resolved "https://registry.yarnpkg.com/troika-three-text/-/troika-three-text-0.34.1.tgz#b9e9aa292cfb0178cd6f2316dc62a03fa1328c8a"
-  integrity sha512-67nXL2cPFzkCFmfRTpo0ylH1OY7gqwzRSt1C+SgnG2/rAmFCExhvr+ND2TVX8U4kVctCLgfU/e7V8IOdZ3x/gQ==
+troika-three-text@^0.38.1:
+  version "0.38.1"
+  resolved "https://registry.yarnpkg.com/troika-three-text/-/troika-three-text-0.38.1.tgz#c0661d78485831b75008e518b4ba3f8ac2faa0c5"
+  integrity sha512-nf4zLsdFc+u1P7UDaVvODclmtmYLXnRs9w43ZC0iiPTZT+iequ7+Vmbd0s3DOYhgEzIeACDXBdX9bSW/PRjXhA==
   dependencies:
-    troika-three-utils "^0.34.0"
-    troika-worker-utils "^0.34.1"
+    troika-three-utils "^0.38.1"
+    troika-worker-utils "^0.38.1"
 
-troika-three-utils@^0.34.0:
-  version "0.34.0"
-  resolved "https://registry.yarnpkg.com/troika-three-utils/-/troika-three-utils-0.34.0.tgz#9c34b31e8f6fd978af4be21382b7a21108ffd3e6"
-  integrity sha512-6Dm6FzGFpuiehjKkm3wAV3e+SPnHQ+GxwXnHFToKLcQ1/gVDOIL69BWCosrlEUb0SUOQjQv6sd5QpNT6IIewpQ==
+troika-three-utils@^0.38.1:
+  version "0.38.1"
+  resolved "https://registry.yarnpkg.com/troika-three-utils/-/troika-three-utils-0.38.1.tgz#99c91cca4fbf215adf5782382962ca9c969b052f"
+  integrity sha512-uJM1K219B/q3q7SNnWzthSWHzE80JGNPqP4yBKPGqZ0RaXLhzTBtFuKvSQlVYYrqb/RK21iCOf13vtGyPhwM2A==
 
-troika-worker-utils@^0.34.1:
-  version "0.34.1"
-  resolved "https://registry.yarnpkg.com/troika-worker-utils/-/troika-worker-utils-0.34.1.tgz#15b59af90a590106161473e4e28778e64e0d3456"
-  integrity sha512-zLTSB6ISd/dpBMG6PFR2v7sqU2bqVwOUd45iWzcgcRE9+w/5YJN8h0+H5EmgRPIVe5xus0UZQKUgVH6FRA+YdQ==
+troika-worker-utils@^0.38.1:
+  version "0.38.1"
+  resolved "https://registry.yarnpkg.com/troika-worker-utils/-/troika-worker-utils-0.38.1.tgz#e4e928691390a315cd22877a38ffabf1a118a0a0"
+  integrity sha512-Ish/wxrTG2fzody/E7cAjluTHbM7bn5hGmqOCUr33Ig5wleTj5B6miVOlxc6tUskf1ZXhC9Z35d0zyHzWJrwww==
 
 ts-pnp@1.1.6:
   version "1.1.6"
@@ -11501,6 +11502,11 @@ wbuf@^1.1.0, wbuf@^1.7.3:
   integrity sha512-O84QOnr0icsbFGLS0O3bI5FswxzRr8/gHwWkDlQFskhSPryQXvrTMxjxGP4+iWYoauLoBvfDpkrOauZ+0iZpDA==
   dependencies:
     minimalistic-assert "^1.0.0"
+
+webgl-constants@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/webgl-constants/-/webgl-constants-1.1.1.tgz#f9633ee87fea56647a60b9ce735cbdfb891c6855"
+  integrity sha512-LkBXKjU5r9vAW7Gcu3T5u+5cvSvh5WwINdr0C+9jpzVB41cjQAP5ePArDtk/WHYdVj0GefCgM73BA7FlIiNtdg==
 
 webidl-conversions@^4.0.2:
   version "4.0.2"

@@ -3,11 +3,11 @@ import { useCanvas, ScrollScene } from '@14islands/r3f-scroll-rig'
 import WobblyTextMesh from './WobblyTextMesh'
 
 
-const Text = ({ children, className, style, as ='div' }) => {
+const Text = ({ children, className, style, as ='div', ...props  }) => {
   const ref = useRef()
 
   useCanvas(
-    <ScrollScene el={ref} debug={false} scissor={true} margin={100}>
+    <ScrollScene el={ref} debug={false} scissor={false} margin={100}>
       {({ scale, scrollState }) => (
 
         <WobblyTextMesh
@@ -15,6 +15,7 @@ const Text = ({ children, className, style, as ='div' }) => {
           font={'https://fonts.gstatic.com/s/philosopher/v9/vEFV2_5QCwIS4_Dhez5jcWBuT0s.woff'}
           scrollState={scrollState}
           scale={scale}
+          {...props}
         >
           {children}
         </WobblyTextMesh>

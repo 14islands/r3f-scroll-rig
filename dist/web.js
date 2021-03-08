@@ -333,16 +333,19 @@ const GlobalRenderer = ({
   }) => {
     // Render preload frames first and clear directly
     config.preloadQueue.forEach(render => render(gl));
-    if (config.preloadQueue.length) gl.clear(); // Render viewport scissors first
+    if (config.preloadQueue.length) gl.clear(); // prevent viewport from being cleared if we have multiple render passes
+
+    if (config.viewportQueueBefore.length || config.viewportQueueAfter.length || config.scissorQueue.length) {
+      gl.autoClear = false;
+    } // Render viewports passes before
+
 
     if (config.viewportQueueBefore.length) {
-      // prevents viewports from being cleared
-      gl.autoClear = false;
       config.viewportQueueBefore.forEach(render => render(gl, size));
-    }
+    } // Global render pass
+
 
     if (config.globalRender) {
-      // console.log('GLOBAL RENDER')
       // run any pre-process frames
       config.preRender.forEach(render => render(gl)); // render default layer, scene, camera
 
@@ -354,18 +357,24 @@ const GlobalRenderer = ({
 
       gl.render(scene, camera); // run any post-render frame (additional layers etc)
 
-      config.postRender.forEach(render => render(gl)); // cleanup for next frame
+      config.postRender.forEach(render => render(gl));
+    } // Render global scissors
 
-      config.globalRender = false;
-      config.preRender = [];
-      config.postRender = [];
-    } else {
-      // console.log('GLOBAL SCISSORS')
+
+    if (config.scissorQueue.length) {
       config.scissorQueue.forEach(render => render(gl, camera));
-    } // Render viewports last
+    } // Render viewports after
 
 
-    config.viewportQueueAfter.forEach(render => render(gl, size));
+    if (config.viewportQueueAfter.length) {
+      gl.autoClear = false;
+      config.viewportQueueAfter.forEach(render => render(gl, size));
+    } // cleanup for next frame
+
+
+    config.globalRender = false;
+    config.preRender = [];
+    config.postRender = [];
     config.preloadQueue = [];
     config.scissorQueue = [];
     config.viewportQueueBefore = [];
@@ -716,7 +725,7 @@ let ScrollScene = (_ref) => {
     inViewportMargin,
     // Margin outside viewport to avoid clipping vertex displacement (px)
     visible = true,
-    scissor = true,
+    scissor = false,
     debug = false,
     softDirection = false,
     // experimental

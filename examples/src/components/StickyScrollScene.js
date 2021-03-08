@@ -16,7 +16,8 @@ export const StickyMesh = ({ children, scrollState, lerp, scale, priority, stick
     let yBottom = (-scale.height / 2 + scale.viewportHeight * 0.5)
     let ySticky = yTop - (scrollState.viewport - 1) * scale.viewportHeight
 
-    let y, targetLerp
+    let y = mesh.current.position.y
+    let targetLerp
 
     // enter
     if (scrollState.viewport < 1) {
@@ -31,6 +32,9 @@ export const StickyMesh = ({ children, scrollState, lerp, scale, priority, stick
     // exit
     else {
       y = yBottom
+      // TODO figure out soft limits
+      // const f = Math.max(1, scrollState.visibility - 1)
+      // y =  MathUtils.lerp(ySticky, yBottom, f)
       targetLerp = 1
     }
 

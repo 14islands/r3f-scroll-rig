@@ -84,7 +84,7 @@ const ModelMesh = ({ url, scale, camera, scene, scrollState, parallax = 0, size 
           // ref={mesh}
           // receiveShadow
           // castShadow
-          object={gltf.scene}
+          object={gltf.scene.clone()}
           // position={[0, -size * 1.5, 0]}
           position={position}
           scale={[size, size, size]}
@@ -119,11 +119,11 @@ const ModelMesh = ({ url, scale, camera, scene, scrollState, parallax = 0, size 
   )
 }
 
-const ModelViewport = ({ src, aspectRatio, url, parallax, size, position, renderOnTop }) => {
+const ModelViewport = ({ src, aspectRatio, url, parallax, size, position, renderOnTop, debug }) => {
   const ref = useRef()
 
   useCanvas(
-    <ViewportScrollScene el={ref} debug={false} renderOnTop={renderOnTop} scaleMultiplier={0.001}>
+    <ViewportScrollScene el={ref} debug={debug} renderOnTop={renderOnTop} scaleMultiplier={0.001}>
       {(props) => {
         return <ModelMesh {...props} url={url} parallax={parallax} size={size} position={position} />
       }}

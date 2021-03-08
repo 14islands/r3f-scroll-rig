@@ -7,7 +7,7 @@ import { useGLTF, Shadow, softShadows } from '@react-three/drei'
 
 // softShadows()
 
-const ModelMesh = ({ url, scale, camera, scene, scrollState, parallax = 0, size = 1, position = [0, 0, 0] }) => {
+const ModelMesh = ({ url, scale, camera, scene, scrollState, parallax = 0, size = 1, position = [0, 0, 0], shadow, shadowPosition }) => {
   const mesh = useRef()
   const light = useRef()
   const { requestFrame, preloadScene } = useScrollRig()
@@ -35,13 +35,12 @@ const ModelMesh = ({ url, scale, camera, scene, scrollState, parallax = 0, size 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gltf])
 
-
   size = Math.min(scale.width, scale.height) * size
   return (
     <>
-      {/* <ambientLight intensity={0.5} /> */}
+      {/* <ambientLight intensity={0.5} />
       <directionalLight
-        intensity={0.5}
+        intensity={1}
         ref={light}
         // position={[-1, 1, 1]}
         position={[-scale.height * 1, scale.height * 2, scale.height * 2]}
@@ -55,33 +54,35 @@ const ModelMesh = ({ url, scale, camera, scene, scrollState, parallax = 0, size 
         shadow-camera-bottom={-scale.width}
         shadow-bias={-0.0018}
         // shadow-bias={-0.004}
-      />
+      /> */}
 
       <mesh position={[0, 0, 0]} ref={mesh}>
         <primitive
-          object={gltf.scene}
+          object={gltf.scene.clone()}
           position={position}
           scale={[size, size, size]}
         />
 
-        <Shadow
-          scale={[scale.width * 0.4, scale.width * 0.2, 1]}
-          opacity={0.1}
-          position={[0, -scale.height * 0.4, 0]}
-          rotation={[-Math.PI * 0.5, 0, 0]}
-        />
+        { shadow &&
+          <Shadow
+            scale={[scale.width * 0.4, scale.width * 0.2, 1]}
+            opacity={0.1}
+            position={shadowPosition || [0, -scale.height * 0.4, 0]}
+            rotation={[-Math.PI * 0.5, 0, 0]}
+          />
+        }
       </mesh>
     </>
   )
 }
 
-const InlineModel = ({ src, aspectRatio, url, parallax, size, position, renderOnTop }) => {
+const InlineModel = ({ src, url, parallax, size, position, debug, ...mProps }) => {
   const ref = useRef()
 
   useCanvas(
-    <ScrollScene el={ref} debug={false} renderOnTop={renderOnTop} scaleMultiplier={0.001}>
+    <ScrollScene el={ref} debug={debug} scissor={false}>
       {(props) => {
-        return <ModelMesh {...props} url={url} parallax={parallax} size={size} position={position} />
+        return <ModelMesh {...props} url={url} parallax={parallax} size={size} position={position} {...mProps} />
       }}
     </ScrollScene>,
   )

@@ -407,18 +407,21 @@ var GlobalRenderer = function GlobalRenderer(_ref) {
     config.preloadQueue.forEach(function (render) {
       return render(gl);
     });
-    if (config.preloadQueue.length) gl.clear(); // Render viewport scissors first
+    if (config.preloadQueue.length) gl.clear(); // prevent viewport from being cleared if we have multiple render passes
+
+    if (config.viewportQueueBefore.length || config.viewportQueueAfter.length || config.scissorQueue.length) {
+      gl.autoClear = false;
+    } // Render viewports passes before
+
 
     if (config.viewportQueueBefore.length) {
-      // prevents viewports from being cleared
-      gl.autoClear = false;
       config.viewportQueueBefore.forEach(function (render) {
         return render(gl, size);
       });
-    }
+    } // Global render pass
+
 
     if (config.globalRender) {
-      // console.log('GLOBAL RENDER')
       // run any pre-process frames
       config.preRender.forEach(function (render) {
         return render(gl);
@@ -434,22 +437,28 @@ var GlobalRenderer = function GlobalRenderer(_ref) {
 
       config.postRender.forEach(function (render) {
         return render(gl);
-      }); // cleanup for next frame
+      });
+    } // Render global scissors
 
-      config.globalRender = false;
-      config.preRender = [];
-      config.postRender = [];
-    } else {
-      // console.log('GLOBAL SCISSORS')
+
+    if (config.scissorQueue.length) {
       config.scissorQueue.forEach(function (render) {
         return render(gl, camera);
       });
-    } // Render viewports last
+    } // Render viewports after
 
 
-    config.viewportQueueAfter.forEach(function (render) {
-      return render(gl, size);
-    });
+    if (config.viewportQueueAfter.length) {
+      gl.autoClear = false;
+      config.viewportQueueAfter.forEach(function (render) {
+        return render(gl, size);
+      });
+    } // cleanup for next frame
+
+
+    config.globalRender = false;
+    config.preRender = [];
+    config.postRender = [];
     config.preloadQueue = [];
     config.scissorQueue = [];
     config.viewportQueueBefore = [];
@@ -824,7 +833,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
       _ref$visible = _ref.visible,
       visible = _ref$visible === void 0 ? true : _ref$visible,
       _ref$scissor = _ref.scissor,
-      scissor = _ref$scissor === void 0 ? true : _ref$scissor,
+      scissor = _ref$scissor === void 0 ? false : _ref$scissor,
       _ref$debug = _ref.debug,
       debug = _ref$debug === void 0 ? false : _ref$debug,
       _ref$softDirection = _ref.softDirection,

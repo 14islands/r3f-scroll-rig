@@ -29,16 +29,18 @@ const GlobalRenderer = ({ children }) => {
     config.preloadQueue.forEach((render) => render(gl))
     if (config.preloadQueue.length) gl.clear()
 
-    // Render viewport scissors first
-    if (config.viewportQueueBefore.length) {
-      // prevents viewports from being cleared
+    // prevent viewport from being cleared if we have multiple render passes
+    if (config.viewportQueueBefore.length || config.viewportQueueAfter.length || config.scissorQueue.length) {
       gl.autoClear = false
+    }
+
+    // Render viewports passes before
+    if (config.viewportQueueBefore.length) {
       config.viewportQueueBefore.forEach((render) => render(gl, size))
     }
 
+    // Global render pass
     if (config.globalRender) {
-      // console.log('GLOBAL RENDER')
-
       // run any pre-process frames
       config.preRender.forEach((render) => render(gl))
 
@@ -52,24 +54,27 @@ const GlobalRenderer = ({ children }) => {
 
       // run any post-render frame (additional layers etc)
       config.postRender.forEach((render) => render(gl))
+    }
 
-      // cleanup for next frame
-      config.globalRender = false
-      config.preRender = []
-      config.postRender = []
-    } else {
-      // console.log('GLOBAL SCISSORS')
+    // Render global scissors
+    if (config.scissorQueue.length) {
       config.scissorQueue.forEach((render) => render(gl, camera))
     }
 
-    // Render viewports last
-    config.viewportQueueAfter.forEach((render) => render(gl, size))
+    // Render viewports after
+    if (config.viewportQueueAfter.length) {
+      gl.autoClear = false
+      config.viewportQueueAfter.forEach((render) => render(gl, size))
+    }
 
+    // cleanup for next frame
+    config.globalRender = false
+    config.preRender = []
+    config.postRender = []
     config.preloadQueue = []
     config.scissorQueue = []
     config.viewportQueueBefore = []
     config.viewportQueueAfter = []
-
     gl.autoClear = true
   }, config.PRIORITY_GLOBAL) // Take over rendering
 

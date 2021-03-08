@@ -147,3 +147,93 @@ import { VirtualScrollbar } from '@14islands/r3f-scroll-rig/scrollbar'
 ### `<ScrollScene>`
 
 
+
+
+
+# Render Loop
+
+Current
+- Viewport passes in renderOrder
+- Global pass
+- Scissor passes in renderOrder
+- Viewport passes in renderOrder
+
+New
+- Render passes with lower prio than 100
+- Global pass runs with prio 100
+- Render passes with higher prio than 100
+
+FIND OUT
+- do we need to clearDepth between renders?
+- can multiple passes interact if not cleared?
+- how to sort within global pass? (threejs problem, renderOrder + clearDepth + depthTest: false etc.)
+- need a peioeiry test case probably
+
+
+>> ViewportScrollScene
+useFrame(() => {
+  if (scrollState.inViewport) {
+    gl.autoClear = false
+    
+    gl.setViewport(left, top, width, height)
+    gl.setScissor(left, top, width, height)
+    gl.setScissorTest(true)
+    camera.layers.set(layer)
+    gl.clearDepth()
+    gl.render(scene, camera)
+    gl.setScissorTest(false)
+    gl.setViewport(0, 0, size.width, size.height)
+
+    requestFrame()  // trigger frame
+  }
+}, priority = 100)
+
+>> ScissorScrollScene
+useFrame(() => {
+  if (scrollState.inViewport) {
+    gl.autoClear = false
+
+    gl.setScissor(left, top, width, height)
+    gl.setScissorTest(true)
+    camera.layers.set(layer)
+    gl.render(scene, camera)
+    gl.setScissorTest(false)
+    gl.clearDepth()
+
+    requestFrame()  // trigger frame
+  }
+}, priority = 100)
+
+>> ScrollScene
+useFrame(() => {
+  if (scrollState.inViewport) {
+    requestRender()
+  }
+}, 100)
+
+>> StickyScrollscene
+useFrame(() => {
+  if (scrollState.inViewport) {
+    requestRender()
+  }
+}, 101)
+
+
+--- USER LAND
+
+>> Image
+useFrame(() => {
+  if (scrollState.inViewport) {
+    requestRender()  // trigger global render + frame}
+  }
+})
+
+>> blob layer
+useFrame(() => {
+  // hey, I have something to render :Wave:
+  requestRender()  // trigger global render + frame
+
+  // layer order? depthTest false + renderOrder
+})
+
+>> 3D scene viewport on top

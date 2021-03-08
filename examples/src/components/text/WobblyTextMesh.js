@@ -18,7 +18,7 @@ const WobblyTextMesh = ({ children, scrollState, scale, el, font }) => {
 
   return (
     <>
-      <MeshWobbleMaterial ref={material} factor={0} />
+      <MeshWobbleMaterial ref={material} factor={0} depthTest={false} />
       <WebGLText el={el} font={font} material={material.current} scale={scale}>
         {children}
       </WebGLText>

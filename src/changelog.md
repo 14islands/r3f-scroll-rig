@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.9.0
+
+### GlobalRenderer
+
+- No more automatic switching between global vs scissor renders. To make it more predictable, scissor passes are always rendered if requested.
+
+### ScrollScene
+
+- `scissor` is now false by default
+
 ## v1.8.0
 
 ### VirtualScrollbar

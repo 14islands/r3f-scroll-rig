@@ -25,7 +25,7 @@ let ScrollScene = ({
   margin = 14, // Margin outside viewport to avoid clipping vertex displacement (px)
   inViewportMargin, // Margin outside viewport to avoid clipping vertex displacement (px)
   visible = true,
-  scissor = true,
+  scissor = false,
   debug = false,
   softDirection = false, // experimental
   setInViewportProp = false,

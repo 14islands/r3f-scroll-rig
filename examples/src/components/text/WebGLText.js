@@ -29,7 +29,7 @@ const WebGLText = ({ el, children, material, scale, font, offset = 0, ...props }
   }, [material, color])
 
   return (
-    <mesh  layers={[3]}>
+    <mesh layers={[3]}>
       <Text
         fontSize={fontSize}
         maxWidth={scale ? scale.width : size.width}

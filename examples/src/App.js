@@ -11,7 +11,10 @@ import ParallaxImage from './components/image/ParallaxImage'
 import StickyImage from './components/image/StickyImage'
 import StickyBox from './components/StickyBox'
 import InlineBox from './components/InlineBox'
+import Viewport3DScene from './components/Viewport3DScene'
 import ModelViewport from './components/ModelViewport'
+import InlineModel from './components/InlineModel'
+import InlineCustomModelAnimation from './components/InlineCustomModelAnimation'
 
 import testImage from './assets/test.jpg'
 import testPower2Image from './assets/test-power2.jpg'
@@ -43,18 +46,27 @@ function App() {
                 </div>
               </header>
               <main>
-                <Text>A ScrollScene with a Cube mesh inside</Text>
-                <div style={{ margin: '20vw auto 0', width: '80vw', height: '80vw' }}>
+                <div style={{ margin: '0 auto 0', position: 'relative', width: '80vw', height: '300vh' }}>
+                  <InlineCustomModelAnimation />
+                </div>
+
+                <Text>A ScrollScene with a Cube mesh inside using global lights.</Text>
+                <div style={{ margin: '5vw auto 20vw', width: '80vw', height: '80vw' }}>
                   <InlineBox />
                 </div>
 
+                <Text>A ViewportScrollScene can controls it's own lights.</Text>
+                <div style={{ margin: '5vw auto 20vw', width: '100vw', height: '100vh' }}>
+                  <Viewport3DScene />
+                </div>
+
                 <Text>A ScrollScene with an Image inside</Text>
-                <div style={{ padding: '0 10vw', margin: '10vw auto' }}>
+                <div style={{ padding: '0 10vw', margin: '5vw auto 20vw' }}>
                   <Image src={testPower2Image} aspectRatio={16 / 9} />
                 </div>
 
                 <Text>A sticky ScrollScene with a Cube mesh inside</Text>
-                <div style={{ position: 'relative', margin: '10vw 0' }} ref={el}>
+                <div style={{ position: 'relative', margin: '5vw 0 20vw' }} ref={el}>
                   <StickyBox />
                   <div style={{ marginLeft: '50vw', fontSize: '5vw' }}>
                     <div className="StickySection" style={{ minHeight: '200vh' }}>
@@ -68,8 +80,8 @@ function App() {
                   </div>
                 </div>
 
-                <Text>Moree ScrollScenes with Parallaxing images</Text>
-                <div style={{ display: 'flex', justifyContent: 'space-between', margin: '20vw 10vw' }}>
+                <Text>More ScrollScenes with Parallaxing images</Text>
+                <div style={{ display: 'flex', justifyContent: 'space-between', margin: '10vw 10vw 20vw' }}>
                   <ParallaxImage src={testImage} aspectRatio={2 / 1} style={{ width: '45%' }} parallax={-100} />
                   <ParallaxImage
                     src={testImage}
@@ -140,9 +152,20 @@ function App() {
           config={{
             fps: false,
             debug: false,
-            scaleMultiplier: 0.01, // make 100px = 1 unit in three because the text wobbly looks better
+            scaleMultiplier: 0.1, // make 10px = 1 unit in three because the text wobbly looks better
           }}
         >
+          <ambientLight intensity={.5} />
+          <directionalLight
+            intensity={0.6}
+            position={[-1, 0, 1]}
+            castShadow
+          />
+          <directionalLight
+            intensity={0.5}
+            position={[1, -.5, -1]}
+            castShadow
+          />
         </GlobalCanvas>
       </Suspense>
       <Loader/>
