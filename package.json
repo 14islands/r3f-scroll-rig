@@ -1,6 +1,6 @@
 {
   "name": "@14islands/r3f-scroll-rig",
-  "version": "1.9.2",
+  "version": "1.9.3",
   "description": "Progressively enhance any React website with WebGL using react-three-fiber",
   "main": "dist/web.cjs.js",
   "module": "dist/web.js",
@@ -79,7 +79,7 @@
     "framer-motion": "^1.11.1",
     "react": ">=17.0",
     "react-dom": ">=17.0",
-    "three": "^0.121.1",
-    "react-three-fiber": "^5.3.19"
+    "react-three-fiber": "^5.3.19",
+    "three": "^0.121.1"
   }
 }
