@@ -11,12 +11,14 @@
     "@testing-library/user-event": "^7.1.2",
     "framer-motion": "^1.11.1",
     "glslify": "^7.0.0",
-    "react": "^16.13.1",
-    "react-dom": "^16.13.1",
+    "query-string": "^6.14.1",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
     "react-merge-refs": "^1.1.0",
     "react-router-dom": "^5.2.0",
     "react-scripts": "3.4.1",
     "react-spring": "^8.0.27",
+    "react-three-fiber": "^5.3.19",
     "three": "^0.126.1"
   },
   "scripts": {
