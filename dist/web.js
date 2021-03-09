@@ -1240,6 +1240,7 @@ const useCanvas = (object, deps = [], key) => {
  *    - Firefox createImageBitmap seems to flip powerOf2 images by default - Chrome doesn't
  *
  */
+// only use ImageBitmapLoader if supported and not FF for now
 
 const useImageBitmap = typeof createImageBitmap !== 'undefined' && /Firefox/.test(navigator.userAgent) === false; // Override fetch to prefer cached images by default
 
@@ -1251,14 +1252,7 @@ if (typeof window !== 'undefined') {
   }, ...args) => realFetch(url, options, ...args);
 }
 
-function isPowerOfTwo(dimensions = {
-  width: -1,
-  height: -1
-}) {
-  return MathUtils.isPowerOfTwo(dimensions.width) && MathUtils.isPowerOfTwo(dimensions.height);
-}
-
-const useTextureLoader = (url, dimensions, {
+const useTextureLoader = (url, {
   disableMipmaps = false
 } = {}) => {
   const [texture, setTexture] = useState();
@@ -1277,14 +1271,12 @@ const useTextureLoader = (url, dimensions, {
     let loader;
 
     if (useImageBitmap) {
-      loader = new ImageBitmapLoader(); // Flip if texture is powerOf2
+      loader = new ImageBitmapLoader(); // Flip if texture
 
-      if (!isPowerOfTwo(dimensions)) {
-        loader.setOptions({
-          imageOrientation: 'flipY',
-          premultiplyAlpha: 'none'
-        });
-      }
+      loader.setOptions({
+        imageOrientation: 'flipY',
+        premultiplyAlpha: 'none'
+      });
     } else {
       loader = new TextureLoader();
     }
@@ -1322,9 +1314,9 @@ const useTextureLoader = (url, dimensions, {
   }, [url]);
   return [texture, disposeBitmap];
 };
-const useImgTagAsTexture = (imgEl, dimensions, opts) => {
+const useImgTagAsTexture = (imgEl, opts) => {
   const [url, setUrl] = useState(null);
-  const [texture, disposeBitmap] = useTextureLoader(url, dimensions, opts);
+  const [texture, disposeBitmap] = useTextureLoader(url, opts);
 
   const loadTexture = () => {
     imgEl.removeEventListener('load', loadTexture);

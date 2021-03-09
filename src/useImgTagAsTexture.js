@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useThree } from 'react-three-fiber'
 import {
-  MathUtils,
   sRGBEncoding,
   LinearFilter,
   CanvasTexture,
@@ -25,6 +24,7 @@ import {
  *
  */
 
+// only use ImageBitmapLoader if supported and not FF for now
 const useImageBitmap = typeof createImageBitmap !== 'undefined' && /Firefox/.test(navigator.userAgent) === false
 
 // Override fetch to prefer cached images by default
@@ -33,11 +33,7 @@ if (typeof window !== 'undefined') {
   window.fetch = (url, options = { cache: 'force-cache' }, ...args) => realFetch(url, options, ...args)
 }
 
-function isPowerOfTwo(dimensions = { width: -1, height: -1 }) {
-  return MathUtils.isPowerOfTwo(dimensions.width) && MathUtils.isPowerOfTwo(dimensions.height)
-}
-
-export const useTextureLoader = (url, dimensions, { disableMipmaps = false } = {}) => {
+export const useTextureLoader = (url, { disableMipmaps = false } = {}) => {
   const [texture, setTexture] = useState()
   const [imageBitmap, setImageBitmap] = useState()
   const { gl } = useThree()
@@ -53,13 +49,11 @@ export const useTextureLoader = (url, dimensions, { disableMipmaps = false } = {
     let loader
     if (useImageBitmap) {
       loader = new ImageBitmapLoader()
-      // Flip if texture is powerOf2
-      if (!isPowerOfTwo(dimensions)) {
-        loader.setOptions({
-          imageOrientation: 'flipY',
-          premultiplyAlpha: 'none',
-        })
-      }
+      // Flip if texture
+      loader.setOptions({
+        imageOrientation: 'flipY',
+        premultiplyAlpha: 'none',
+      })
     } else {
       loader = new TextureLoader()
     }
@@ -106,9 +100,9 @@ export const useTextureLoader = (url, dimensions, { disableMipmaps = false } = {
   return [texture, disposeBitmap]
 }
 
-export const useImgTagAsTexture = (imgEl, dimensions, opts) => {
+export const useImgTagAsTexture = (imgEl, opts) => {
   const [url, setUrl] = useState(null)
-  const [texture, disposeBitmap] = useTextureLoader(url, dimensions, opts)
+  const [texture, disposeBitmap] = useTextureLoader(url, opts)
 
   const loadTexture = () => {
     imgEl.removeEventListener('load', loadTexture)

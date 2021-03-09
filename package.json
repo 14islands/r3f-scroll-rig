@@ -81,6 +81,6 @@
     "react": ">=17.0",
     "react-dom": ">=17.0",
     "react-three-fiber": "^5.3.19",
-    "three": "^0.121.1"
+    "three": ">=0.126.0"
   }
 }

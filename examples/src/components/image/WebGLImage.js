@@ -43,7 +43,7 @@ const WebGLImage = ({ image, scale, scrollState, scene, vertexShader, fragmentSh
     if (!scrollState.inViewport) return
 
     material.current.uniforms.u_time.value += 0.01
-    
+
     // px velocity
     // material.current.uniforms.u_velocity.value = scrollState.velocity
 

@@ -1385,6 +1385,7 @@ var useCanvas = function useCanvas(object, deps, key) {
  *    - Firefox createImageBitmap seems to flip powerOf2 images by default - Chrome doesn't
  *
  */
+// only use ImageBitmapLoader if supported and not FF for now
 
 var useImageBitmap = typeof createImageBitmap !== 'undefined' && /Firefox/.test(navigator.userAgent) === false; // Override fetch to prefer cached images by default
 
@@ -1406,18 +1407,7 @@ if (typeof window !== 'undefined') {
   };
 }
 
-function isPowerOfTwo(dimensions) {
-  if (dimensions === void 0) {
-    dimensions = {
-      width: -1,
-      height: -1
-    };
-  }
-
-  return three.MathUtils.isPowerOfTwo(dimensions.width) && three.MathUtils.isPowerOfTwo(dimensions.height);
-}
-
-var useTextureLoader = function useTextureLoader(url, dimensions, _temp) {
+var useTextureLoader = function useTextureLoader(url, _temp) {
   var _ref = _temp === void 0 ? {} : _temp,
       _ref$disableMipmaps = _ref.disableMipmaps,
       disableMipmaps = _ref$disableMipmaps === void 0 ? false : _ref$disableMipmaps;
@@ -1444,14 +1434,12 @@ var useTextureLoader = function useTextureLoader(url, dimensions, _temp) {
     var loader;
 
     if (useImageBitmap) {
-      loader = new three.ImageBitmapLoader(); // Flip if texture is powerOf2
+      loader = new three.ImageBitmapLoader(); // Flip if texture
 
-      if (!isPowerOfTwo(dimensions)) {
-        loader.setOptions({
-          imageOrientation: 'flipY',
-          premultiplyAlpha: 'none'
-        });
-      }
+      loader.setOptions({
+        imageOrientation: 'flipY',
+        premultiplyAlpha: 'none'
+      });
     } else {
       loader = new three.TextureLoader();
     }
@@ -1489,12 +1477,12 @@ var useTextureLoader = function useTextureLoader(url, dimensions, _temp) {
   }, [url]);
   return [texture, disposeBitmap];
 };
-var useImgTagAsTexture = function useImgTagAsTexture(imgEl, dimensions, opts) {
+var useImgTagAsTexture = function useImgTagAsTexture(imgEl, opts) {
   var _useState3 = React.useState(null),
       url = _useState3[0],
       setUrl = _useState3[1];
 
-  var _useTextureLoader = useTextureLoader(url, dimensions, opts),
+  var _useTextureLoader = useTextureLoader(url, opts),
       texture = _useTextureLoader[0],
       disposeBitmap = _useTextureLoader[1];
 
