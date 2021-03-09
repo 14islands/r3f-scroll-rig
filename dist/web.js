@@ -1242,7 +1242,7 @@ const useCanvas = (object, deps = [], key) => {
  */
 // only use ImageBitmapLoader if supported and not FF for now
 
-const useImageBitmap = typeof createImageBitmap !== 'undefined' && /Firefox/.test(navigator.userAgent) === false; // Override fetch to prefer cached images by default
+const supportsImageBitmap = typeof createImageBitmap !== 'undefined' && /Firefox/.test(navigator.userAgent) === false; // Override fetch to prefer cached images by default
 
 if (typeof window !== 'undefined') {
   const realFetch = window.fetch;
@@ -1260,6 +1260,13 @@ const useTextureLoader = (url, {
   const {
     gl
   } = useThree();
+  const isWebGL2 = gl.capabilities.isWebGL2;
+  const useImageBitmap = isWebGL2 && supportsImageBitmap; // webgl2 supports NPOT images so we have less flipY logic
+
+  if (typeof window !== 'undefined') {
+    window._useImageBitmap = true;
+  }
+
   const disposeBitmap = useCallback(() => {
     if (imageBitmap && imageBitmap.close) {
       imageBitmap.close();

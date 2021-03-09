@@ -1387,7 +1387,7 @@ var useCanvas = function useCanvas(object, deps, key) {
  */
 // only use ImageBitmapLoader if supported and not FF for now
 
-var useImageBitmap = typeof createImageBitmap !== 'undefined' && /Firefox/.test(navigator.userAgent) === false; // Override fetch to prefer cached images by default
+var supportsImageBitmap = typeof createImageBitmap !== 'undefined' && /Firefox/.test(navigator.userAgent) === false; // Override fetch to prefer cached images by default
 
 if (typeof window !== 'undefined') {
   var realFetch = window.fetch;
@@ -1422,6 +1422,13 @@ var useTextureLoader = function useTextureLoader(url, _temp) {
 
   var _useThree = reactThreeFiber.useThree(),
       gl = _useThree.gl;
+
+  var isWebGL2 = gl.capabilities.isWebGL2;
+  var useImageBitmap = isWebGL2 && supportsImageBitmap; // webgl2 supports NPOT images so we have less flipY logic
+
+  if (typeof window !== 'undefined') {
+    window._useImageBitmap = true;
+  }
 
   var disposeBitmap = React.useCallback(function () {
     if (imageBitmap && imageBitmap.close) {
