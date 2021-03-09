@@ -5,7 +5,7 @@ import { invalidate, useThree, useFrame, useUpdate, Canvas, createPortal } from 
 import { ResizeObserver } from '@juggle/resize-observer';
 import queryString from 'query-string';
 import create from 'zustand';
-import { sRGBEncoding, NoToneMapping, Math as Math$1, MathUtils, ImageBitmapLoader, TextureLoader, CanvasTexture, LinearFilter, RGBFormat, RGBAFormat, Scene } from 'three';
+import { sRGBEncoding, NoToneMapping, MathUtils, ImageBitmapLoader, TextureLoader, CanvasTexture, LinearFilter, RGBFormat, RGBAFormat, Scene } from 'three';
 import { useWindowSize, useWindowHeight } from '@react-hook/window-size';
 import mergeRefs from 'react-merge-refs';
 import { config as config$1, useScrollRig as useScrollRig$1 } from '@14islands/r3f-scroll-rig';
@@ -868,14 +868,14 @@ let ScrollScene = (_ref) => {
     let yLerp = lerp;
 
     if (softDirection) {
-      const t = Math$1.clamp(time - prevBounds.directionTime, 0, 1.0);
-      yLerp = Math$1.lerp(softDirection, lerp, t);
+      const t = MathUtils.clamp(time - prevBounds.directionTime, 0, 1.0);
+      yLerp = MathUtils.lerp(softDirection, lerp, t);
     } // frame delta
 
 
     const delta = Math.abs(prevBounds.y - y); // Lerp the distance to simulate easing
 
-    const lerpY = Math$1.lerp(prevBounds.y, y, yLerp + lerpOffset); // Abort if element not in screen
+    const lerpY = MathUtils.lerp(prevBounds.y, y, yLerp + lerpOffset); // Abort if element not in screen
 
     const scrollMargin = inViewportMargin || size.height * 0.33;
     const isOffscreen = lerpY + size.height * 0.5 + scale.pixelHeight * 0.5 < -scrollMargin || lerpY + size.height * 0.5 - scale.pixelHeight * 0.5 > size.height + scrollMargin; // store top value for next frame
@@ -913,11 +913,11 @@ let ScrollScene = (_ref) => {
 
 
       const pxInside = bounds.top - lerpY - bounds.top + size.height - bounds.centerOffset;
-      bounds.progress = Math$1.mapLinear(pxInside, 0, size.height + scale.pixelHeight, 0, 1); // percent of total visible distance
+      bounds.progress = MathUtils.mapLinear(pxInside, 0, size.height + scale.pixelHeight, 0, 1); // percent of total visible distance
 
-      bounds.visibility = Math$1.mapLinear(pxInside, 0, scale.pixelHeight, 0, 1); // percent of item height in view
+      bounds.visibility = MathUtils.mapLinear(pxInside, 0, scale.pixelHeight, 0, 1); // percent of item height in view
 
-      bounds.viewport = Math$1.mapLinear(pxInside, 0, size.height, 0, 1); // percent of window height scrolled since visible
+      bounds.viewport = MathUtils.mapLinear(pxInside, 0, size.height, 0, 1); // percent of window height scrolled since visible
     } // render another frame if delta is large enough
 
 
@@ -1142,9 +1142,9 @@ const ScrollDomPortal = /*#__PURE__*/forwardRef(({
     // Lerp the distance to simulate easing
 
 
-    const lerpScroll = Math$1.lerp(prevBounds.top, scrollTop, lerp + lerpOffset);
-    const lerpX = Math$1.lerp(prevBounds.x, offsetX, layoutLerp);
-    const lerpY = Math$1.lerp(prevBounds.y, offsetY, layoutLerp); // Abort if element not in screen
+    const lerpScroll = MathUtils.lerp(prevBounds.top, scrollTop, lerp + lerpOffset);
+    const lerpX = MathUtils.lerp(prevBounds.x, offsetX, layoutLerp);
+    const lerpY = MathUtils.lerp(prevBounds.y, offsetY, layoutLerp); // Abort if element not in screen
 
     const elTop = top + lerpScroll + lerpY;
     const isOffscreen = elTop + height < -100 || elTop > viewportHeight + 100; // Update DOM element position if in view, or if was in view last frame
@@ -1255,7 +1255,7 @@ function isPowerOfTwo(dimensions = {
   width: -1,
   height: -1
 }) {
-  return Math$1.isPowerOfTwo(dimensions.width) && Math$1.isPowerOfTwo(dimensions.height);
+  return MathUtils.isPowerOfTwo(dimensions.width) && MathUtils.isPowerOfTwo(dimensions.height);
 }
 
 const useTextureLoader = (url, dimensions, {
@@ -1494,7 +1494,7 @@ let ViewportScrollScene = (_ref) => {
 
     const delta = Math.abs(prevBounds.top - topY); // Lerp the distance to simulate easing
 
-    const lerpTop = Math$1.lerp(prevBounds.top, topY, lerp + lerpOffset); // Abort if element not in screen
+    const lerpTop = MathUtils.lerp(prevBounds.top, topY, lerp + lerpOffset); // Abort if element not in screen
 
     const isOffscreen = lerpTop + bounds.height < -100 || lerpTop > size.height + 100; // store top value for next frame
 
@@ -1524,11 +1524,11 @@ let ViewportScrollScene = (_ref) => {
       }); // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
 
       const pxInside = bounds.top - lerpTop - bounds.top + size.height;
-      bounds.progress = Math$1.mapLinear(pxInside, 0, size.height + bounds.height, 0, 1); // percent of total visible distance
+      bounds.progress = MathUtils.mapLinear(pxInside, 0, size.height + bounds.height, 0, 1); // percent of total visible distance
 
-      bounds.visibility = Math$1.mapLinear(pxInside, 0, bounds.height, 0, 1); // percent of item height in view
+      bounds.visibility = MathUtils.mapLinear(pxInside, 0, bounds.height, 0, 1); // percent of item height in view
 
-      bounds.viewport = Math$1.mapLinear(pxInside, 0, size.height, 0, 1); // percent of window height scrolled since visible
+      bounds.viewport = MathUtils.mapLinear(pxInside, 0, size.height, 0, 1); // percent of window height scrolled since visible
     } // render another frame if delta is large enough
 
 
@@ -1821,9 +1821,9 @@ const ScrollDom = /*#__PURE__*/forwardRef(({
     // Lerp the distance to simulate easing
 
 
-    const lerpScroll = Math$1.lerp(prevBounds.top, scrollTop, lerp + lerpOffset);
-    const lerpX = Math$1.lerp(prevBounds.x, offsetX, layoutLerp);
-    const lerpY = Math$1.lerp(prevBounds.y, offsetY, layoutLerp); // Abort if element not in screen
+    const lerpScroll = MathUtils.lerp(prevBounds.top, scrollTop, lerp + lerpOffset);
+    const lerpX = MathUtils.lerp(prevBounds.x, offsetX, layoutLerp);
+    const lerpY = MathUtils.lerp(prevBounds.y, offsetY, layoutLerp); // Abort if element not in screen
 
     const elTop = top + lerpScroll + lerpY;
     const isOffscreen = elTop + height < -100 || elTop > size.height + 100; // Update DOM element position if in view, or if was in view last frame

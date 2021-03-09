@@ -2,7 +2,7 @@ import React, { useState, useRef, useMemo, useEffect } from 'react'
 import { useScrollRig, useImgTagAsTexture, requestFrame } from '@14islands/r3f-scroll-rig'
 import { useFrame, useThree } from 'react-three-fiber'
 
-import { LinearFilter, VideoTexture, sRGBEncoding, Math as MathUtils } from 'three'
+import { LinearFilter, VideoTexture, sRGBEncoding, MathUtils } from 'three'
 
 const WebGLVideo = ({ image, scale, scrollState, scene }) => {
   const material = useRef()

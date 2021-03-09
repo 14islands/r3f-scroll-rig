@@ -987,14 +987,14 @@ exports.ScrollScene = function ScrollScene(_ref) {
     var yLerp = lerp;
 
     if (softDirection) {
-      var t = three.Math.clamp(time - prevBounds.directionTime, 0, 1.0);
-      yLerp = three.Math.lerp(softDirection, lerp, t);
+      var t = three.MathUtils.clamp(time - prevBounds.directionTime, 0, 1.0);
+      yLerp = three.MathUtils.lerp(softDirection, lerp, t);
     } // frame delta
 
 
     var delta = Math.abs(prevBounds.y - y); // Lerp the distance to simulate easing
 
-    var lerpY = three.Math.lerp(prevBounds.y, y, yLerp + lerpOffset); // Abort if element not in screen
+    var lerpY = three.MathUtils.lerp(prevBounds.y, y, yLerp + lerpOffset); // Abort if element not in screen
 
     var scrollMargin = inViewportMargin || size.height * 0.33;
     var isOffscreen = lerpY + size.height * 0.5 + scale.pixelHeight * 0.5 < -scrollMargin || lerpY + size.height * 0.5 - scale.pixelHeight * 0.5 > size.height + scrollMargin; // store top value for next frame
@@ -1034,11 +1034,11 @@ exports.ScrollScene = function ScrollScene(_ref) {
 
 
       var pxInside = bounds.top - lerpY - bounds.top + size.height - bounds.centerOffset;
-      bounds.progress = three.Math.mapLinear(pxInside, 0, size.height + scale.pixelHeight, 0, 1); // percent of total visible distance
+      bounds.progress = three.MathUtils.mapLinear(pxInside, 0, size.height + scale.pixelHeight, 0, 1); // percent of total visible distance
 
-      bounds.visibility = three.Math.mapLinear(pxInside, 0, scale.pixelHeight, 0, 1); // percent of item height in view
+      bounds.visibility = three.MathUtils.mapLinear(pxInside, 0, scale.pixelHeight, 0, 1); // percent of item height in view
 
-      bounds.viewport = three.Math.mapLinear(pxInside, 0, size.height, 0, 1); // percent of window height scrolled since visible
+      bounds.viewport = three.MathUtils.mapLinear(pxInside, 0, size.height, 0, 1); // percent of window height scrolled since visible
     } // render another frame if delta is large enough
 
 
@@ -1271,9 +1271,9 @@ var ScrollDomPortal = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
     // Lerp the distance to simulate easing
 
 
-    var lerpScroll = three.Math.lerp(prevBounds.top, scrollTop, lerp + lerpOffset);
-    var lerpX = three.Math.lerp(prevBounds.x, offsetX, layoutLerp);
-    var lerpY = three.Math.lerp(prevBounds.y, offsetY, layoutLerp); // Abort if element not in screen
+    var lerpScroll = three.MathUtils.lerp(prevBounds.top, scrollTop, lerp + lerpOffset);
+    var lerpX = three.MathUtils.lerp(prevBounds.x, offsetX, layoutLerp);
+    var lerpY = three.MathUtils.lerp(prevBounds.y, offsetY, layoutLerp); // Abort if element not in screen
 
     var elTop = top + lerpScroll + lerpY;
     var isOffscreen = elTop + height < -100 || elTop > viewportHeight + 100; // Update DOM element position if in view, or if was in view last frame
@@ -1414,7 +1414,7 @@ function isPowerOfTwo(dimensions) {
     };
   }
 
-  return three.Math.isPowerOfTwo(dimensions.width) && three.Math.isPowerOfTwo(dimensions.height);
+  return three.MathUtils.isPowerOfTwo(dimensions.width) && three.MathUtils.isPowerOfTwo(dimensions.height);
 }
 
 var useTextureLoader = function useTextureLoader(url, dimensions, _temp) {
@@ -1687,7 +1687,7 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
 
     var delta = Math.abs(prevBounds.top - topY); // Lerp the distance to simulate easing
 
-    var lerpTop = three.Math.lerp(prevBounds.top, topY, lerp + lerpOffset); // Abort if element not in screen
+    var lerpTop = three.MathUtils.lerp(prevBounds.top, topY, lerp + lerpOffset); // Abort if element not in screen
 
     var isOffscreen = lerpTop + bounds.height < -100 || lerpTop > size.height + 100; // store top value for next frame
 
@@ -1719,11 +1719,11 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
       }); // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
 
       var pxInside = bounds.top - lerpTop - bounds.top + size.height;
-      bounds.progress = three.Math.mapLinear(pxInside, 0, size.height + bounds.height, 0, 1); // percent of total visible distance
+      bounds.progress = three.MathUtils.mapLinear(pxInside, 0, size.height + bounds.height, 0, 1); // percent of total visible distance
 
-      bounds.visibility = three.Math.mapLinear(pxInside, 0, bounds.height, 0, 1); // percent of item height in view
+      bounds.visibility = three.MathUtils.mapLinear(pxInside, 0, bounds.height, 0, 1); // percent of item height in view
 
-      bounds.viewport = three.Math.mapLinear(pxInside, 0, size.height, 0, 1); // percent of window height scrolled since visible
+      bounds.viewport = three.MathUtils.mapLinear(pxInside, 0, size.height, 0, 1); // percent of window height scrolled since visible
     } // render another frame if delta is large enough
 
 
@@ -2050,9 +2050,9 @@ var ScrollDom = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
     // Lerp the distance to simulate easing
 
 
-    var lerpScroll = three.Math.lerp(prevBounds.top, scrollTop, lerp + lerpOffset);
-    var lerpX = three.Math.lerp(prevBounds.x, offsetX, layoutLerp);
-    var lerpY = three.Math.lerp(prevBounds.y, offsetY, layoutLerp); // Abort if element not in screen
+    var lerpScroll = three.MathUtils.lerp(prevBounds.top, scrollTop, lerp + lerpOffset);
+    var lerpX = three.MathUtils.lerp(prevBounds.x, offsetX, layoutLerp);
+    var lerpY = three.MathUtils.lerp(prevBounds.y, offsetY, layoutLerp); // Abort if element not in screen
 
     var elTop = top + lerpScroll + lerpY;
     var isOffscreen = elTop + height < -100 || elTop > size.height + 100; // Update DOM element position if in view, or if was in view last frame

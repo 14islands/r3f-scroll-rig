@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect, useLayoutEffect } from 'react'
 import PropTypes from 'prop-types'
-import { Math as MathUtils } from 'three'
+import { MathUtils } from 'three'
 import { useFrame, useThree } from 'react-three-fiber'
 import { useViewportScroll } from 'framer-motion'
 

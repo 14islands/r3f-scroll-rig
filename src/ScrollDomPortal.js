@@ -2,7 +2,7 @@ import React, { memo, useRef, useEffect, forwardRef } from 'react'
 import ReactDOM from 'react-dom'
 
 import PropTypes from 'prop-types'
-import { Math as MathUtils } from 'three'
+import { MathUtils } from 'three'
 import { useViewportScroll } from 'framer-motion'
 import { useWindowHeight } from '@react-hook/window-size'
 

@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useThree } from 'react-three-fiber'
 import {
-  Math as MathUtils,
+  MathUtils,
   sRGBEncoding,
   LinearFilter,
   CanvasTexture,
