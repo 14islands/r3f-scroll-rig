@@ -42,7 +42,7 @@ export const useTextureLoader = (url, { disableMipmaps = false } = {}) => {
   const useImageBitmap = isWebGL2 && supportsImageBitmap // webgl2 supports NPOT images so we have less flipY logic
 
   if (typeof window !== 'undefined') {
-    window._useImageBitmap = true
+    window._useImageBitmap = useImageBitmap
   }
 
   const disposeBitmap = useCallback(() => {

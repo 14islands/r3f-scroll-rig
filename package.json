@@ -78,8 +78,8 @@
   },
   "peerDependencies": {
     "framer-motion": "^1.11.1",
-    "react": ">=17.0",
-    "react-dom": ">=17.0",
+    "react": ">=16.0",
+    "react-dom": ">=16.0",
     "react-three-fiber": "^5.3.19",
     "three": ">=0.126.0"
   }

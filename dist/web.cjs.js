@@ -1427,7 +1427,7 @@ var useTextureLoader = function useTextureLoader(url, _temp) {
   var useImageBitmap = isWebGL2 && supportsImageBitmap; // webgl2 supports NPOT images so we have less flipY logic
 
   if (typeof window !== 'undefined') {
-    window._useImageBitmap = true;
+    window._useImageBitmap = useImageBitmap;
   }
 
   var disposeBitmap = React.useCallback(function () {
