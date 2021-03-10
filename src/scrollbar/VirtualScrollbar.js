@@ -5,13 +5,18 @@ import config from '../config'
 import useCanvasStore from '../store'
 import ResizeManager from '../ResizeManager'
 
-const DEFAULT_LERP = 0.1
-
 function _lerp(v0, v1, t) {
   return v0 * (1 - t) + v1 * t
 }
 
-const FakeScroller = ({ el, lerp = DEFAULT_LERP, restDelta = 1, scrollY = null, onUpdate, threshold = 100 }) => {
+const FakeScroller = ({
+  el,
+  lerp = config.scrollLerp,
+  restDelta = config.scrollRestDelta,
+  scrollY = null,
+  onUpdate,
+  threshold = 100,
+}) => {
   const pageReflowRequested = useCanvasStore((state) => state.pageReflowRequested)
   const triggerReflowCompleted = useCanvasStore((state) => state.triggerReflowCompleted)
   const heightEl = useRef()

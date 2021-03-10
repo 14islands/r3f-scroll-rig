@@ -1,8 +1,8 @@
 {
   "web.js": {
-    "bundled": 66541,
-    "minified": 29653,
-    "gzipped": 8655,
+    "bundled": 66491,
+    "minified": 29667,
+    "gzipped": 8646,
     "treeshaked": {
       "rollup": {
         "code": 17046,
@@ -14,9 +14,9 @@
     }
   },
   "web.cjs.js": {
-    "bundled": 80874,
-    "minified": 34943,
-    "gzipped": 9148
+    "bundled": 80826,
+    "minified": 34949,
+    "gzipped": 9136
   },
   "vscroll.js": {
     "bundled": 12612,
@@ -38,9 +38,9 @@
     "gzipped": 2419
   },
   "scrollbar.js": {
-    "bundled": 15144,
-    "minified": 6246,
-    "gzipped": 2423,
+    "bundled": 15143,
+    "minified": 6266,
+    "gzipped": 2415,
     "treeshaked": {
       "rollup": {
         "code": 1555,
@@ -52,8 +52,8 @@
     }
   },
   "scrollbar.cjs.js": {
-    "bundled": 18858,
-    "minified": 7582,
-    "gzipped": 2666
+    "bundled": 18859,
+    "minified": 7592,
+    "gzipped": 2651
   }
 }

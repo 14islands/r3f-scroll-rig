@@ -658,10 +658,9 @@ const GlobalCanvas = (_ref) => {
     className: "ScrollRigCanvas",
     invalidateFrameloop: true,
     gl: _extends({
-      antialias: false,
+      antialias: true,
       alpha: true,
-      depth: false,
-      // turned off by default as optimization
+      depth: true,
       powerPreference: 'high-performance',
       // https://blog.tojicode.com/2013/12/failifmajorperformancecaveat-with-great.html
       failIfMajorPerformanceCaveat: true
@@ -1873,16 +1872,14 @@ ScrollDom.propTypes = {
   style: PropTypes.object
 };
 
-const DEFAULT_LERP = 0.1;
-
 function _lerp(v0, v1, t) {
   return v0 * (1 - t) + v1 * t;
 }
 
 const FakeScroller = ({
   el,
-  lerp = DEFAULT_LERP,
-  restDelta = 1,
+  lerp = config.scrollLerp,
+  restDelta = config.scrollRestDelta,
   scrollY = null,
   onUpdate,
   threshold = 100

@@ -226,16 +226,14 @@ const ResizeManager = ({
   return null;
 };
 
-const DEFAULT_LERP = 0.1;
-
 function _lerp(v0, v1, t) {
   return v0 * (1 - t) + v1 * t;
 }
 
 const FakeScroller = ({
   el,
-  lerp = DEFAULT_LERP,
-  restDelta = 1,
+  lerp = config.scrollLerp,
+  restDelta = config.scrollRestDelta,
   scrollY = null,
   onUpdate,
   threshold = 100

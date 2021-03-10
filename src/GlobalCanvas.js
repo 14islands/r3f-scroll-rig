@@ -63,9 +63,9 @@ export const GlobalCanvas = ({
       className="ScrollRigCanvas"
       invalidateFrameloop={true}
       gl={{
-        antialias: false,
+        antialias: true,
         alpha: true,
-        depth: false, // turned off by default as optimization
+        depth: true,
         powerPreference: 'high-performance',
         // https://blog.tojicode.com/2013/12/failifmajorperformancecaveat-with-great.html
         failIfMajorPerformanceCaveat: true, // skip webgl if slow device

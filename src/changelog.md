@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.9.12
+
+### GlobalCanvas
+
+- `antialias` and `depth` are now `true` by default.
+- `VirtualScrolbar` now uses same lerp & restDelta as Canvas components
+
 ## v1.9.0
 
 ### GlobalRenderer

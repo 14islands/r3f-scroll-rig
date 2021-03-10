@@ -279,8 +279,6 @@ var ResizeManager = function ResizeManager(_ref) {
   return null;
 };
 
-var DEFAULT_LERP = 0.1;
-
 function _lerp(v0, v1, t) {
   return v0 * (1 - t) + v1 * t;
 }
@@ -288,9 +286,9 @@ function _lerp(v0, v1, t) {
 var FakeScroller = function FakeScroller(_ref) {
   var el = _ref.el,
       _ref$lerp = _ref.lerp,
-      lerp = _ref$lerp === void 0 ? DEFAULT_LERP : _ref$lerp,
+      lerp = _ref$lerp === void 0 ? config.scrollLerp : _ref$lerp,
       _ref$restDelta = _ref.restDelta,
-      restDelta = _ref$restDelta === void 0 ? 1 : _ref$restDelta,
+      restDelta = _ref$restDelta === void 0 ? config.scrollRestDelta : _ref$restDelta,
       _ref$scrollY = _ref.scrollY,
       scrollY = _ref$scrollY === void 0 ? null : _ref$scrollY,
       onUpdate = _ref.onUpdate,
