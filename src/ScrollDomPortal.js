@@ -187,11 +187,15 @@ const ScrollDomPortal = forwardRef(
       }
     }
 
-    if (children && portalEl) {
-      const child = React.Children.only(React.cloneElement(children, { ref: copyEl }))
+    if (!children) {
+      return null
+    }
+
+    const child = React.Children.only(React.cloneElement(children, { ref: copyEl }))
+    if (portalEl) {
       return ReactDOM.createPortal(child, portalEl)
     }
-    return children
+    return child
   },
 )
 

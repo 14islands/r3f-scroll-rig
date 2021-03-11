@@ -1303,14 +1303,19 @@ var ScrollDomPortal = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
     }
   };
 
-  if (children && portalEl) {
-    var child = React__default.Children.only( /*#__PURE__*/React__default.cloneElement(children, {
-      ref: copyEl
-    }));
+  if (!children) {
+    return null;
+  }
+
+  var child = React__default.Children.only( /*#__PURE__*/React__default.cloneElement(children, {
+    ref: copyEl
+  }));
+
+  if (portalEl) {
     return /*#__PURE__*/ReactDOM.createPortal(child, portalEl);
   }
 
-  return children;
+  return child;
 });
 ScrollDomPortal.displayName = 'ScrollDomPortal';
 ScrollDomPortal.propTypes = {
