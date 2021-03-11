@@ -93,11 +93,6 @@ const ScrollDomPortal = forwardRef(
         () => {
           if (!el || !el.current) return
 
-          // const classNames = el.current.className
-          // if (!classNames !== copyEl.current.className) {
-          //   copyEl.current.className = classNames
-          // }
-
           const { top, left } = bounds
           const { top: newTop, left: newLeft, height: newHeight, width: newWidth } = el.current.getBoundingClientRect()
 
@@ -144,12 +139,7 @@ const ScrollDomPortal = forwardRef(
         return
       }
 
-      // parallax position
-      // const progress = MathUtils.lerp(1, -1, MathUtils.clamp((size.height - scrollTop) / (size.height + height), 0, 1))
-      // const offset = transform(progress, [1, 0, -1], [0, 0, 400])
-      // scrollTop += offset
-
-      // Lerp the distance to simulate easing
+      // Lerp the distance
       const lerpScroll = MathUtils.lerp(prevBounds.top, scrollTop, lerp + lerpOffset)
       const lerpX = MathUtils.lerp(prevBounds.x, offsetX, layoutLerp)
       const lerpY = MathUtils.lerp(prevBounds.y, offsetY, layoutLerp)

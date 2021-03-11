@@ -724,9 +724,10 @@ let ScrollScene = (_ref) => {
     // experimental
     setInViewportProp = false,
     updateLayout = 0,
-    positionFixed = false
+    positionFixed = false,
+    scrollY
   } = _ref,
-      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "margin", "inViewportMargin", "visible", "scissor", "debug", "softDirection", "setInViewportProp", "updateLayout", "positionFixed"]);
+      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "margin", "inViewportMargin", "visible", "scissor", "debug", "softDirection", "setInViewportProp", "updateLayout", "positionFixed", "scrollY"]);
 
   const scene = useRef();
   const group = useRef();
@@ -739,7 +740,7 @@ let ScrollScene = (_ref) => {
     pixelHeight: 1
   });
   const {
-    scrollY
+    scrollY: framerScrollY
   } = useViewportScroll();
   const {
     size
@@ -749,6 +750,7 @@ let ScrollScene = (_ref) => {
     renderFullscreen,
     renderScissor
   } = useScrollRig();
+  scrollY = scrollY || framerScrollY;
   const pageReflowCompleted = useCanvasStore(state => state.pageReflowCompleted); // non-reactive state
 
   const transient = useRef({
@@ -1074,11 +1076,7 @@ const ScrollDomPortal = /*#__PURE__*/forwardRef(({
   useEffect(() => {
     if (!el || !el.current) return;
     const id = requestIdleCallback(() => {
-      if (!el || !el.current) return; // const classNames = el.current.className
-      // if (!classNames !== copyEl.current.className) {
-      //   copyEl.current.className = classNames
-      // }
-
+      if (!el || !el.current) return;
       const {
         top,
         left
@@ -1133,11 +1131,7 @@ const ScrollDomPortal = /*#__PURE__*/forwardRef(({
     if (!local.needUpdate && delta < config.scrollRestDelta) {
       // abort if no delta change
       return;
-    } // parallax position
-    // const progress = MathUtils.lerp(1, -1, MathUtils.clamp((size.height - scrollTop) / (size.height + height), 0, 1))
-    // const offset = transform(progress, [1, 0, -1], [0, 0, 400])
-    // scrollTop += offset
-    // Lerp the distance to simulate easing
+    } // Lerp the distance
 
 
     const lerpScroll = MathUtils.lerp(prevBounds.top, scrollTop, lerp + lerpOffset);

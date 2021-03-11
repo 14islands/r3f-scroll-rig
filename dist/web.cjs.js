@@ -836,7 +836,8 @@ exports.ScrollScene = function ScrollScene(_ref) {
       updateLayout = _ref$updateLayout === void 0 ? 0 : _ref$updateLayout,
       _ref$positionFixed = _ref.positionFixed,
       positionFixed = _ref$positionFixed === void 0 ? false : _ref$positionFixed,
-      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "margin", "inViewportMargin", "visible", "scissor", "debug", "softDirection", "setInViewportProp", "updateLayout", "positionFixed"]);
+      scrollY = _ref.scrollY,
+      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "margin", "inViewportMargin", "visible", "scissor", "debug", "softDirection", "setInViewportProp", "updateLayout", "positionFixed", "scrollY"]);
 
   var scene = React.useRef();
   var group = React.useRef();
@@ -856,7 +857,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
       setScale = _useState2[1];
 
   var _useViewportScroll = framerMotion.useViewportScroll(),
-      scrollY = _useViewportScroll.scrollY;
+      framerScrollY = _useViewportScroll.scrollY;
 
   var _useThree = reactThreeFiber.useThree(),
       size = _useThree.size;
@@ -866,6 +867,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
       renderFullscreen = _useScrollRig.renderFullscreen,
       renderScissor = _useScrollRig.renderScissor;
 
+  scrollY = scrollY || framerScrollY;
   var pageReflowCompleted = useCanvasStore(function (state) {
     return state.pageReflowCompleted;
   }); // non-reactive state
@@ -1206,11 +1208,7 @@ var ScrollDomPortal = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
   React.useEffect(function () {
     if (!el || !el.current) return;
     var id = requestIdleCallback(function () {
-      if (!el || !el.current) return; // const classNames = el.current.className
-      // if (!classNames !== copyEl.current.className) {
-      //   copyEl.current.className = classNames
-      // }
-
+      if (!el || !el.current) return;
       var top = bounds.top,
           left = bounds.left;
 
@@ -1262,11 +1260,7 @@ var ScrollDomPortal = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
     if (!local.needUpdate && delta < config.scrollRestDelta) {
       // abort if no delta change
       return;
-    } // parallax position
-    // const progress = MathUtils.lerp(1, -1, MathUtils.clamp((size.height - scrollTop) / (size.height + height), 0, 1))
-    // const offset = transform(progress, [1, 0, -1], [0, 0, 400])
-    // scrollTop += offset
-    // Lerp the distance to simulate easing
+    } // Lerp the distance
 
 
     var lerpScroll = three.MathUtils.lerp(prevBounds.top, scrollTop, lerp + lerpOffset);

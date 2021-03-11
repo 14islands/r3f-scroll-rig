@@ -31,6 +31,7 @@ let ScrollScene = ({
   setInViewportProp = false,
   updateLayout = 0,
   positionFixed = false,
+  scrollY,
   ...props
 }) => {
   const scene = useRef()
@@ -44,10 +45,11 @@ let ScrollScene = ({
     pixelWidth: 1,
     pixelHeight: 1,
   })
-  const { scrollY } = useViewportScroll()
+  const { scrollY: framerScrollY } = useViewportScroll()
   const { size } = useThree()
   const { requestFrame, renderFullscreen, renderScissor } = useScrollRig()
 
+  scrollY = scrollY || framerScrollY
   const pageReflowCompleted = useCanvasStore((state) => state.pageReflowCompleted)
 
   // non-reactive state
