@@ -164,7 +164,8 @@ let ScrollScene = ({
     const delta = Math.abs(prevBounds.y - y)
 
     // Lerp the distance to simulate easing
-    const lerpY = MathUtils.lerp(prevBounds.y, y, yLerp + lerpOffset)
+    let lerpY = MathUtils.lerp(prevBounds.y, y, yLerp + lerpOffset)
+    lerpY = lerpY % 1 < 0.5 ? Math.floor(lerpY) : Math.ceil(lerpY)
 
     // Abort if element not in screen
     const scrollMargin = inViewportMargin || size.height * 0.33

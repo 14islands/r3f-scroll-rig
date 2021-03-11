@@ -993,7 +993,8 @@ exports.ScrollScene = function ScrollScene(_ref) {
 
     var delta = Math.abs(prevBounds.y - y); // Lerp the distance to simulate easing
 
-    var lerpY = three.MathUtils.lerp(prevBounds.y, y, yLerp + lerpOffset); // Abort if element not in screen
+    var lerpY = three.MathUtils.lerp(prevBounds.y, y, yLerp + lerpOffset);
+    lerpY = lerpY % 1 < 0.5 ? Math.floor(lerpY) : Math.ceil(lerpY); // Abort if element not in screen
 
     var scrollMargin = inViewportMargin || size.height * 0.33;
     var isOffscreen = lerpY + size.height * 0.5 + scale.pixelHeight * 0.5 < -scrollMargin || lerpY + size.height * 0.5 - scale.pixelHeight * 0.5 > size.height + scrollMargin; // store top value for next frame
