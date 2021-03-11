@@ -133,7 +133,7 @@ const GlobalCanvasIfSupported = ({ onError, ...props }) => {
       }}
     >
       <GlobalCanvas {...props} />
-      <div ref={portalEl}></div>
+      <div className="ScrollRigPortal" ref={portalEl}></div>
     </CanvasErrorBoundary>
   )
 }
