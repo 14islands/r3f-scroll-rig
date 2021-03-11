@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.9.13
+
+### ScrollDomPortal
+
+- `portalEl` now needs to be passed as an argument. GlobalCanvas no longer provides a default portal.
+
 ## v1.9.12
 
 ### GlobalCanvas
