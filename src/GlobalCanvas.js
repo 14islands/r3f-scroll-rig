@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useRef, useMemo } from 'react'
+import React, { useEffect, useLayoutEffect, useMemo } from 'react'
 import PropTypes from 'prop-types'
 import { Canvas } from 'react-three-fiber'
 import { ResizeObserver } from '@juggle/resize-observer'
@@ -113,16 +113,11 @@ GlobalCanvas.propTypes = {
 }
 
 const GlobalCanvasIfSupported = ({ onError, ...props }) => {
-  const portalEl = useRef()
   const setCanvasAvailable = useCanvasStore((state) => state.setCanvasAvailable)
 
   useLayoutEffect(() => {
     document.documentElement.classList.add('js-has-global-canvas')
   }, [])
-
-  useLayoutEffect(() => {
-    config.portalEl = portalEl.current
-  }, [portalEl])
 
   return (
     <CanvasErrorBoundary
@@ -133,7 +128,6 @@ const GlobalCanvasIfSupported = ({ onError, ...props }) => {
       }}
     >
       <GlobalCanvas {...props} />
-      <div className="ScrollRigPortal" ref={portalEl}></div>
     </CanvasErrorBoundary>
   )
 }

@@ -28,9 +28,6 @@ export const config = {
   viewportQueueAfter: [],
   hasVirtualScrollbar: false,
   hasGlobalCanvas: false,
-
-  // portal for viewports
-  portalEl: null,
 }
 
 export default config

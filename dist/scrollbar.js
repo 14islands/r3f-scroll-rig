@@ -48,9 +48,7 @@ const config = {
   viewportQueueBefore: [],
   viewportQueueAfter: [],
   hasVirtualScrollbar: false,
-  hasGlobalCanvas: false,
-  // portal for viewports
-  portalEl: null
+  hasGlobalCanvas: false
 };
 
 function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return typeof key === "symbol" ? key : String(key); }

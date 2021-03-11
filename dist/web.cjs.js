@@ -73,9 +73,7 @@ var config = {
   viewportQueueBefore: [],
   viewportQueueAfter: [],
   hasVirtualScrollbar: false,
-  hasGlobalCanvas: false,
-  // portal for viewports
-  portalEl: null
+  hasGlobalCanvas: false
 };
 
 /**
@@ -1122,6 +1120,7 @@ var LAYOUT_LERP = 0.1;
 
 var ScrollDomPortal = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
   var el = _ref.el,
+      portalEl = _ref.portalEl,
       _ref$lerp = _ref.lerp,
       lerp = _ref$lerp === void 0 ? config.scrollLerp : _ref$lerp,
       _ref$lerpOffset = _ref.lerpOffset,
@@ -1304,19 +1303,21 @@ var ScrollDomPortal = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
     }
   };
 
-  if (children) {
+  if (children && portalEl) {
     var child = React__default.Children.only( /*#__PURE__*/React__default.cloneElement(children, {
       ref: copyEl
     }));
-    return /*#__PURE__*/ReactDOM.createPortal(child, config.portalEl);
+    return /*#__PURE__*/ReactDOM.createPortal(child, portalEl);
   }
 
-  return null;
+  return children;
 });
 ScrollDomPortal.displayName = 'ScrollDomPortal';
 ScrollDomPortal.propTypes = {
   el: PropTypes.object,
   // DOM element to track,
+  portalEl: PropTypes.object,
+  // DOM element to portal into,
   lerp: PropTypes.number,
   // Base lerp ratio
   lerpOffset: PropTypes.number,

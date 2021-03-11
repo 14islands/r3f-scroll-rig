@@ -23,6 +23,7 @@ const ScrollDomPortal = forwardRef(
   (
     {
       el,
+      portalEl,
       lerp = config.scrollLerp,
       lerpOffset = 0,
       children,
@@ -186,11 +187,11 @@ const ScrollDomPortal = forwardRef(
       }
     }
 
-    if (children) {
+    if (children && portalEl) {
       const child = React.Children.only(React.cloneElement(children, { ref: copyEl }))
-      return ReactDOM.createPortal(child, config.portalEl)
+      return ReactDOM.createPortal(child, portalEl)
     }
-    return null
+    return children
   },
 )
 
@@ -198,6 +199,7 @@ ScrollDomPortal.displayName = 'ScrollDomPortal'
 
 ScrollDomPortal.propTypes = {
   el: PropTypes.object, // DOM element to track,
+  portalEl: PropTypes.object, // DOM element to portal into,
   lerp: PropTypes.number, // Base lerp ratio
   lerpOffset: PropTypes.number, // Offset applied to `lerp`
   zIndex: PropTypes.number, // z-index to apply to the cloned element
