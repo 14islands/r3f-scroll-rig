@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.9.17
+
+### GlobalCanvas
+
+- Added config option `subpixelScrolling` that affects ScrollScene. If false, the scroll poition will be rounded to an integer (browsers usually do this with normal scroll)
+
 ## v1.9.13
 
 ### ScrollDomPortal
