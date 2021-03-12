@@ -137,7 +137,10 @@ let ScrollScene = ({
     const time = clock.getElapsedTime()
 
     // Find new Y based on cached position and scroll
-    const y = bounds.top - scrollY.get() - bounds.centerOffset
+    const initialPos = config.subpixelScrolling
+      ? Math.floor(bounds.top - bounds.centerOffset)
+      : bounds.top - bounds.centerOffset
+    const y = initialPos - scrollY.get()
 
     // if previously hidden and now visible, update previous position to not get ghost easing when made visible
     if (scene.current.visible && !bounds.inViewport) {
