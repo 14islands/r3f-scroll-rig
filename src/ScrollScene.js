@@ -165,7 +165,7 @@ let ScrollScene = ({
 
     // Lerp the distance to simulate easing
     const lerpY = MathUtils.lerp(prevBounds.y, y, yLerp + lerpOffset)
-    const newY = config.subpixelScrolling ? lerpY : lerpY % 1 < 0.5 ? Math.floor(lerpY) : Math.ceil(lerpY)
+    const newY = config.subpixelScrolling ? lerpY : Math.floor(lerpY)
 
     // Abort if element not in screen
     const scrollMargin = inViewportMargin || size.height * 0.33

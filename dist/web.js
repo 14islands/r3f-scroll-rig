@@ -876,7 +876,7 @@ let ScrollScene = (_ref) => {
     const delta = Math.abs(prevBounds.y - y); // Lerp the distance to simulate easing
 
     const lerpY = MathUtils.lerp(prevBounds.y, y, yLerp + lerpOffset);
-    const newY = config.subpixelScrolling ? lerpY : lerpY % 1 < 0.5 ? Math.floor(lerpY) : Math.ceil(lerpY); // Abort if element not in screen
+    const newY = config.subpixelScrolling ? lerpY : Math.floor(lerpY); // Abort if element not in screen
 
     const scrollMargin = inViewportMargin || size.height * 0.33;
     const isOffscreen = newY + size.height * 0.5 + scale.pixelHeight * 0.5 < -scrollMargin || newY + size.height * 0.5 - scale.pixelHeight * 0.5 > size.height + scrollMargin; // store top value for next frame
