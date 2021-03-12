@@ -966,7 +966,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
         prevBounds = _transient.prevBounds;
     var time = clock.getElapsedTime(); // Find new Y based on cached position and scroll
 
-    var initialPos = config.subpixelScrolling ? Math.floor(bounds.top - bounds.centerOffset) : bounds.top - bounds.centerOffset;
+    var initialPos = config.subpixelScrolling ? bounds.top - bounds.centerOffset : Math.floor(bounds.top - bounds.centerOffset);
     var y = initialPos - scrollY.get(); // if previously hidden and now visible, update previous position to not get ghost easing when made visible
 
     if (scene.current.visible && !bounds.inViewport) {
