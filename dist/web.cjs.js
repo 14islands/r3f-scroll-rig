@@ -56,6 +56,7 @@ var config = {
   // Linear interpolation - high performance easing
   scrollRestDelta: 0.14,
   // min delta to trigger animation frame on scroll
+  subpixelScrolling: true,
   // Execution order for useFrames (highest = last render)
   PRIORITY_SCISSORS: 1,
   PRIORITY_VIEWPORTS: 1,
@@ -994,10 +995,10 @@ exports.ScrollScene = function ScrollScene(_ref) {
     var delta = Math.abs(prevBounds.y - y); // Lerp the distance to simulate easing
 
     var lerpY = three.MathUtils.lerp(prevBounds.y, y, yLerp + lerpOffset);
-    lerpY = lerpY % 1 < 0.5 ? Math.floor(lerpY) : Math.ceil(lerpY); // Abort if element not in screen
+    var newY = config.subpixelScrolling ? lerpY : lerpY % 1 < 0.5 ? Math.floor(lerpY) : Math.ceil(lerpY); // Abort if element not in screen
 
     var scrollMargin = inViewportMargin || size.height * 0.33;
-    var isOffscreen = lerpY + size.height * 0.5 + scale.pixelHeight * 0.5 < -scrollMargin || lerpY + size.height * 0.5 - scale.pixelHeight * 0.5 > size.height + scrollMargin; // store top value for next frame
+    var isOffscreen = newY + size.height * 0.5 + scale.pixelHeight * 0.5 < -scrollMargin || newY + size.height * 0.5 - scale.pixelHeight * 0.5 > size.height + scrollMargin; // store top value for next frame
 
     bounds.inViewport = !isOffscreen;
     setInViewportProp && requestIdleCallback(function () {
@@ -1014,10 +1015,10 @@ exports.ScrollScene = function ScrollScene(_ref) {
     if (scene.current.visible) {
       // move scene
       if (!positionFixed) {
-        scene.current.position.y = -lerpY * config.scaleMultiplier;
+        scene.current.position.y = -newY * config.scaleMultiplier;
       }
 
-      var positiveYUpBottom = size.height * 0.5 - (lerpY + scale.pixelHeight * 0.5); // inverse Y
+      var positiveYUpBottom = size.height * 0.5 - (newY + scale.pixelHeight * 0.5); // inverse Y
 
       if (scissor) {
         renderScissor({

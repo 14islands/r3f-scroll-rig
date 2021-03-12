@@ -9,6 +9,7 @@ export const config = {
   // Global lerp settings
   scrollLerp: 0.1, // Linear interpolation - high performance easing
   scrollRestDelta: 0.14, // min delta to trigger animation frame on scroll
+  subpixelScrolling: true,
 
   // Execution order for useFrames (highest = last render)
   PRIORITY_SCISSORS: 1,
