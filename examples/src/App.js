@@ -30,40 +30,12 @@ import hutModel from './assets/hut.glb'
 
 import RotatingImage from './components/image/RotatingImage'
 
-const TestScroll = () => {
-  const target = useRef(0)
-  const scrolling = useRef(false)
-
-  useFrame(() => {
-    //if (!scrolling.current) {
-      window.scrollTo(0, MathUtils.lerp(window.scrollY, target.current, 0.1));
-      // window.scrollTo(0, MathUtils.lerp(window.scrollY, 3000, 0.05));
-
-    //}
-  })
-
-  useEffect(() => {
-    console.log('attach')
-    window.addEventListener('wheel', (e) => {
-      target.current = Math.max(0, target.current + e.deltaY)
-      e.preventDefault()
-    }, { passive: false });
-
-    // window.addEventListener('scroll', (e) => {
-    //   target.current = window.scrollY
-    //   e.preventDefault()
-    // }, { passive: false });
-  }, []);
-
-  return null
-}
-
 function App() {
   const el = useRef()
   return (
     <>
       <Suspense fallback={null}>
-        <VirtualScrollbar disabled>
+        <VirtualScrollbar>
           {(bind) => (
             <div className="App" {...bind}>
               <header className="App-header">
@@ -195,7 +167,6 @@ function App() {
             position={[1, -.5, -1]}
             castShadow
           />
-          <TestScroll/>
         </GlobalCanvas>
       </Suspense>
       <Loader/>
