@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom'
 
 import PropTypes from 'prop-types'
 import { MathUtils } from 'three'
-import { useViewportScroll } from 'framer-motion'
 import { useWindowHeight } from '@react-hook/window-size'
 
 import { requestIdleCallback, cancelIdleCallback } from './hooks/requestIdleCallback'
@@ -39,7 +38,6 @@ const ScrollDomPortal = forwardRef(
     const local = useRef({ needUpdate: false, offsetY: 0, offsetX: 0, raf: -1 }).current
     const bounds = useRef({ top: 0, left: 0, width: 0, height: 0 }).current
     const prevBounds = useRef({ top: 0, wasOffscreen: false }).current
-    const { scrollY } = useViewportScroll()
     const viewportHeight = useWindowHeight()
 
     const pageReflowCompleted = useCanvasStore((state) => state.pageReflowCompleted)
@@ -49,13 +47,17 @@ const ScrollDomPortal = forwardRef(
       local.raf = window.requestAnimationFrame(frame)
     }
 
-    // Trigger render on scroll
+    // get initial scrollY and listen for transient updates
+    const scrollY = useRef(useCanvasStore.getState().scrollY)
     useEffect(
       () =>
-        scrollY.onChange(() => {
-          local.needUpdate = true
-          requestFrame()
-        }),
+        useCanvasStore.subscribe(
+          (y) => {
+            scrollY.current = y
+            requestFrame() // Trigger render on scroll
+          },
+          (state) => state.scrollY,
+        ),
       [],
     )
 
@@ -128,7 +130,7 @@ const ScrollDomPortal = forwardRef(
       const offsetY = local.offsetY + ((live && getOffset()?.y) || 0)
 
       // add scroll value to bounds to get current position
-      const scrollTop = -scrollY.get()
+      const scrollTop = -scrollY.current
 
       // frame delta
       const deltaScroll = prevBounds.top - scrollTop

@@ -196,6 +196,15 @@ var _create = create(function (set) {
           pageReflowCompleted: state.pageReflowCompleted + 1
         };
       });
+    },
+    // keep track of scroll position
+    scrollY: 0,
+    setScrollY: function setScrollY(scrollY) {
+      return set(function (state) {
+        return {
+          scrollY: scrollY
+        };
+      });
     }
   };
 }),
@@ -288,8 +297,6 @@ var FakeScroller = function FakeScroller(_ref) {
       lerp = _ref$lerp === void 0 ? config.scrollLerp : _ref$lerp,
       _ref$restDelta = _ref.restDelta,
       restDelta = _ref$restDelta === void 0 ? config.scrollRestDelta : _ref$restDelta,
-      _ref$scrollY = _ref.scrollY,
-      scrollY = _ref$scrollY === void 0 ? null : _ref$scrollY,
       onUpdate = _ref.onUpdate,
       _ref$threshold = _ref.threshold,
       threshold = _ref$threshold === void 0 ? 100 : _ref$threshold;
@@ -298,6 +305,9 @@ var FakeScroller = function FakeScroller(_ref) {
   });
   var triggerReflowCompleted = useCanvasStore(function (state) {
     return state.triggerReflowCompleted;
+  });
+  var setScrollY = useCanvasStore(function (state) {
+    return state.setScrollY;
   });
   var heightEl = React.useRef();
 
@@ -416,7 +426,8 @@ var FakeScroller = function FakeScroller(_ref) {
 
   var onScroll = function onScroll(val) {
     // check if use with scroll wrapper or native scroll event
-    state.scroll.target = scrollY ? val : window.pageYOffset; // restart animation loop if needed
+    state.scroll.target = window.pageYOffset;
+    setScrollY(state.scroll.target); // restart animation loop if needed
 
     if (!state.frame && !state.isResizing) {
       state.frame = window.requestAnimationFrame(run);
@@ -447,14 +458,10 @@ var FakeScroller = function FakeScroller(_ref) {
   }, []); // Bind scroll event
 
   React.useEffect(function () {
-    if (scrollY) {
-      return scrollY.onChange(onScroll);
-    } else {
-      window.addEventListener('scroll', onScroll);
-      return function () {
-        return window.removeEventListener('scroll', onScroll);
-      };
-    }
+    window.addEventListener('scroll', onScroll);
+    return function () {
+      return window.removeEventListener('scroll', onScroll);
+    };
   }, []);
   React.useEffect(function () {
     if (el.current) {

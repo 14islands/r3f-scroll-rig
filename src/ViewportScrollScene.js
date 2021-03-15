@@ -2,7 +2,6 @@ import React, { useRef, useState, useEffect, useLayoutEffect } from 'react'
 import PropTypes from 'prop-types'
 import { MathUtils, Scene } from 'three'
 import { useFrame, useThree, createPortal } from 'react-three-fiber'
-import { useViewportScroll } from 'framer-motion'
 
 import requestIdleCallback from './hooks/requestIdleCallback'
 
@@ -43,7 +42,6 @@ let ViewportScrollScene = ({
     pixelWidth: 1,
     pixelHeight: 1,
   })
-  const { scrollY } = useViewportScroll()
   const { size } = useThree()
   const { requestFrame, renderViewport } = useScrollRig()
 
@@ -67,6 +65,20 @@ let ViewportScrollScene = ({
     prevBounds: { top: 0, left: 0, width: 0, height: 0 },
   }).current
 
+  // get initial scrollY and listen for transient updates
+  const scrollY = useRef(useCanvasStore.getState().scrollY)
+  useEffect(
+    () =>
+      useCanvasStore.subscribe(
+        (y) => {
+          scrollY.current = y
+          requestFrame() // Trigger render on scroll
+        },
+        (state) => state.scrollY,
+      ),
+    [],
+  )
+
   // Clear scene from canvas on unmount
   useEffect(() => {
     transient.mounted = true
@@ -85,9 +97,6 @@ let ViewportScrollScene = ({
       el.current.style.opacity = ''
     }
   }, [el.current])
-
-  // Trigger render on scroll
-  useEffect(() => scrollY.onChange(requestFrame), [])
 
   const updateSizeAndPosition = () => {
     if (!el || !el.current) return
@@ -142,7 +151,7 @@ let ViewportScrollScene = ({
     const { bounds, prevBounds } = transient
 
     // add scroll value to bounds to get current position
-    const topY = bounds.top - scrollY.get()
+    const topY = bounds.top - scrollY.current
 
     // frame delta
     const delta = Math.abs(prevBounds.top - topY)

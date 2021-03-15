@@ -13,7 +13,7 @@ import StatsDebug from './StatsDebug'
 import ResizeManager from './ResizeManager'
 import PerspectiveCamera from './PerspectiveCamera'
 import OrthographicCamera from './OrthographicCamera'
-
+import DefaultScrollTracker from './DefaultScrollTracker'
 import CanvasErrorBoundary from './CanvasErrorBoundary'
 
 export const GlobalCanvas = ({
@@ -99,6 +99,7 @@ export const GlobalCanvas = ({
       {/* {config.fps && <Stats />} */}
       {config.autoPixelRatio && <PerformanceMonitor />}
       <ResizeManager reflow={requestReflow} resizeOnHeight={resizeOnHeight} />
+      <DefaultScrollTracker />
     </CanvasElement>
   )
 }

@@ -17,7 +17,6 @@ var windowSize = require('@react-hook/window-size');
 var mergeRefs = _interopDefault(require('react-merge-refs'));
 var r3fScrollRig = require('@14islands/r3f-scroll-rig');
 var PropTypes = _interopDefault(require('prop-types'));
-var framerMotion = require('framer-motion');
 var ReactDOM = _interopDefault(require('react-dom'));
 
 // Use to override Frustum temporarily to pre-upload textures to GPU
@@ -234,6 +233,15 @@ var _create = create(function (set) {
       set(function (state) {
         return {
           pageReflowCompleted: state.pageReflowCompleted + 1
+        };
+      });
+    },
+    // keep track of scroll position
+    scrollY: 0,
+    setScrollY: function setScrollY(scrollY) {
+      return set(function (state) {
+        return {
+          scrollY: scrollY
         };
       });
     }
@@ -715,6 +723,28 @@ var OrthographicCamera = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
 });
 OrthographicCamera.displayName = 'OrthographicCamera';
 
+var DefaultScrollTracker = function DefaultScrollTracker() {
+  var hasVirtualScrollbar = useCanvasStore(function (state) {
+    return state.hasVirtualScrollbar;
+  });
+  var setScrollY = useCanvasStore(function (state) {
+    return state.setScrollY;
+  });
+  var setScroll = React.useCallback(function () {
+    setScrollY(window.pageYOffset);
+  }, [setScrollY]);
+  React.useEffect(function () {
+    if (!hasVirtualScrollbar) {
+      window.addEventListener('scroll', setScroll);
+    }
+
+    return function () {
+      return window.removeEventListener('scroll', setScroll);
+    };
+  }, [hasVirtualScrollbar]);
+  return null;
+};
+
 var GlobalCanvas = function GlobalCanvas(_ref) {
   var _ref$as = _ref.as,
       as = _ref$as === void 0 ? reactThreeFiber.Canvas : _ref$as,
@@ -801,7 +831,7 @@ var GlobalCanvas = function GlobalCanvas(_ref) {
   }), config.debug && /*#__PURE__*/React__default.createElement(StatsDebug, null), config.autoPixelRatio && /*#__PURE__*/React__default.createElement(PerformanceMonitor, null), /*#__PURE__*/React__default.createElement(ResizeManager, {
     reflow: requestReflow,
     resizeOnHeight: resizeOnHeight
-  }));
+  }), /*#__PURE__*/React__default.createElement(DefaultScrollTracker, null));
 };
 
 /**
@@ -835,8 +865,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
       updateLayout = _ref$updateLayout === void 0 ? 0 : _ref$updateLayout,
       _ref$positionFixed = _ref.positionFixed,
       positionFixed = _ref$positionFixed === void 0 ? false : _ref$positionFixed,
-      scrollY = _ref.scrollY,
-      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed", "scrollY"]);
+      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed"]);
 
   var scene = React.useRef();
   var group = React.useRef();
@@ -855,9 +884,6 @@ exports.ScrollScene = function ScrollScene(_ref) {
       scale = _useState2[0],
       setScale = _useState2[1];
 
-  var _useViewportScroll = framerMotion.useViewportScroll(),
-      framerScrollY = _useViewportScroll.scrollY;
-
   var _useThree = reactThreeFiber.useThree(),
       size = _useThree.size;
 
@@ -866,10 +892,19 @@ exports.ScrollScene = function ScrollScene(_ref) {
       renderFullscreen = _useScrollRig.renderFullscreen,
       renderScissor = _useScrollRig.renderScissor;
 
-  scrollY = scrollY || framerScrollY;
   var pageReflowCompleted = useCanvasStore(function (state) {
     return state.pageReflowCompleted;
-  }); // non-reactive state
+  }); // get initial scrollY and listen for transient updates
+
+  var scrollY = React.useRef(useCanvasStore.getState().scrollY);
+  React.useEffect(function () {
+    return useCanvasStore.subscribe(function (y) {
+      scrollY.current = y;
+      requestFrame(); // Trigger render on scroll
+    }, function (state) {
+      return state.scrollY;
+    });
+  }, []); // non-reactive state
 
   var _transient = React.useRef({
     mounted: false,
@@ -904,11 +939,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
       if (!(el == null ? void 0 : el.current)) return;
       el.current.style.opacity = '';
     };
-  }, [el.current]); // Trigger render on scroll - if close to viewport
-
-  React.useEffect(function () {
-    return scrollY.onChange(requestFrame);
-  }, []);
+  }, [el.current]);
 
   var updateSizeAndPosition = function updateSizeAndPosition() {
     if (!el || !el.current) return;
@@ -962,7 +993,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
         prevBounds = _transient.prevBounds; // Find new Y based on cached position and scroll
 
     var initialPos = config.subpixelScrolling ? bounds.top - bounds.centerOffset : Math.floor(bounds.top - bounds.centerOffset);
-    var y = initialPos - scrollY.get(); // if previously hidden and now visible, update previous position to not get ghost easing when made visible
+    var y = initialPos - scrollY.current; // if previously hidden and now visible, update previous position to not get ghost easing when made visible
 
     if (scene.current.visible && !bounds.inViewport) {
       prevBounds.y = y;
@@ -1133,10 +1164,6 @@ var ScrollDomPortal = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
     top: 0,
     wasOffscreen: false
   }).current;
-
-  var _useViewportScroll = framerMotion.useViewportScroll(),
-      scrollY = _useViewportScroll.scrollY;
-
   var viewportHeight = windowSize.useWindowHeight();
   var pageReflowCompleted = useCanvasStore(function (state) {
     return state.pageReflowCompleted;
@@ -1145,13 +1172,16 @@ var ScrollDomPortal = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
   var requestFrame = function requestFrame() {
     window.cancelAnimationFrame(local.raf);
     local.raf = window.requestAnimationFrame(frame);
-  }; // Trigger render on scroll
+  }; // get initial scrollY and listen for transient updates
 
 
+  var scrollY = React.useRef(useCanvasStore.getState().scrollY);
   React.useEffect(function () {
-    return scrollY.onChange(function () {
-      local.needUpdate = true;
-      requestFrame();
+    return useCanvasStore.subscribe(function (y) {
+      scrollY.current = y;
+      requestFrame(); // Trigger render on scroll
+    }, function (state) {
+      return state.scrollY;
     });
   }, []); // Find initial position of proxy element on mount
 
@@ -1231,7 +1261,7 @@ var ScrollDomPortal = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
     var offsetX = local.offsetX + (live && ((_getOffset = getOffset()) == null ? void 0 : _getOffset.x) || 0);
     var offsetY = local.offsetY + (live && ((_getOffset2 = getOffset()) == null ? void 0 : _getOffset2.y) || 0); // add scroll value to bounds to get current position
 
-    var scrollTop = -scrollY.get(); // frame delta
+    var scrollTop = -scrollY.current; // frame delta
 
     var deltaScroll = prevBounds.top - scrollTop;
     var delta = Math.abs(deltaScroll) + Math.abs(prevBounds.x - offsetX) + Math.abs(prevBounds.y - offsetY);
@@ -1542,9 +1572,6 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
       scale = _useState3[0],
       setScale = _useState3[1];
 
-  var _useViewportScroll = framerMotion.useViewportScroll(),
-      scrollY = _useViewportScroll.scrollY;
-
   var _useThree = reactThreeFiber.useThree(),
       size = _useThree.size;
 
@@ -1579,7 +1606,17 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
       width: 0,
       height: 0
     }
-  }).current; // Clear scene from canvas on unmount
+  }).current; // get initial scrollY and listen for transient updates
+
+  var scrollY = React.useRef(useCanvasStore.getState().scrollY);
+  React.useEffect(function () {
+    return useCanvasStore.subscribe(function (y) {
+      scrollY.current = y;
+      requestFrame(); // Trigger render on scroll
+    }, function (state) {
+      return state.scrollY;
+    });
+  }, []); // Clear scene from canvas on unmount
 
   React.useEffect(function () {
     _transient.mounted = true;
@@ -1596,11 +1633,7 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
       if (!(el == null ? void 0 : el.current)) return;
       el.current.style.opacity = '';
     };
-  }, [el.current]); // Trigger render on scroll
-
-  React.useEffect(function () {
-    return scrollY.onChange(requestFrame);
-  }, []);
+  }, [el.current]);
 
   var updateSizeAndPosition = function updateSizeAndPosition() {
     if (!el || !el.current) return;
@@ -1656,7 +1689,7 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
     var bounds = _transient.bounds,
         prevBounds = _transient.prevBounds; // add scroll value to bounds to get current position
 
-    var topY = bounds.top - scrollY.get(); // frame delta
+    var topY = bounds.top - scrollY.current; // frame delta
 
     var delta = Math.abs(prevBounds.top - topY); // Lerp the distance to simulate easing
 
@@ -1849,8 +1882,6 @@ var FakeScroller = function FakeScroller(_ref) {
       lerp = _ref$lerp === void 0 ? config.scrollLerp : _ref$lerp,
       _ref$restDelta = _ref.restDelta,
       restDelta = _ref$restDelta === void 0 ? config.scrollRestDelta : _ref$restDelta,
-      _ref$scrollY = _ref.scrollY,
-      scrollY = _ref$scrollY === void 0 ? null : _ref$scrollY,
       onUpdate = _ref.onUpdate,
       _ref$threshold = _ref.threshold,
       threshold = _ref$threshold === void 0 ? 100 : _ref$threshold;
@@ -1859,6 +1890,9 @@ var FakeScroller = function FakeScroller(_ref) {
   });
   var triggerReflowCompleted = useCanvasStore(function (state) {
     return state.triggerReflowCompleted;
+  });
+  var setScrollY = useCanvasStore(function (state) {
+    return state.setScrollY;
   });
   var heightEl = React.useRef();
 
@@ -1977,7 +2011,8 @@ var FakeScroller = function FakeScroller(_ref) {
 
   var onScroll = function onScroll(val) {
     // check if use with scroll wrapper or native scroll event
-    state.scroll.target = scrollY ? val : window.pageYOffset; // restart animation loop if needed
+    state.scroll.target = window.pageYOffset;
+    setScrollY(state.scroll.target); // restart animation loop if needed
 
     if (!state.frame && !state.isResizing) {
       state.frame = window.requestAnimationFrame(run);
@@ -2008,14 +2043,10 @@ var FakeScroller = function FakeScroller(_ref) {
   }, []); // Bind scroll event
 
   React.useEffect(function () {
-    if (scrollY) {
-      return scrollY.onChange(onScroll);
-    } else {
-      window.addEventListener('scroll', onScroll);
-      return function () {
-        return window.removeEventListener('scroll', onScroll);
-      };
-    }
+    window.addEventListener('scroll', onScroll);
+    return function () {
+      return window.removeEventListener('scroll', onScroll);
+    };
   }, []);
   React.useEffect(function () {
     if (el.current) {

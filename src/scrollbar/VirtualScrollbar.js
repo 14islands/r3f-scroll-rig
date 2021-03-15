@@ -13,12 +13,13 @@ const FakeScroller = ({
   el,
   lerp = config.scrollLerp,
   restDelta = config.scrollRestDelta,
-  scrollY = null,
   onUpdate,
   threshold = 100,
 }) => {
   const pageReflowRequested = useCanvasStore((state) => state.pageReflowRequested)
   const triggerReflowCompleted = useCanvasStore((state) => state.triggerReflowCompleted)
+  const setScrollY = useCanvasStore((state) => state.setScrollY)
+
   const heightEl = useRef()
 
   const [fakeHeight, setFakeHeight] = useState()
@@ -128,7 +129,8 @@ const FakeScroller = ({
 
   const onScroll = (val) => {
     // check if use with scroll wrapper or native scroll event
-    state.scroll.target = scrollY ? val : window.pageYOffset
+    state.scroll.target = window.pageYOffset
+    setScrollY(state.scroll.target)
 
     // restart animation loop if needed
     if (!state.frame && !state.isResizing) {
@@ -159,12 +161,8 @@ const FakeScroller = ({
 
   // Bind scroll event
   useEffect(() => {
-    if (scrollY) {
-      return scrollY.onChange(onScroll)
-    } else {
-      window.addEventListener('scroll', onScroll)
-      return () => window.removeEventListener('scroll', onScroll)
-    }
+    window.addEventListener('scroll', onScroll)
+    return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
   useEffect(() => {
@@ -236,10 +234,6 @@ FakeScroller.propTypes = {
   lerp: PropTypes.number,
   restDelta: PropTypes.number,
   onUpdate: PropTypes.func,
-  scrollY: PropTypes.shape({
-    get: PropTypes.func,
-    onChange: PropTypes.func,
-  }),
 }
 
 /**

@@ -2,7 +2,6 @@ import React, { useRef, useState, useEffect, useLayoutEffect } from 'react'
 import PropTypes from 'prop-types'
 import { MathUtils } from 'three'
 import { useFrame, useThree } from 'react-three-fiber'
-import { useViewportScroll } from 'framer-motion'
 
 import requestIdleCallback from './hooks/requestIdleCallback'
 
@@ -30,7 +29,6 @@ let ScrollScene = ({
   setInViewportProp = false,
   updateLayout = 0,
   positionFixed = false,
-  scrollY,
   ...props
 }) => {
   const scene = useRef()
@@ -44,12 +42,24 @@ let ScrollScene = ({
     pixelWidth: 1,
     pixelHeight: 1,
   })
-  const { scrollY: framerScrollY } = useViewportScroll()
   const { size } = useThree()
   const { requestFrame, renderFullscreen, renderScissor } = useScrollRig()
 
-  scrollY = scrollY || framerScrollY
   const pageReflowCompleted = useCanvasStore((state) => state.pageReflowCompleted)
+
+  // get initial scrollY and listen for transient updates
+  const scrollY = useRef(useCanvasStore.getState().scrollY)
+  useEffect(
+    () =>
+      useCanvasStore.subscribe(
+        (y) => {
+          scrollY.current = y
+          requestFrame() // Trigger render on scroll
+        },
+        (state) => state.scrollY,
+      ),
+    [],
+  )
 
   // non-reactive state
   const transient = useRef({
@@ -84,9 +94,6 @@ let ScrollScene = ({
       el.current.style.opacity = ''
     }
   }, [el.current])
-
-  // Trigger render on scroll - if close to viewport
-  useEffect(() => scrollY.onChange(requestFrame), [])
 
   const updateSizeAndPosition = () => {
     if (!el || !el.current) return
@@ -138,7 +145,7 @@ let ScrollScene = ({
     const initialPos = config.subpixelScrolling
       ? bounds.top - bounds.centerOffset
       : Math.floor(bounds.top - bounds.centerOffset)
-    const y = initialPos - scrollY.get()
+    const y = initialPos - scrollY.current
 
     // if previously hidden and now visible, update previous position to not get ghost easing when made visible
     if (scene.current.visible && !bounds.inViewport) {

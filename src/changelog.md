@@ -6,9 +6,22 @@
 
 - Removed. Consider using `ScrollPortal` or use `drei`'s `HTML` component instead.
 
+### ScrollDomPortal
+
+- Removed `framer-motion` dependency.
+
+### ViewportScrollScene
+
+- Removed `framer-motion` dependency.
+
+### VirtualScrollbar
+
+- Removed `framer-motion` dependency.
+
 ### ScrollScene
 
 - Removed experimental `softDirection`
+- Removed `framer-motion` dependency.
 
 ## v1.9.17
 

@@ -70,6 +70,10 @@ const [useCanvasStore, canvasStoreApi] = create((set) => ({
   triggerReflowCompleted: () => {
     set((state) => ({ pageReflowCompleted: state.pageReflowCompleted + 1 }))
   },
+
+  // keep track of scroll position
+  scrollY: 0,
+  setScrollY: (scrollY) => set((state) => ({ scrollY })),
 }))
 
 export { useCanvasStore, canvasStoreApi }
