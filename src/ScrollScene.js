@@ -27,7 +27,6 @@ let ScrollScene = ({
   visible = true,
   scissor = false,
   debug = false,
-  softDirection = false, // experimental
   setInViewportProp = false,
   updateLayout = 0,
   positionFixed = false,
@@ -68,7 +67,7 @@ let ScrollScene = ({
       viewport: 0,
       visibility: 0,
     },
-    prevBounds: { y: 0, direction: 1, directionTime: 0 },
+    prevBounds: { y: 0 },
   }).current
 
   useEffect(() => {
@@ -134,7 +133,6 @@ let ScrollScene = ({
   // RENDER FRAME
   useFrame(({ gl, camera, clock }) => {
     const { bounds, prevBounds } = transient
-    const time = clock.getElapsedTime()
 
     // Find new Y based on cached position and scroll
     const initialPos = config.subpixelScrolling
@@ -147,27 +145,11 @@ let ScrollScene = ({
       prevBounds.y = y
     }
 
-    // direction check
-    const direction = Math.sign(scrollY.getVelocity())
-    if (direction !== prevBounds.direction && direction !== 0) {
-      if (bounds.inViewport) {
-        prevBounds.directionTime = time
-      }
-      prevBounds.direction = direction
-    }
-
-    // adjust lerp if direction changed - soft change
-    let yLerp = lerp
-    if (softDirection) {
-      const t = MathUtils.clamp(time - prevBounds.directionTime, 0, 1.0)
-      yLerp = MathUtils.lerp(softDirection, lerp, t)
-    }
-
     // frame delta
     const delta = Math.abs(prevBounds.y - y)
 
     // Lerp the distance to simulate easing
-    const lerpY = MathUtils.lerp(prevBounds.y, y, yLerp + lerpOffset)
+    const lerpY = MathUtils.lerp(prevBounds.y, y, lerp + lerpOffset)
     const newY = config.subpixelScrolling ? lerpY : Math.floor(lerpY)
 
     // Abort if element not in screen

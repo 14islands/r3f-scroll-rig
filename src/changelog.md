@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.9.21
+
+### ScrollDom (Experimental)
+
+- Removed. Consider using `ScrollPortal` or use `drei`'s `HTML` component instead.
+
+### ScrollScene
+
+- Removed experimental `softDirection`
+
 ## v1.9.17
 
 ### GlobalCanvas

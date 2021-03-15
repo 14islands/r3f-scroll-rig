@@ -829,8 +829,6 @@ exports.ScrollScene = function ScrollScene(_ref) {
       scissor = _ref$scissor === void 0 ? false : _ref$scissor,
       _ref$debug = _ref.debug,
       debug = _ref$debug === void 0 ? false : _ref$debug,
-      _ref$softDirection = _ref.softDirection,
-      softDirection = _ref$softDirection === void 0 ? false : _ref$softDirection,
       _ref$setInViewportPro = _ref.setInViewportProp,
       setInViewportProp = _ref$setInViewportPro === void 0 ? false : _ref$setInViewportPro,
       _ref$updateLayout = _ref.updateLayout,
@@ -838,7 +836,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
       _ref$positionFixed = _ref.positionFixed,
       positionFixed = _ref$positionFixed === void 0 ? false : _ref$positionFixed,
       scrollY = _ref.scrollY,
-      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "margin", "inViewportMargin", "visible", "scissor", "debug", "softDirection", "setInViewportProp", "updateLayout", "positionFixed", "scrollY"]);
+      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed", "scrollY"]);
 
   var scene = React.useRef();
   var group = React.useRef();
@@ -889,9 +887,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
       visibility: 0
     },
     prevBounds: {
-      y: 0,
-      direction: 1,
-      directionTime: 0
+      y: 0
     }
   }).current;
   React.useEffect(function () {
@@ -963,39 +959,19 @@ exports.ScrollScene = function ScrollScene(_ref) {
         camera = _ref2.camera,
         clock = _ref2.clock;
     var bounds = _transient.bounds,
-        prevBounds = _transient.prevBounds;
-    var time = clock.getElapsedTime(); // Find new Y based on cached position and scroll
+        prevBounds = _transient.prevBounds; // Find new Y based on cached position and scroll
 
     var initialPos = config.subpixelScrolling ? bounds.top - bounds.centerOffset : Math.floor(bounds.top - bounds.centerOffset);
     var y = initialPos - scrollY.get(); // if previously hidden and now visible, update previous position to not get ghost easing when made visible
 
     if (scene.current.visible && !bounds.inViewport) {
       prevBounds.y = y;
-    } // direction check
-
-
-    var direction = Math.sign(scrollY.getVelocity());
-
-    if (direction !== prevBounds.direction && direction !== 0) {
-      if (bounds.inViewport) {
-        prevBounds.directionTime = time;
-      }
-
-      prevBounds.direction = direction;
-    } // adjust lerp if direction changed - soft change
-
-
-    var yLerp = lerp;
-
-    if (softDirection) {
-      var t = three.MathUtils.clamp(time - prevBounds.directionTime, 0, 1.0);
-      yLerp = three.MathUtils.lerp(softDirection, lerp, t);
     } // frame delta
 
 
     var delta = Math.abs(prevBounds.y - y); // Lerp the distance to simulate easing
 
-    var lerpY = three.MathUtils.lerp(prevBounds.y, y, yLerp + lerpOffset);
+    var lerpY = three.MathUtils.lerp(prevBounds.y, y, lerp + lerpOffset);
     var newY = config.subpixelScrolling ? lerpY : Math.floor(lerpY); // Abort if element not in screen
 
     var scrollMargin = inViewportMargin || size.height * 0.33;
@@ -1863,243 +1839,6 @@ var useDelayedCanvas = function useDelayedCanvas(object, ms, deps, key) {
   return set;
 };
 
-var LAYOUT_LERP$1 = 0.1;
-/**
- * Make DOM element fixed and move using useFrame so we can and match the lerp of a ScrollScene
- * The referenced DOM element will be cloned and made position:fixed. The original el is hidden.
- * @author david@14islands.com
- */
-
-var ScrollDom = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
-  var el = _ref.el,
-      appendTo = _ref.appendTo,
-      _ref$lerp = _ref.lerp,
-      lerp = _ref$lerp === void 0 ? config.scrollLerp : _ref$lerp,
-      _ref$lerpOffset = _ref.lerpOffset,
-      lerpOffset = _ref$lerpOffset === void 0 ? 0 : _ref$lerpOffset,
-      children = _ref.children,
-      _ref$zIndex = _ref.zIndex,
-      zIndex = _ref$zIndex === void 0 ? 0 : _ref$zIndex,
-      _ref$getOffset = _ref.getOffset,
-      getOffset = _ref$getOffset === void 0 ? function () {} : _ref$getOffset,
-      _ref$live = _ref.live,
-      live = _ref$live === void 0 ? false : _ref$live,
-      _ref$layoutLerp = _ref.layoutLerp,
-      layoutLerp = _ref$layoutLerp === void 0 ? LAYOUT_LERP$1 : _ref$layoutLerp,
-      style = _ref.style;
-  var copyEl = React.useRef();
-  var local = React.useRef({
-    needUpdate: false,
-    offsetY: 0,
-    offsetX: 0
-  }).current;
-  var bounds = React.useRef({
-    top: 0,
-    left: 0,
-    width: 0,
-    height: 0,
-    windowHeight: -1,
-    windowWidth: -1
-  }).current;
-  var prevBounds = React.useRef({
-    top: 0,
-    wasOffscreen: false
-  }).current;
-
-  var _useViewportScroll = framerMotion.useViewportScroll(),
-      scrollY = _useViewportScroll.scrollY;
-
-  var _useThree = reactThreeFiber.useThree(),
-      size = _useThree.size;
-
-  var _useScrollRig = useScrollRig(),
-      requestFrame = _useScrollRig.requestFrame;
-
-  var pageReflowCompleted = useCanvasStore(function (state) {
-    return state.pageReflowCompleted;
-  }); // El is rendered
-
-  React.useEffect(function () {
-    // hide DOM element visually - leave in DOM to measure and get events
-    if (!(el == null ? void 0 : el.current)) return;
-    copyEl.current = el.current.cloneNode(true);
-    copyEl.current.style.position = 'fixed';
-    copyEl.current.style.visibility = 'visible';
-    copyEl.current.style.zIndex = zIndex;
-    ((appendTo == null ? void 0 : appendTo.current) || document.documentElement).appendChild(copyEl.current);
-    el.current.style.visibility = 'hidden';
-    ref && ref(copyEl.current);
-    return function () {
-      ((appendTo == null ? void 0 : appendTo.current) || document.documentElement).removeChild(copyEl.current);
-
-      if (el && el.current) {
-        el.current.style.visibility = '';
-      }
-    };
-  }, [el.current]); // Trigger render on scroll
-
-  React.useEffect(function () {
-    return scrollY.onChange(function () {
-      local.needUpdate = true;
-      requestFrame();
-    });
-  }, []); // Find initial position of proxy element on mount
-
-  React.useEffect(function () {
-    if (!el || !el.current) return;
-    copyEl.current.className = el.current.className;
-
-    var _el$current$getBoundi = el.current.getBoundingClientRect(),
-        top = _el$current$getBoundi.top,
-        left = _el$current$getBoundi.left,
-        width = _el$current$getBoundi.width,
-        height = _el$current$getBoundi.height;
-
-    bounds.top = top + window.pageYOffset;
-    bounds.left = left;
-    bounds.width = width;
-    bounds.height = height;
-    prevBounds.top = -window.pageYOffset;
-    prevBounds.left = 0;
-    prevBounds.x = 0;
-    prevBounds.y = 0;
-    copyEl.current.style.top = bounds.top + 'px';
-    copyEl.current.style.left = left + 'px';
-    copyEl.current.style.width = width + 'px';
-    copyEl.current.style.height = height + 'px';
-    local.windowWidth = size.width;
-    local.windowHeight = size.height; // trigger render
-
-    local.needUpdate = true;
-    requestFrame();
-  }, [el]); // TODO: decide if react to size.height to avoid mobile viewport scroll bugs
-  // Update position on window resize or if `live` flag changes
-
-  React.useEffect(function () {
-    if (!el || !el.current) return;
-    var id = requestIdleCallback(function () {
-      if (!el || !el.current) return;
-      var classNames = el.current.className;
-
-      if (!classNames !== copyEl.current.className) {
-        copyEl.current.className = classNames;
-      }
-
-      var top = bounds.top,
-          left = bounds.left;
-
-      var _el$current$getBoundi2 = el.current.getBoundingClientRect(),
-          newTop = _el$current$getBoundi2.top,
-          newLeft = _el$current$getBoundi2.left,
-          newHeight = _el$current$getBoundi2.height,
-          newWidth = _el$current$getBoundi2.width;
-
-      if (bounds.height !== newHeight) {
-        copyEl.current.style.height = newHeight + 'px';
-      }
-
-      if (bounds.width !== newWidth) {
-        copyEl.current.style.width = newWidth + 'px'; // TODO adjust left position if floating from right. possible to detect?
-      }
-
-      local.offsetY = newTop - top + window.pageYOffset;
-      local.offsetX = newLeft - left;
-      bounds.height = newHeight;
-      bounds.width = newWidth;
-      prevBounds.top = -window.pageYOffset; // trigger render
-
-      local.needUpdate = true;
-      requestFrame();
-    }, {
-      timeout: 100
-    });
-    return function () {
-      return cancelIdleCallback(id);
-    };
-  }, [live, pageReflowCompleted]);
-  React.useEffect(function () {
-    local.needUpdate = true;
-    requestFrame();
-  }, [style]); // RENDER FRAME
-
-  reactThreeFiber.useFrame(function (_ref2) {
-    var _getOffset, _getOffset2;
-
-    var gl = _ref2.gl;
-    var top = bounds.top,
-        height = bounds.height; // get offset from resizing window + offset from callback function from parent
-
-    var offsetX = local.offsetX + (live && ((_getOffset = getOffset()) == null ? void 0 : _getOffset.x) || 0);
-    var offsetY = local.offsetY + (live && ((_getOffset2 = getOffset()) == null ? void 0 : _getOffset2.y) || 0); // add scroll value to bounds to get current position
-
-    var scrollTop = -scrollY.get(); // frame delta
-
-    var deltaScroll = prevBounds.top - scrollTop;
-    var delta = Math.abs(deltaScroll) + Math.abs(prevBounds.x - offsetX) + Math.abs(prevBounds.y - offsetY);
-
-    if (!local.needUpdate && delta < config.scrollRestDelta) {
-      // abort if no delta change
-      return;
-    } // parallax position
-    // const progress = MathUtils.lerp(1, -1, MathUtils.clamp((size.height - scrollTop) / (size.height + height), 0, 1))
-    // const offset = transform(progress, [1, 0, -1], [0, 0, 400])
-    // scrollTop += offset
-    // Lerp the distance to simulate easing
-
-
-    var lerpScroll = three.MathUtils.lerp(prevBounds.top, scrollTop, lerp + lerpOffset);
-    var lerpX = three.MathUtils.lerp(prevBounds.x, offsetX, layoutLerp);
-    var lerpY = three.MathUtils.lerp(prevBounds.y, offsetY, layoutLerp); // Abort if element not in screen
-
-    var elTop = top + lerpScroll + lerpY;
-    var isOffscreen = elTop + height < -100 || elTop > size.height + 100; // Update DOM element position if in view, or if was in view last frame
-
-    if (!isOffscreen) {
-      if (copyEl.current) {
-        Object.assign(copyEl.current.style, _extends({
-          visibility: ''
-        }, style, {
-          transform: "translate3d(" + lerpX + "px, " + (lerpScroll + lerpY) + "px, 0)"
-        }));
-      }
-    } else {
-      if (copyEl.current) {
-        copyEl.current.style.visibility = 'hidden';
-      }
-    } // store values for next frame
-
-
-    prevBounds.top = lerpScroll;
-    prevBounds.wasOffscreen = isOffscreen;
-    prevBounds.x = lerpX;
-    prevBounds.y = lerpY;
-    local.needUpdate = false; // render another frame if delta is large enough
-
-    if (!isOffscreen && delta > config.scrollRestDelta) {
-      requestFrame();
-      local.needUpdate = true;
-    }
-  });
-  return /*#__PURE__*/React__default.createElement(React__default.Fragment, null);
-});
-ScrollDom.displayName = 'ScrollDom';
-ScrollDom.propTypes = {
-  el: PropTypes.object,
-  // DOM element to track,
-  lerp: PropTypes.number,
-  // Base lerp ratio
-  lerpOffset: PropTypes.number,
-  // Offset applied to `lerp`
-  zIndex: PropTypes.number,
-  // z-index to apply to the cloned element
-  getOffset: PropTypes.func,
-  // called for every frame to get {x,y} translation offset
-  appendTo: PropTypes.any,
-  live: PropTypes.bool,
-  layoutLerp: PropTypes.number,
-  style: PropTypes.object
-};
-
 function _lerp(v0, v1, t) {
   return v0 * (1 - t) + v1 * t;
 }
@@ -2445,7 +2184,6 @@ var useScrollbar = function useScrollbar() {
 
 exports.GlobalCanvas = GlobalCanvas;
 exports.PerspectiveCameraScene = exports.ViewportScrollScene;
-exports.ScrollDom = ScrollDom;
 exports.ScrollDomPortal = ScrollDomPortal;
 exports.VirtualScrollbar = VirtualScrollbar;
 exports.canvasStoreApi = canvasStoreApi;
