@@ -17,12 +17,12 @@ import useScrollRig from './useScrollRig'
  */
 let ScrollScene = ({
   el,
-  lerp = config.scrollLerp,
+  lerp,
   lerpOffset = 0,
   children,
   renderOrder = 1,
   margin = 14, // Margin outside viewport to avoid clipping vertex displacement (px)
-  inViewportMargin, // Margin outside viewport to avoid clipping vertex displacement (px)
+  inViewportMargin,
   visible = true,
   scissor = false,
   debug = false,
@@ -156,7 +156,7 @@ let ScrollScene = ({
     const delta = Math.abs(prevBounds.y - y)
 
     // Lerp the distance to simulate easing
-    const lerpY = MathUtils.lerp(prevBounds.y, y, lerp + lerpOffset)
+    const lerpY = MathUtils.lerp(prevBounds.y, y, (lerp || config.scrollLerp) + lerpOffset)
     const newY = config.subpixelScrolling ? lerpY : Math.floor(lerpY)
 
     // Abort if element not in screen
@@ -233,7 +233,7 @@ let ScrollScene = ({
           children({
             // inherited props
             el,
-            lerp,
+            lerp: lerp || config.scrollLerp,
             lerpOffset,
             margin,
             visible,
@@ -284,6 +284,7 @@ ScrollScene.childPropTypes = {
       inViewport: PropTypes.bool,
       progress: PropTypes.number,
       visibility: PropTypes.number,
+      viewport: PropTypes.number,
     }),
   }),
   scene: PropTypes.object, // Parent scene,
