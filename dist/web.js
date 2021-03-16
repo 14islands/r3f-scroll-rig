@@ -730,14 +730,13 @@ const GlobalCanvas = (_ref) => {
 let ScrollScene = (_ref) => {
   let {
     el,
-    lerp = config.scrollLerp,
+    lerp,
     lerpOffset = 0,
     children,
     renderOrder = 1,
     margin = 14,
     // Margin outside viewport to avoid clipping vertex displacement (px)
     inViewportMargin,
-    // Margin outside viewport to avoid clipping vertex displacement (px)
     visible = true,
     scissor = false,
     debug = false,
@@ -871,7 +870,7 @@ let ScrollScene = (_ref) => {
 
     const delta = Math.abs(prevBounds.y - y); // Lerp the distance to simulate easing
 
-    const lerpY = MathUtils.lerp(prevBounds.y, y, lerp + lerpOffset);
+    const lerpY = MathUtils.lerp(prevBounds.y, y, (lerp || config.scrollLerp) + lerpOffset);
     const newY = config.subpixelScrolling ? lerpY : Math.floor(lerpY); // Abort if element not in screen
 
     const scrollMargin = inViewportMargin || size.height * 0.33;
@@ -909,7 +908,7 @@ let ScrollScene = (_ref) => {
       } // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
 
 
-      const pxInside = bounds.top - lerpY - bounds.top + size.height - bounds.centerOffset;
+      const pxInside = bounds.top - newY - bounds.top + size.height - bounds.centerOffset;
       bounds.progress = MathUtils.mapLinear(pxInside, 0, size.height + scale.pixelHeight, 0, 1); // percent of total visible distance
 
       bounds.visibility = MathUtils.mapLinear(pxInside, 0, scale.pixelHeight, 0, 1); // percent of item height in view
@@ -921,13 +920,7 @@ let ScrollScene = (_ref) => {
     if (!isOffscreen && delta > config.scrollRestDelta) {
       requestFrame();
     }
-  }, config.PRIORITY_SCISSORS + renderOrder); // Clear scene from canvas on unmount
-  // useEffect(() => {
-  //   return () => {
-  //     gl.clear()
-  //   }
-  // }, [])
-  // meshBasicMaterial shaders are excluded from prod build
+  }, config.PRIORITY_SCISSORS + renderOrder); // meshBasicMaterial shaders are excluded from prod build
 
   const renderDebugMesh = () => /*#__PURE__*/React.createElement("mesh", null, /*#__PURE__*/React.createElement("planeBufferGeometry", {
     attach: "geometry",
@@ -947,7 +940,7 @@ let ScrollScene = (_ref) => {
   }, (!children || debug) && renderDebugMesh(), children && children(_extends({
     // inherited props
     el,
-    lerp,
+    lerp: lerp || config.scrollLerp,
     lerpOffset,
     margin,
     visible,
@@ -978,7 +971,8 @@ ScrollScene.childPropTypes = _extends({}, ScrollScene.propTypes, {
       height: PropTypes.number,
       inViewport: PropTypes.bool,
       progress: PropTypes.number,
-      visibility: PropTypes.number
+      visibility: PropTypes.number,
+      viewport: PropTypes.number
     })
   }),
   scene: PropTypes.object,
@@ -1349,7 +1343,7 @@ const useImgTagAsTexture = (imgEl, opts) => {
 let ViewportScrollScene = (_ref) => {
   let {
     el,
-    lerp = config.scrollLerp,
+    lerp,
     lerpOffset = 0,
     children,
     margin = 0,
@@ -1409,8 +1403,7 @@ let ViewportScrollScene = (_ref) => {
   useEffect(() => useCanvasStore.subscribe(y => {
     scrollY.current = y;
     requestFrame(); // Trigger render on scroll
-  }, state => state.scrollY), []); // Clear scene from canvas on unmount
-
+  }, state => state.scrollY), []);
   useEffect(() => {
     transient.mounted = true;
     return () => {
@@ -1485,13 +1478,15 @@ let ViewportScrollScene = (_ref) => {
       prevBounds
     } = transient; // add scroll value to bounds to get current position
 
-    const topY = bounds.top - scrollY.current; // frame delta
+    const initialPos = config.subpixelScrolling ? bounds.top : Math.floor(bounds.top);
+    const topY = initialPos - scrollY.current; // frame delta
 
     const delta = Math.abs(prevBounds.top - topY); // Lerp the distance to simulate easing
 
-    const lerpTop = MathUtils.lerp(prevBounds.top, topY, lerp + lerpOffset); // Abort if element not in screen
+    const lerpTop = MathUtils.lerp(prevBounds.top, topY, (lerp || config.scrollLerp) + lerpOffset);
+    const newTop = config.subpixelScrolling ? lerpTop : Math.floor(lerpTop); // Abort if element not in screen
 
-    const isOffscreen = lerpTop + bounds.height < -100 || lerpTop > size.height + 100; // store top value for next frame
+    const isOffscreen = newTop + bounds.height < -100 || newTop > size.height + 100; // store top value for next frame
 
     bounds.inViewport = !isOffscreen;
     setInViewportProp && requestIdleCallback(() => transient.mounted && setInViewport(!isOffscreen));
@@ -1506,7 +1501,7 @@ let ViewportScrollScene = (_ref) => {
 
 
     if (scene.visible) {
-      const positiveYUpBottom = size.height - (lerpTop + bounds.height); // inverse Y
+      const positiveYUpBottom = size.height - (newTop + bounds.height); // inverse Y
 
       renderViewport({
         scene,
@@ -1518,7 +1513,7 @@ let ViewportScrollScene = (_ref) => {
         renderOnTop
       }); // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
 
-      const pxInside = bounds.top - lerpTop - bounds.top + size.height;
+      const pxInside = bounds.top - newTop - bounds.top + size.height;
       bounds.progress = MathUtils.mapLinear(pxInside, 0, size.height + bounds.height, 0, 1); // percent of total visible distance
 
       bounds.visibility = MathUtils.mapLinear(pxInside, 0, bounds.height, 0, 1); // percent of item height in view
@@ -1561,7 +1556,7 @@ let ViewportScrollScene = (_ref) => {
   }, (!children || debug) && renderDebugMesh(), children && children(_extends({
     // inherited props
     el,
-    lerp,
+    lerp: lerp || config.scrollLerp,
     lerpOffset,
     margin,
     visible,

@@ -18,7 +18,7 @@ import useScrollRig from './useScrollRig'
  */
 let ViewportScrollScene = ({
   el,
-  lerp = config.scrollLerp,
+  lerp,
   lerpOffset = 0,
   children,
   margin = 0, // Margin outside viewport to avoid clipping vertex displacement (px)
@@ -79,7 +79,6 @@ let ViewportScrollScene = ({
     [],
   )
 
-  // Clear scene from canvas on unmount
   useEffect(() => {
     transient.mounted = true
     return () => {
@@ -151,16 +150,18 @@ let ViewportScrollScene = ({
     const { bounds, prevBounds } = transient
 
     // add scroll value to bounds to get current position
-    const topY = bounds.top - scrollY.current
+    const initialPos = config.subpixelScrolling ? bounds.top : Math.floor(bounds.top)
+    const topY = initialPos - scrollY.current
 
     // frame delta
     const delta = Math.abs(prevBounds.top - topY)
 
     // Lerp the distance to simulate easing
-    const lerpTop = MathUtils.lerp(prevBounds.top, topY, lerp + lerpOffset)
+    const lerpTop = MathUtils.lerp(prevBounds.top, topY, (lerp || config.scrollLerp) + lerpOffset)
+    const newTop = config.subpixelScrolling ? lerpTop : Math.floor(lerpTop)
 
     // Abort if element not in screen
-    const isOffscreen = lerpTop + bounds.height < -100 || lerpTop > size.height + 100
+    const isOffscreen = newTop + bounds.height < -100 || newTop > size.height + 100
 
     // store top value for next frame
     bounds.inViewport = !isOffscreen
@@ -177,7 +178,7 @@ let ViewportScrollScene = ({
     // Render scene to viewport using local camera and limit updates using scissor test
     // Performance improvement - faster than always rendering full canvas
     if (scene.visible) {
-      const positiveYUpBottom = size.height - (lerpTop + bounds.height) // inverse Y
+      const positiveYUpBottom = size.height - (newTop + bounds.height) // inverse Y
 
       renderViewport({
         scene,
@@ -190,7 +191,7 @@ let ViewportScrollScene = ({
       })
 
       // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
-      const pxInside = bounds.top - lerpTop - bounds.top + size.height
+      const pxInside = bounds.top - newTop - bounds.top + size.height
       bounds.progress = MathUtils.mapLinear(pxInside, 0, size.height + bounds.height, 0, 1) // percent of total visible distance
       bounds.visibility = MathUtils.mapLinear(pxInside, 0, bounds.height, 0, 1) // percent of item height in view
       bounds.viewport = MathUtils.mapLinear(pxInside, 0, size.height, 0, 1) // percent of window height scrolled since visible
@@ -239,7 +240,7 @@ let ViewportScrollScene = ({
           children({
             // inherited props
             el,
-            lerp,
+            lerp: lerp || config.scrollLerp,
             lerpOffset,
             margin,
             visible,

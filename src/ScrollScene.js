@@ -198,7 +198,7 @@ let ScrollScene = ({
       }
 
       // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
-      const pxInside = bounds.top - lerpY - bounds.top + size.height - bounds.centerOffset
+      const pxInside = bounds.top - newY - bounds.top + size.height - bounds.centerOffset
       bounds.progress = MathUtils.mapLinear(pxInside, 0, size.height + scale.pixelHeight, 0, 1) // percent of total visible distance
       bounds.visibility = MathUtils.mapLinear(pxInside, 0, scale.pixelHeight, 0, 1) // percent of item height in view
       bounds.viewport = MathUtils.mapLinear(pxInside, 0, size.height, 0, 1) // percent of window height scrolled since visible
@@ -209,13 +209,6 @@ let ScrollScene = ({
       requestFrame()
     }
   }, config.PRIORITY_SCISSORS + renderOrder)
-
-  // Clear scene from canvas on unmount
-  // useEffect(() => {
-  //   return () => {
-  //     gl.clear()
-  //   }
-  // }, [])
 
   // meshBasicMaterial shaders are excluded from prod build
   const renderDebugMesh = () => (

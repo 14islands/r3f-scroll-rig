@@ -843,8 +843,7 @@ var GlobalCanvas = function GlobalCanvas(_ref) {
 
 exports.ScrollScene = function ScrollScene(_ref) {
   var el = _ref.el,
-      _ref$lerp = _ref.lerp,
-      lerp = _ref$lerp === void 0 ? config.scrollLerp : _ref$lerp,
+      lerp = _ref.lerp,
       _ref$lerpOffset = _ref.lerpOffset,
       lerpOffset = _ref$lerpOffset === void 0 ? 0 : _ref$lerpOffset,
       children = _ref.children,
@@ -1002,7 +1001,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
 
     var delta = Math.abs(prevBounds.y - y); // Lerp the distance to simulate easing
 
-    var lerpY = three.MathUtils.lerp(prevBounds.y, y, lerp + lerpOffset);
+    var lerpY = three.MathUtils.lerp(prevBounds.y, y, (lerp || config.scrollLerp) + lerpOffset);
     var newY = config.subpixelScrolling ? lerpY : Math.floor(lerpY); // Abort if element not in screen
 
     var scrollMargin = inViewportMargin || size.height * 0.33;
@@ -1042,7 +1041,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
       } // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
 
 
-      var pxInside = bounds.top - lerpY - bounds.top + size.height - bounds.centerOffset;
+      var pxInside = bounds.top - newY - bounds.top + size.height - bounds.centerOffset;
       bounds.progress = three.MathUtils.mapLinear(pxInside, 0, size.height + scale.pixelHeight, 0, 1); // percent of total visible distance
 
       bounds.visibility = three.MathUtils.mapLinear(pxInside, 0, scale.pixelHeight, 0, 1); // percent of item height in view
@@ -1054,13 +1053,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
     if (!isOffscreen && delta > config.scrollRestDelta) {
       requestFrame();
     }
-  }, config.PRIORITY_SCISSORS + renderOrder); // Clear scene from canvas on unmount
-  // useEffect(() => {
-  //   return () => {
-  //     gl.clear()
-  //   }
-  // }, [])
-  // meshBasicMaterial shaders are excluded from prod build
+  }, config.PRIORITY_SCISSORS + renderOrder); // meshBasicMaterial shaders are excluded from prod build
 
   var renderDebugMesh = function renderDebugMesh() {
     return /*#__PURE__*/React__default.createElement("mesh", null, /*#__PURE__*/React__default.createElement("planeBufferGeometry", {
@@ -1082,7 +1075,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
   }, (!children || debug) && renderDebugMesh(), children && children(_extends({
     // inherited props
     el: el,
-    lerp: lerp,
+    lerp: lerp || config.scrollLerp,
     lerpOffset: lerpOffset,
     margin: margin,
     visible: visible,
@@ -1113,7 +1106,8 @@ exports.ScrollScene.childPropTypes = _extends({}, exports.ScrollScene.propTypes,
       height: PropTypes.number,
       inViewport: PropTypes.bool,
       progress: PropTypes.number,
-      visibility: PropTypes.number
+      visibility: PropTypes.number,
+      viewport: PropTypes.number
     })
   }),
   scene: PropTypes.object,
@@ -1529,8 +1523,7 @@ var useImgTagAsTexture = function useImgTagAsTexture(imgEl, opts) {
 
 exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
   var el = _ref.el,
-      _ref$lerp = _ref.lerp,
-      lerp = _ref$lerp === void 0 ? config.scrollLerp : _ref$lerp,
+      lerp = _ref.lerp,
       _ref$lerpOffset = _ref.lerpOffset,
       lerpOffset = _ref$lerpOffset === void 0 ? 0 : _ref$lerpOffset,
       children = _ref.children,
@@ -1616,8 +1609,7 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
     }, function (state) {
       return state.scrollY;
     });
-  }, []); // Clear scene from canvas on unmount
-
+  }, []);
   React.useEffect(function () {
     _transient.mounted = true;
     return function () {
@@ -1689,13 +1681,15 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
     var bounds = _transient.bounds,
         prevBounds = _transient.prevBounds; // add scroll value to bounds to get current position
 
-    var topY = bounds.top - scrollY.current; // frame delta
+    var initialPos = config.subpixelScrolling ? bounds.top : Math.floor(bounds.top);
+    var topY = initialPos - scrollY.current; // frame delta
 
     var delta = Math.abs(prevBounds.top - topY); // Lerp the distance to simulate easing
 
-    var lerpTop = three.MathUtils.lerp(prevBounds.top, topY, lerp + lerpOffset); // Abort if element not in screen
+    var lerpTop = three.MathUtils.lerp(prevBounds.top, topY, (lerp || config.scrollLerp) + lerpOffset);
+    var newTop = config.subpixelScrolling ? lerpTop : Math.floor(lerpTop); // Abort if element not in screen
 
-    var isOffscreen = lerpTop + bounds.height < -100 || lerpTop > size.height + 100; // store top value for next frame
+    var isOffscreen = newTop + bounds.height < -100 || newTop > size.height + 100; // store top value for next frame
 
     bounds.inViewport = !isOffscreen;
     setInViewportProp && requestIdleCallback(function () {
@@ -1712,7 +1706,7 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
 
 
     if (scene.visible) {
-      var positiveYUpBottom = size.height - (lerpTop + bounds.height); // inverse Y
+      var positiveYUpBottom = size.height - (newTop + bounds.height); // inverse Y
 
       renderViewport({
         scene: scene,
@@ -1724,7 +1718,7 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
         renderOnTop: renderOnTop
       }); // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
 
-      var pxInside = bounds.top - lerpTop - bounds.top + size.height;
+      var pxInside = bounds.top - newTop - bounds.top + size.height;
       bounds.progress = three.MathUtils.mapLinear(pxInside, 0, size.height + bounds.height, 0, 1); // percent of total visible distance
 
       bounds.visibility = three.MathUtils.mapLinear(pxInside, 0, bounds.height, 0, 1); // percent of item height in view
@@ -1773,7 +1767,7 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
   }, (!children || debug) && renderDebugMesh(), children && children(_extends({
     // inherited props
     el: el,
-    lerp: lerp,
+    lerp: lerp || config.scrollLerp,
     lerpOffset: lerpOffset,
     margin: margin,
     visible: visible,
