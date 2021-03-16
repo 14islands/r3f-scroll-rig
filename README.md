@@ -168,11 +168,21 @@ import { VirtualScrollbar } from '@14islands/r3f-scroll-rig/scrollbar'
 Default canvas `gl` props:
 
 ```json
-  antialias: true
-  alpha: true
-  depth: true
-  powerPreference: 'high-performance'
-  failIfMajorPerformanceCaveat: true
+  antialias = true
+  alpha = true
+  depth = true
+  powerPreference = 'high-performance'
+  failIfMajorPerformanceCaveat = true
+```
+
+Default `config` props:
+```json
+  debug = false             // true = print render calls to console.log and shader compile errors
+  fps = false               // true = stats.js FPS monitor
+  autoPixelRatio = true     // use internal PerformanceMonitor to scale pixelRatio
+  scrollLerp = 0.1          // scrolling lerp value used by both canvas and scrollbar
+  scrollRestDelta = 0.14,   // min delta to trigger animation frame on scroll
+  subpixelScrolling = true  // move canvas elements on subpixels 
 ```
 
 Note: even though `colorManagement` is turned on, `ACESFilmic` toneMapping is turned off by default to make it easier to match hex colors with the DOM.
