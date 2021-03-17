@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@14islands/r3f-scroll-rig": "^1.9.1",
+    "@14islands/r3f-scroll-rig": "^1.10.0",
     "@react-three/drei": "^3.10.2",
     "@react-three/xr": "^1.1.0",
     "@testing-library/jest-dom": "^4.2.4",
