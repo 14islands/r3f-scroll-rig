@@ -7,7 +7,7 @@ import { Text } from '@react-three/drei'
  * Returns a WebGL Troika text mesh styled as the source DOM element
  */
 
-const WebGLText = ({ el, children, material, scale, font, offset = 0, ...props }) => {
+const WebGLText = ({ el, children, material, scale, font, offset = 0, overrideEmissive = false, ...props }) => {
   const { size } = useThree()
 
   const { color, fontSize, textAlign, lineHeight, letterSpacing } = useMemo(() => {
@@ -16,10 +16,12 @@ const WebGLText = ({ el, children, material, scale, font, offset = 0, ...props }
 
     // font size relative letter spacing
     const letterSpacing = (parseInt(cs.letterSpacing, 10) || 0) / parseInt(cs.fontSize, 10)
+    const lineHeight = (parseInt(cs.lineHeight, 10) || 0) / parseInt(cs.fontSize, 10)
 
     return {
       ...cs,
       letterSpacing,
+      lineHeight,
       color: new Color(cs.color).convertSRGBToLinear(),
       fontSize: parseInt(cs.fontSize, 10) * scale.multiplier,
     }
@@ -27,30 +29,28 @@ const WebGLText = ({ el, children, material, scale, font, offset = 0, ...props }
   }, [el, size, scale]) // recalc on resize
 
   useEffect(() => {
-    if (material) {
+    if (material && overrideEmissive) {
       material.emissive = color
     }
-  }, [material, color])
+  }, [material, color, overrideEmissive])
 
   return (
-    <mesh layers={[3]}>
-      <Text
-        fontSize={fontSize}
-        maxWidth={scale ? scale.width : size.width}
-        lineHeight={lineHeight}
-        textAlign={textAlign}
-        letterSpacing={letterSpacing}
-        font={font}
-        color={color}
-        anchorX="center"
-        anchorY="middle"
-        position={[0, fontSize * offset, 0]} // font specific
-        material={material}
-        {...props}
-      >
-        {children}
-      </Text>
-    </mesh>
+    <Text
+      fontSize={fontSize}
+      maxWidth={scale ? scale.width : size.width}
+      lineHeight={lineHeight}
+      textAlign={textAlign}
+      letterSpacing={letterSpacing}
+      font={font}
+      color={color}
+      anchorX="center"
+      anchorY="middle"
+      position={[0, fontSize * offset, 0]} // font specific
+      material={material}
+      {...props}
+    >
+      {children}
+    </Text>
   )
 }
 

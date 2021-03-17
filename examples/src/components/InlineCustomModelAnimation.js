@@ -3,8 +3,9 @@ import { useScrollRig, useCanvas, ScrollScene } from '@14islands/r3f-scroll-rig'
 import { useFrame } from 'react-three-fiber'
 import { useGLTF, Shadow, softShadows } from '@react-three/drei'
 
-import StickyScrollScene from './StickyScrollScene'
+import StickyScrollScene from './stdlib/StickyScrollScene'
 import tileModel from '../assets/rounded-tile_3_1.draco.glb'
+
 
 const ModelMesh = ({ scale, camera, scene, scrollState, parallax = 0, size = .2, position = [0, 0, 0], shadow, shadowPosition }) => {
   const wrapper = useRef()

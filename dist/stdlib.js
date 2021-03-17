@@ -17,9 +17,10 @@ const WebGLText = (_ref) => {
     material,
     scale,
     font,
-    offset = 0
+    offset = 0,
+    overrideEmissive = false
   } = _ref,
-      props = _objectWithoutPropertiesLoose(_ref, ["el", "children", "material", "scale", "font", "offset"]);
+      props = _objectWithoutPropertiesLoose(_ref, ["el", "children", "material", "scale", "font", "offset", "overrideEmissive"]);
 
   const {
     size
@@ -35,21 +36,21 @@ const WebGLText = (_ref) => {
     const cs = window.getComputedStyle(el.current); // font size relative letter spacing
 
     const letterSpacing = (parseInt(cs.letterSpacing, 10) || 0) / parseInt(cs.fontSize, 10);
+    const lineHeight = (parseInt(cs.lineHeight, 10) || 0) / parseInt(cs.fontSize, 10);
     return _extends({}, cs, {
       letterSpacing,
+      lineHeight,
       color: new Color(cs.color).convertSRGBToLinear(),
       fontSize: parseInt(cs.fontSize, 10) * scale.multiplier
     }); // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [el, size, scale]); // recalc on resize
 
   useEffect(() => {
-    if (material) {
+    if (material && overrideEmissive) {
       material.emissive = color;
     }
-  }, [material, color]);
-  return /*#__PURE__*/React.createElement("mesh", {
-    layers: [3]
-  }, /*#__PURE__*/React.createElement(Text, _extends({
+  }, [material, color, overrideEmissive]);
+  return /*#__PURE__*/React.createElement(Text, _extends({
     fontSize: fontSize,
     maxWidth: scale ? scale.width : size.width,
     lineHeight: lineHeight,
@@ -62,7 +63,7 @@ const WebGLText = (_ref) => {
     position: [0, fontSize * offset, 0] // font specific
     ,
     material: material
-  }, props), children));
+  }, props), children);
 };
 
 const WebGLImage = ({

@@ -1,7 +1,7 @@
 import React, { useRef } from 'react'
 import { useCanvas, ScrollScene } from '@14islands/r3f-scroll-rig'
 
-import WebGLImage from './WebGLImage'
+import WebGLImage from '../stdlib/WebGLImage'
 
 /* eslint import/no-webpack-loader-syntax: off */
 import vertexShader from '!raw-loader!./rotating.vert'

@@ -25,7 +25,9 @@ var WebGLText = function WebGLText(_ref) {
       font = _ref.font,
       _ref$offset = _ref.offset,
       offset = _ref$offset === void 0 ? 0 : _ref$offset,
-      props = _objectWithoutPropertiesLoose(_ref, ["el", "children", "material", "scale", "font", "offset"]);
+      _ref$overrideEmissive = _ref.overrideEmissive,
+      overrideEmissive = _ref$overrideEmissive === void 0 ? false : _ref$overrideEmissive,
+      props = _objectWithoutPropertiesLoose(_ref, ["el", "children", "material", "scale", "font", "offset", "overrideEmissive"]);
 
   var _useThree = reactThreeFiber.useThree(),
       size = _useThree.size;
@@ -35,8 +37,10 @@ var WebGLText = function WebGLText(_ref) {
     var cs = window.getComputedStyle(el.current); // font size relative letter spacing
 
     var letterSpacing = (parseInt(cs.letterSpacing, 10) || 0) / parseInt(cs.fontSize, 10);
+    var lineHeight = (parseInt(cs.lineHeight, 10) || 0) / parseInt(cs.fontSize, 10);
     return _extends({}, cs, {
       letterSpacing: letterSpacing,
+      lineHeight: lineHeight,
       color: new three.Color(cs.color).convertSRGBToLinear(),
       fontSize: parseInt(cs.fontSize, 10) * scale.multiplier
     }); // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -49,13 +53,11 @@ var WebGLText = function WebGLText(_ref) {
 
 
   React.useEffect(function () {
-    if (material) {
+    if (material && overrideEmissive) {
       material.emissive = color;
     }
-  }, [material, color]);
-  return /*#__PURE__*/React__default.createElement("mesh", {
-    layers: [3]
-  }, /*#__PURE__*/React__default.createElement(drei.Text, _extends({
+  }, [material, color, overrideEmissive]);
+  return /*#__PURE__*/React__default.createElement(drei.Text, _extends({
     fontSize: fontSize,
     maxWidth: scale ? scale.width : size.width,
     lineHeight: lineHeight,
@@ -68,7 +70,7 @@ var WebGLText = function WebGLText(_ref) {
     position: [0, fontSize * offset, 0] // font specific
     ,
     material: material
-  }, props), children));
+  }, props), children);
 };
 
 var WebGLImage = function WebGLImage(_ref) {

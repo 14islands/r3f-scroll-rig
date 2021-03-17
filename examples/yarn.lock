@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@14islands/r3f-scroll-rig@^1.10.0":
-  version "1.10.0"
-  resolved "https://registry.yarnpkg.com/@14islands/r3f-scroll-rig/-/r3f-scroll-rig-1.10.0.tgz#629ddfcd9dc58d4f222af994413b53bf0b815837"
-  integrity sha512-dxL5hr3kiUfiwUOa0NjZ6WULJxqOFAuqBYY/3ejh2Pw54WY3HLzUKdgDVl+7TsMAV+kkZ7IELa870/H1bkz5Sg==
+"@14islands/r3f-scroll-rig@^1.11.0":
+  version "1.11.0"
+  resolved "https://registry.yarnpkg.com/@14islands/r3f-scroll-rig/-/r3f-scroll-rig-1.11.0.tgz#0bbf95df4999216154c6b20268f59deee0abfeb2"
+  integrity sha512-TovGc2TsKGpkwP38d9TgCQoYPgU9n7QHrJI6+foAQRA7zR+OxJZqGvtYoBs9V8iY908fNSIL8+U+PUY9E/Pdrg==
   dependencies:
     "@juggle/resize-observer" "^3.2.0"
     "@react-hook/window-size" "^3.0.6"
