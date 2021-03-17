@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.11.0
+
+Added `stdlib` export target with the following reusable components:
+
+- WebGLText
+- WebGLImage
+- ParallaxScrollScene
+- StickyScrollScene
+
+E.g. `import { StickyScrollScene } from '@14islands/r3f-scroll-rig/stdlib`
+
 ## v1.10.0
 
 ### GlobalCanvas
