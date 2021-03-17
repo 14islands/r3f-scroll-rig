@@ -2,7 +2,7 @@ import React, { useRef } from 'react'
 import { useFrame } from 'react-three-fiber'
 import { ScrollScene } from '@14islands/r3f-scroll-rig'
 
-// Sticky mesh that covers full viewport size
+// Parallax mesh inside ScrollScene
 export const ParallaxMesh = ({ children, scrollState, scale, parallax }) => {
   const mesh = useRef()
 

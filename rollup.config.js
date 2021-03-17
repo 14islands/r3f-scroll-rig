@@ -40,7 +40,7 @@ function targetTypings(entry, out) {
 function createConfig(entry, out) {
   return [
     {
-      input: `./src/${entry}`,
+      input: `./${entry}`,
       output: { file: `dist/${out}.js`, format: 'esm' },
       external,
       plugins: [
@@ -54,7 +54,7 @@ function createConfig(entry, out) {
       ],
     },
     {
-      input: `./src/${entry}`,
+      input: `./${entry}`,
       output: { file: `dist/${out}.cjs.js`, format: 'cjs' },
       external,
       plugins: [
@@ -69,4 +69,8 @@ function createConfig(entry, out) {
   ]
 }
 
-export default [...createConfig('index', 'web'), ...createConfig('scrollbar/index', 'scrollbar')]
+export default [
+  ...createConfig('src/index', 'web'),
+  ...createConfig('src/scrollbar/index', 'scrollbar'),
+  ...createConfig('examples/src/components/stdlib/index', 'stdlib'),
+]

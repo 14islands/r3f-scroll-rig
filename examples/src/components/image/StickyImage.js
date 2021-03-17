@@ -6,8 +6,8 @@ import { useFrame } from 'react-three-fiber'
 import vertexShader from '!raw-loader!./shader.vert'
 import fragmentShader from '!raw-loader!./shader.frag'
 
-import WebGLImage from './WebGLImage'
-import StickyScrollScene from '../StickyScrollScene'
+import WebGLImage from '../stdlib/WebGLImage'
+import StickyScrollScene from '../stdlib/StickyScrollScene'
 
 const ImageMesh = ({ scrollState, ...props }) => {
   const scaleWrapper = useRef()

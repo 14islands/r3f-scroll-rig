@@ -3,6 +3,10 @@ import { Color } from 'three'
 import { useThree } from 'react-three-fiber'
 import { Text } from '@react-three/drei'
 
+/**
+ * Returns a WebGL Troika text mesh styled as the source DOM element
+ */
+
 const WebGLText = ({ el, children, material, scale, font, offset = 0, ...props }) => {
   const { size } = useThree()
 

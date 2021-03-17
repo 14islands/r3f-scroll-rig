@@ -1,8 +1,8 @@
 import React, { useRef } from 'react'
 import { useCanvas } from '@14islands/r3f-scroll-rig'
-import ParallaxScrollScene from '../ParallaxScrollScene'
+import ParallaxScrollScene from '../stdlib/ParallaxScrollScene'
 
-import WebGLImage from './WebGLImage'
+import WebGLImage from '../stdlib/WebGLImage'
 
 /* eslint import/no-webpack-loader-syntax: off */
 import vertexShader from '!raw-loader!./shader.vert'

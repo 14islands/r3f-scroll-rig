@@ -1,1 +1,1 @@
-export * from "./scrollbar/index"
+export * from "./src/scrollbar/index"

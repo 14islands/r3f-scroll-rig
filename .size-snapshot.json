@@ -55,5 +55,43 @@
     "bundled": 18976,
     "minified": 7696,
     "gzipped": 2655
+  },
+  "examples.js": {
+    "bundled": 2866,
+    "minified": 1792,
+    "gzipped": 822,
+    "treeshaked": {
+      "rollup": {
+        "code": 221,
+        "import_statements": 221
+      },
+      "webpack": {
+        "code": 1403
+      }
+    }
+  },
+  "examples.cjs.js": {
+    "bundled": 3788,
+    "minified": 2231,
+    "gzipped": 973
+  },
+  "stdlib.js": {
+    "bundled": 5462,
+    "minified": 3059,
+    "gzipped": 1266,
+    "treeshaked": {
+      "rollup": {
+        "code": 221,
+        "import_statements": 221
+      },
+      "webpack": {
+        "code": 1403
+      }
+    }
+  },
+  "stdlib.cjs.js": {
+    "bundled": 7201,
+    "minified": 3718,
+    "gzipped": 1444
   }
 }

@@ -4,7 +4,7 @@ import { Color, Vector2 } from 'three'
 import { useFrame, useThree } from 'react-three-fiber'
 
 
-const WebGLImage = ({ image, scale, scrollState, scene, vertexShader, fragmentShader, invalidateFrameLoop = false }) => {
+const WebGLImage = ({ image, scale, scrollState, scene, vertexShader, fragmentShader, invalidateFrameLoop = false, widthSegments = 128, heightSegments = 128 }) => {
   const material = useRef()
   const mesh = useRef()
   const { requestFrame, pixelRatio, preloadScene } = useScrollRig()
@@ -59,7 +59,7 @@ const WebGLImage = ({ image, scale, scrollState, scene, vertexShader, fragmentSh
 
   return (
     <mesh ref={mesh}>
-      <planeBufferGeometry attach="geometry" args={[scale.width, scale.height, 128, 128]} />
+      <planeBufferGeometry attach="geometry" args={[scale.width, scale.height, widthSegments, heightSegments]} />
       <shaderMaterial
         ref={material}
         attach="material"
