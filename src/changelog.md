@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.9.23
+## v1.10.0
 
 ### GlobalCanvas
 
