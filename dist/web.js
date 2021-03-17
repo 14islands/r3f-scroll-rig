@@ -1,7 +1,7 @@
 import _extends from '@babel/runtime/helpers/esm/extends';
 import _objectWithoutPropertiesLoose from '@babel/runtime/helpers/esm/objectWithoutPropertiesLoose';
-import React$1, { useState, useEffect, useCallback, useRef, useLayoutEffect, Suspense, Fragment, forwardRef, useMemo } from 'react';
-import { addEffect, addAfterEffect as addAfterEffect$1, invalidate, useThree, useFrame, useUpdate, Canvas, createPortal } from 'react-three-fiber';
+import React, { useState, useEffect, useCallback, useRef, useLayoutEffect, Suspense, Fragment, forwardRef, useMemo } from 'react';
+import { addEffect, addAfterEffect, invalidate, useThree, useFrame, useUpdate, Canvas, createPortal } from 'react-three-fiber';
 import { ResizeObserver } from '@juggle/resize-observer';
 import queryString from 'query-string';
 import StatsImpl from 'three/examples/js/libs/stats.min';
@@ -84,7 +84,7 @@ function Stats({
       node.appendChild(stats.dom);
       if (className) stats.dom.classList.add(className);
       const begin = addEffect(() => stats.begin());
-      const end = addAfterEffect$1(() => stats.end());
+      const end = addAfterEffect(() => stats.end());
       return () => {
         node.removeChild(stats.dom);
         begin();
@@ -410,9 +410,9 @@ const GlobalRenderer = ({
   }, config.PRIORITY_GLOBAL); // Take over rendering
 
   config.debug && console.log('GlobalRenderer', Object.keys(canvasChildren).length);
-  return /*#__PURE__*/React$1.createElement("scene", {
+  return /*#__PURE__*/React.createElement("scene", {
     ref: scene
-  }, /*#__PURE__*/React$1.createElement(Suspense, {
+  }, /*#__PURE__*/React.createElement(Suspense, {
     fallback: null
   }, Object.keys(canvasChildren).map((key, i) => {
     const {
@@ -421,14 +421,14 @@ const GlobalRenderer = ({
     } = canvasChildren[key];
 
     if (typeof mesh === 'function') {
-      return /*#__PURE__*/React$1.createElement(Fragment, {
+      return /*#__PURE__*/React.createElement(Fragment, {
         key: key
       }, mesh(_extends({
         key
       }, scrollRig, props)));
     }
 
-    return /*#__PURE__*/React$1.cloneElement(mesh, _extends({
+    return /*#__PURE__*/React.cloneElement(mesh, _extends({
       key
     }, props));
   }), children));
@@ -591,7 +591,7 @@ const PerspectiveCamera = /*#__PURE__*/forwardRef((_ref, ref) => {
       return () => setDefaultCamera(oldCam);
     }
   }, [camera, cameraRef, makeDefault, setDefaultCamera]);
-  return /*#__PURE__*/React$1.createElement("perspectiveCamera", _extends({
+  return /*#__PURE__*/React.createElement("perspectiveCamera", _extends({
     ref: mergeRefs([cameraRef, ref]),
     position: [0, 0, distance],
     onUpdate: self => self.updateProjectionMatrix()
@@ -633,7 +633,7 @@ const OrthographicCamera = /*#__PURE__*/forwardRef((_ref, ref) => {
       return () => setDefaultCamera(oldCam);
     }
   }, [camera, cameraRef, makeDefault, setDefaultCamera]);
-  return /*#__PURE__*/React$1.createElement("orthographicCamera", _extends({
+  return /*#__PURE__*/React.createElement("orthographicCamera", _extends({
     left: size.width * scaleMultiplier / -2,
     right: size.width * scaleMultiplier / 2,
     top: size.height * scaleMultiplier / 2,
@@ -701,7 +701,7 @@ const GlobalCanvas = (_ref) => {
     }
   }, []);
   const CanvasElement = as;
-  return /*#__PURE__*/React$1.createElement(CanvasElement, _extends({
+  return /*#__PURE__*/React.createElement(CanvasElement, _extends({
     className: "ScrollRigCanvas",
     invalidateFrameloop: true,
     gl: _extends({
@@ -738,14 +738,14 @@ const GlobalCanvas = (_ref) => {
     camera: null,
     updateDefaultCamera: false // allow to override anything of the above
 
-  }, props), /*#__PURE__*/React$1.createElement(GlobalRenderer, null, children), !orthographic && /*#__PURE__*/React$1.createElement(PerspectiveCamera, {
+  }, props), /*#__PURE__*/React.createElement(GlobalRenderer, null, children), !orthographic && /*#__PURE__*/React.createElement(PerspectiveCamera, {
     makeDefault: true
-  }), orthographic && /*#__PURE__*/React$1.createElement(OrthographicCamera, {
+  }), orthographic && /*#__PURE__*/React.createElement(OrthographicCamera, {
     makeDefault: true
-  }), config.debug && /*#__PURE__*/React$1.createElement(StatsDebug, null), config.fps && /*#__PURE__*/React$1.createElement(Stats, null), config.autoPixelRatio && /*#__PURE__*/React$1.createElement(PerformanceMonitor, null), /*#__PURE__*/React$1.createElement(ResizeManager, {
+  }), config.debug && /*#__PURE__*/React.createElement(StatsDebug, null), config.fps && /*#__PURE__*/React.createElement(Stats, null), config.autoPixelRatio && /*#__PURE__*/React.createElement(PerformanceMonitor, null), /*#__PURE__*/React.createElement(ResizeManager, {
     reflow: requestReflow,
     resizeOnHeight: resizeOnHeight
-  }), /*#__PURE__*/React$1.createElement(DefaultScrollTracker, null));
+  }), /*#__PURE__*/React.createElement(DefaultScrollTracker, null));
 };
 
 /**
@@ -950,20 +950,20 @@ let ScrollScene = (_ref) => {
     }
   }, config.PRIORITY_SCISSORS + renderOrder); // meshBasicMaterial shaders are excluded from prod build
 
-  const renderDebugMesh = () => /*#__PURE__*/React$1.createElement("mesh", null, /*#__PURE__*/React$1.createElement("planeBufferGeometry", {
+  const renderDebugMesh = () => /*#__PURE__*/React.createElement("mesh", null, /*#__PURE__*/React.createElement("planeBufferGeometry", {
     attach: "geometry",
     args: [scale.width, scale.height, 1, 1]
-  }), /*#__PURE__*/React$1.createElement("meshBasicMaterial", {
+  }), /*#__PURE__*/React.createElement("meshBasicMaterial", {
     color: "pink",
     attach: "material",
     transparent: true,
     opacity: 0.5
   }));
 
-  return /*#__PURE__*/React$1.createElement("scene", {
+  return /*#__PURE__*/React.createElement("scene", {
     ref: scene,
     visible: transient.bounds.inViewport && visible
-  }, /*#__PURE__*/React$1.createElement("group", {
+  }, /*#__PURE__*/React.createElement("group", {
     renderOrder: renderOrder
   }, (!children || debug) && renderDebugMesh(), children && children(_extends({
     // inherited props
@@ -985,7 +985,7 @@ let ScrollScene = (_ref) => {
   }, props))));
 };
 
-ScrollScene = /*#__PURE__*/React$1.memo(ScrollScene);
+ScrollScene = /*#__PURE__*/React.memo(ScrollScene);
 ScrollScene.childPropTypes = _extends({}, ScrollScene.propTypes, {
   scale: PropTypes.shape({
     width: PropTypes.number,
@@ -1190,7 +1190,7 @@ const ScrollDomPortal = /*#__PURE__*/forwardRef(({
     return null;
   }
 
-  const child = React$1.Children.only( /*#__PURE__*/React$1.cloneElement(children, {
+  const child = React.Children.only( /*#__PURE__*/React.cloneElement(children, {
     ref: copyEl
   }));
 
@@ -1555,21 +1555,21 @@ let ViewportScrollScene = (_ref) => {
     }
   }, config.PRIORITY_VIEWPORTS + renderOrder);
 
-  const renderDebugMesh = () => /*#__PURE__*/React$1.createElement("mesh", null, /*#__PURE__*/React$1.createElement("planeBufferGeometry", {
+  const renderDebugMesh = () => /*#__PURE__*/React.createElement("mesh", null, /*#__PURE__*/React.createElement("planeBufferGeometry", {
     attach: "geometry",
     args: [scale.width, scale.height, 1, 1]
-  }), /*#__PURE__*/React$1.createElement("meshBasicMaterial", {
+  }), /*#__PURE__*/React.createElement("meshBasicMaterial", {
     color: "pink",
     attach: "material",
     transparent: true,
     opacity: 0.5
   }));
 
-  return createPortal( /*#__PURE__*/React$1.createElement(React$1.Fragment, null, !orthographic && /*#__PURE__*/React$1.createElement("perspectiveCamera", {
+  return createPortal( /*#__PURE__*/React.createElement(React.Fragment, null, !orthographic && /*#__PURE__*/React.createElement("perspectiveCamera", {
     ref: camera,
     position: [0, 0, cameraDistance],
     onUpdate: self => self.updateProjectionMatrix()
-  }), orthographic && /*#__PURE__*/React$1.createElement("orthographicCamera", {
+  }), orthographic && /*#__PURE__*/React.createElement("orthographicCamera", {
     ref: camera,
     position: [0, 0, cameraDistance],
     onUpdate: self => self.updateProjectionMatrix(),
@@ -1579,7 +1579,7 @@ let ViewportScrollScene = (_ref) => {
     bottom: scale.height / -2,
     far: cameraDistance * 2,
     near: 0.001
-  }), /*#__PURE__*/React$1.createElement("group", {
+  }), /*#__PURE__*/React.createElement("group", {
     renderOrder: renderOrder
   }, (!children || debug) && renderDebugMesh(), children && children(_extends({
     // inherited props
@@ -1603,7 +1603,7 @@ let ViewportScrollScene = (_ref) => {
   }, props)))), scene);
 };
 
-ViewportScrollScene = /*#__PURE__*/React$1.memo(ViewportScrollScene);
+ViewportScrollScene = /*#__PURE__*/React.memo(ViewportScrollScene);
 ViewportScrollScene.childPropTypes = _extends({}, ViewportScrollScene.propTypes, {
   scale: PropTypes.shape({
     width: PropTypes.number,
@@ -1678,11 +1678,12 @@ const HijackedScrollbar = ({
   lerp,
   restDelta,
   location,
-  useFrameLoop,
+  // useFrameLoop,
   invalidate,
   subpixelScrolling = false
 }) => {
   const setVirtualScrollbar = useCanvasStore(state => state.setVirtualScrollbar);
+  const requestReflow = useCanvasStore(state => state.requestReflow);
   const pageReflowRequested = useCanvasStore(state => state.pageReflowRequested);
   const setScrollY = useCanvasStore(state => state.setScrollY);
   const y = useRef({
@@ -1702,11 +1703,9 @@ const HijackedScrollbar = ({
     delta.current = Math.abs(y.current - newTarget);
     y.current = newTarget; // round for scrollbar
 
-    roundedY.current = Math.floor(y.current);
+    roundedY.current = Math.floor(y.current); // if (!useFrameLoop) {
 
-    if (!useFrameLoop) {
-      setScrollPosition();
-    }
+    setScrollPosition(); // }
   };
 
   const setScrollPosition = () => {
@@ -1721,13 +1720,13 @@ const HijackedScrollbar = ({
       invalidate ? invalidate() : window.requestAnimationFrame(animate);
     }
   }; // update scroll position last
+  // useEffect(() => {
+  //   if (useFrameLoop) {
+  //     return addAfterEffect(setScrollPosition)
+  //   }
+  // }, [])
+  // disable subpixelScrolling for better visual sync with canvas
 
-
-  useEffect(() => {
-    if (useFrameLoop) {
-      return addAfterEffect(setScrollPosition);
-    }
-  }, []); // disable subpixelScrolling for better visual sync with canvas
 
   useEffect(() => {
     const ssBefore = config.subpixelScrolling;
@@ -1743,13 +1742,12 @@ const HijackedScrollbar = ({
       setScrollY(window.pageYOffset);
     };
   }, []); // Check if we are using an external frame loop
-
-  useEffect(() => {
-    if (useFrameLoop) {
-      // update scroll target before everything else
-      return useFrameLoop(animate);
-    }
-  }, [useFrameLoop]);
+  // useEffect(() => {
+  //   if (useFrameLoop) {
+  //     // update scroll target before everything else
+  //     return useFrameLoop(animate)
+  //   }
+  // }, [useFrameLoop])
 
   const onScrollEvent = e => {
     e.preventDefault(); // Scroll manually using keys or drag scrollbars
@@ -2054,7 +2052,7 @@ const FakeScroller = ({
   useEffect(() => {
     handleResize();
   }, [pageReflowRequested]);
-  return /*#__PURE__*/React$1.createElement("div", {
+  return /*#__PURE__*/React.createElement("div", {
     className: "js-fake-scroll",
     ref: heightEl,
     style: {
@@ -2114,12 +2112,12 @@ const VirtualScrollbar = (_ref) => {
 
   };
   const style = active ? activeStyle : {};
-  return /*#__PURE__*/React$1.createElement(React$1.Fragment, null, children({
+  return /*#__PURE__*/React.createElement(React.Fragment, null, children({
     ref,
     style
-  }), active && /*#__PURE__*/React$1.createElement(FakeScroller, _extends({
+  }), active && /*#__PURE__*/React.createElement(FakeScroller, _extends({
     el: ref
-  }, rest)), !config.hasGlobalCanvas && /*#__PURE__*/React$1.createElement(ResizeManager, {
+  }, rest)), !config.hasGlobalCanvas && /*#__PURE__*/React.createElement(ResizeManager, {
     reflow: requestReflow,
     resizeOnHeight: resizeOnHeight
   }));
