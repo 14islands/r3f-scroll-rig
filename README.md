@@ -154,13 +154,14 @@ import { VirtualScrollbar } from '@14islands/r3f-scroll-rig/scrollbar'
 
 #### Props
 ```js
-  as = Canvas     // make it possible to render as VRCanvas
-  children,       // r3f child nodes
-  gl              // optional gl overrides           
-  orthographic = false // use orthographic camera, perspective by default
-  noEvents = true // no r3f events by default
-  colorManagement=true // use sRGB color space
-  config          // override scroll-rig config
+<GlobalCanvas
+  children               // r3f child nodes
+  gl                     // optional gl overrides           
+  orthographic = false   // use orthographic camera, perspective by default
+  noEvents = true        // no r3f events by default
+  colorManagement = true // use sRGB color space
+  config                 // override scroll-rig config
+  as = Canvas            // make it possible to render as VRCanvas
   // + all other props from r3f Canvas
 />
 ```
@@ -193,22 +194,29 @@ Note: even though `colorManagement` is turned on, `ACESFilmic` toneMapping is tu
 ```js
 <ScrollScene
   el                          // DOM element to track (ref)
-  children                    // r3f child node to render inside this scene
+  children                    // a single functional child
   lerp                        // Easing (lerp) for the scroll. (syncs with GlobalCanvas by default)
   lerpOffset = 0              // Optional offset to move with adjusted lerp compared to global canvas
   renderOrder = 1             // Three.js renderOrder for this Group
   inViewportMargin = size.height/3  // margin for when it's considered out of screen and will stop animating
   visible = true              // Scene visibility
-  debug = false               // Render debug plane and show 50% opacity of DOM element
+  debug = false               // Rendturquoise" /er debug plane and show 50% opacity of DOM element
   setInViewportProp = false   // Set `inViewport` prop on child node when entering viewport (may cause jank)
   positionFixed = false       // Make scene fixed in the viewport instead of moving with scrollbar. Usefull to s
-/>
+>
+  { ({ scale, ...props }) => (
+    <mesh>
+      <planeGeometry args={[scale.width, scale.height]} />
+      <meshBasicMaterial color="turquoise" />
+    </mesh>
+  )}
+</ScrollScene>
 ```
 
-The child node will be passed the following props:
+The child node will be passed the following `props`:
 
 ```js
-  // inherited props
+  // inherited props from ScrollScene
   el
   lerp,
   lerpOffset

@@ -27,9 +27,9 @@ const config = {
   autoPixelRatio: true,
   // use PerformanceMonitor
   // Global lerp settings
-  scrollLerp: 0.1,
+  scrollLerp: 0.14,
   // Linear interpolation - high performance easing
-  scrollRestDelta: 0.14,
+  scrollRestDelta: 0.014,
   // min delta to trigger animation frame on scroll
   subpixelScrolling: true,
   // Execution order for useFrames (highest = last render)

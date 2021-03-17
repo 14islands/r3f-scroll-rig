@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.9.23
+
+### GlobalCanvas
+
+- Added back Stats component. `fps` config and querystring now works again
+
+### HijackedScrollbar
+
+- New experimental scrollbar with animates `window.scrollTo` instead of translating sections with CSS.
+
 ## v1.9.21
 
 ### ScrollDom (Experimental)

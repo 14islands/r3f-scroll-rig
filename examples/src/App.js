@@ -56,7 +56,7 @@ function App() {
                   <InlineBox />
                 </div>
 
-                <Text>A ViewportScrollScene can controls it's own lights.</Text>
+                <Text>A ViewportScrollScene can controls its own lights.</Text>
                 <div style={{ margin: '5vw auto 20vw', width: '100vw', height: '100vh' }}>
                   <Viewport3DScene />
                 </div>

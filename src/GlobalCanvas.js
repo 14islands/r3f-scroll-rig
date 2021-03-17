@@ -3,9 +3,9 @@ import PropTypes from 'prop-types'
 import { Canvas } from 'react-three-fiber'
 import { ResizeObserver } from '@juggle/resize-observer'
 import queryString from 'query-string'
-// import { Stats } from '@react-three/drei'
 
 import config from './config'
+import { Stats } from './Stats'
 import { useCanvasStore } from './store'
 import GlobalRenderer from './GlobalRenderer'
 import PerformanceMonitor from './PerformanceMonitor'
@@ -96,7 +96,7 @@ export const GlobalCanvas = ({
       {!orthographic && <PerspectiveCamera makeDefault={true} />}
       {orthographic && <OrthographicCamera makeDefault={true} />}
       {config.debug && <StatsDebug />}
-      {/* {config.fps && <Stats />} */}
+      {config.fps && <Stats />}
       {config.autoPixelRatio && <PerformanceMonitor />}
       <ResizeManager reflow={requestReflow} resizeOnHeight={resizeOnHeight} />
       <DefaultScrollTracker />
