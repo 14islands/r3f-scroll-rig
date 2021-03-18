@@ -17,10 +17,11 @@ const WebGLText = (_ref) => {
     material,
     scale,
     font,
-    offset = 0,
+    fontOffsetY = 0,
+    fontOffsetX = 0,
     overrideEmissive = false
   } = _ref,
-      props = _objectWithoutPropertiesLoose(_ref, ["el", "children", "material", "scale", "font", "offset", "overrideEmissive"]);
+      props = _objectWithoutPropertiesLoose(_ref, ["el", "children", "material", "scale", "font", "fontOffsetY", "fontOffsetX", "overrideEmissive"]);
 
   const {
     size
@@ -35,13 +36,13 @@ const WebGLText = (_ref) => {
     if (!el.current) return {};
     const cs = window.getComputedStyle(el.current); // font size relative letter spacing
 
-    const letterSpacing = (parseInt(cs.letterSpacing, 10) || 0) / parseInt(cs.fontSize, 10);
-    const lineHeight = (parseInt(cs.lineHeight, 10) || 0) / parseInt(cs.fontSize, 10);
+    const letterSpacing = (parseFloat(cs.letterSpacing) || 0) / parseFloat(cs.fontSize);
+    const lineHeight = (parseFloat(cs.lineHeight) || 0) / parseFloat(cs.fontSize);
     return _extends({}, cs, {
       letterSpacing,
       lineHeight,
       color: new Color(cs.color).convertSRGBToLinear(),
-      fontSize: parseInt(cs.fontSize, 10) * scale.multiplier
+      fontSize: parseFloat(cs.fontSize) * scale.multiplier
     }); // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [el, size, scale]); // recalc on resize
 
@@ -50,6 +51,10 @@ const WebGLText = (_ref) => {
       material.emissive = color;
     }
   }, [material, color, overrideEmissive]);
+  let xOffset = 0;
+  textAlign === 'left' && (xOffset = scale.width * -0.5);
+  textAlign === 'right' && (xOffset = scale.width * 0.5);
+  const yOffset = scale ? scale.height * 0.5 : size.height * 0.5;
   return /*#__PURE__*/React.createElement(Text, _extends({
     fontSize: fontSize,
     maxWidth: scale ? scale.width : size.width,
@@ -58,9 +63,10 @@ const WebGLText = (_ref) => {
     letterSpacing: letterSpacing,
     font: font,
     color: color,
-    anchorX: "center",
-    anchorY: "middle",
-    position: [0, fontSize * offset, 0] // font specific
+    anchorX: textAlign,
+    anchorY: "top" // so text moves down if row breaks
+    ,
+    position: [xOffset + fontSize * fontOffsetX, yOffset + fontSize * fontOffsetY, 0] // font specific
     ,
     material: material
   }, props), children);

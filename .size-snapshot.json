@@ -76,9 +76,9 @@
     "gzipped": 973
   },
   "stdlib.js": {
-    "bundled": 5590,
-    "minified": 3134,
-    "gzipped": 1284,
+    "bundled": 5912,
+    "minified": 3263,
+    "gzipped": 1344,
     "treeshaked": {
       "rollup": {
         "code": 221,
@@ -90,8 +90,8 @@
     }
   },
   "stdlib.cjs.js": {
-    "bundled": 7444,
-    "minified": 3799,
-    "gzipped": 1468
+    "bundled": 7878,
+    "minified": 3943,
+    "gzipped": 1531
   }
 }

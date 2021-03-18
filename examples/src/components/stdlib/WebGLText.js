@@ -7,7 +7,7 @@ import { Text } from '@react-three/drei'
  * Returns a WebGL Troika text mesh styled as the source DOM element
  */
 
-const WebGLText = ({ el, children, material, scale, font, fontOffsetY = 0, fontOffsetX = 0, overrideEmissive = false, ...props }) => {
+export const WebGLText = ({ el, children, material, scale, font, fontOffsetY = 0, fontOffsetX = 0, overrideEmissive = false, ...props }) => {
   const { size } = useThree()
 
   const { color, fontSize, textAlign, lineHeight, letterSpacing } = useMemo(() => {
@@ -59,3 +59,5 @@ const WebGLText = ({ el, children, material, scale, font, fontOffsetY = 0, fontO
     </Text>
   )
 }
+
+export default WebGLText

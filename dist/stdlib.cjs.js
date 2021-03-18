@@ -23,11 +23,13 @@ var WebGLText = function WebGLText(_ref) {
       material = _ref.material,
       scale = _ref.scale,
       font = _ref.font,
-      _ref$offset = _ref.offset,
-      offset = _ref$offset === void 0 ? 0 : _ref$offset,
+      _ref$fontOffsetY = _ref.fontOffsetY,
+      fontOffsetY = _ref$fontOffsetY === void 0 ? 0 : _ref$fontOffsetY,
+      _ref$fontOffsetX = _ref.fontOffsetX,
+      fontOffsetX = _ref$fontOffsetX === void 0 ? 0 : _ref$fontOffsetX,
       _ref$overrideEmissive = _ref.overrideEmissive,
       overrideEmissive = _ref$overrideEmissive === void 0 ? false : _ref$overrideEmissive,
-      props = _objectWithoutPropertiesLoose(_ref, ["el", "children", "material", "scale", "font", "offset", "overrideEmissive"]);
+      props = _objectWithoutPropertiesLoose(_ref, ["el", "children", "material", "scale", "font", "fontOffsetY", "fontOffsetX", "overrideEmissive"]);
 
   var _useThree = reactThreeFiber.useThree(),
       size = _useThree.size;
@@ -36,13 +38,13 @@ var WebGLText = function WebGLText(_ref) {
     if (!el.current) return {};
     var cs = window.getComputedStyle(el.current); // font size relative letter spacing
 
-    var letterSpacing = (parseInt(cs.letterSpacing, 10) || 0) / parseInt(cs.fontSize, 10);
-    var lineHeight = (parseInt(cs.lineHeight, 10) || 0) / parseInt(cs.fontSize, 10);
+    var letterSpacing = (parseFloat(cs.letterSpacing) || 0) / parseFloat(cs.fontSize);
+    var lineHeight = (parseFloat(cs.lineHeight) || 0) / parseFloat(cs.fontSize);
     return _extends({}, cs, {
       letterSpacing: letterSpacing,
       lineHeight: lineHeight,
       color: new three.Color(cs.color).convertSRGBToLinear(),
-      fontSize: parseInt(cs.fontSize, 10) * scale.multiplier
+      fontSize: parseFloat(cs.fontSize) * scale.multiplier
     }); // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [el, size, scale]),
       color = _useMemo.color,
@@ -57,6 +59,10 @@ var WebGLText = function WebGLText(_ref) {
       material.emissive = color;
     }
   }, [material, color, overrideEmissive]);
+  var xOffset = 0;
+  textAlign === 'left' && (xOffset = scale.width * -0.5);
+  textAlign === 'right' && (xOffset = scale.width * 0.5);
+  var yOffset = scale ? scale.height * 0.5 : size.height * 0.5;
   return /*#__PURE__*/React__default.createElement(drei.Text, _extends({
     fontSize: fontSize,
     maxWidth: scale ? scale.width : size.width,
@@ -65,9 +71,10 @@ var WebGLText = function WebGLText(_ref) {
     letterSpacing: letterSpacing,
     font: font,
     color: color,
-    anchorX: "center",
-    anchorY: "middle",
-    position: [0, fontSize * offset, 0] // font specific
+    anchorX: textAlign,
+    anchorY: "top" // so text moves down if row breaks
+    ,
+    position: [xOffset + fontSize * fontOffsetX, yOffset + fontSize * fontOffsetY, 0] // font specific
     ,
     material: material
   }, props), children);
