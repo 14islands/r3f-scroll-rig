@@ -795,6 +795,7 @@ const GlobalCanvasIfSupported = (_ref2) => {
       /* WebGL failed to init */
 
       document.documentElement.classList.remove('js-has-global-canvas');
+      document.documentElement.classList.add('js-global-canvas-error');
     }
   }, /*#__PURE__*/React.createElement(GlobalCanvas, props));
 };
