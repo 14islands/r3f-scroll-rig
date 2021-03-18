@@ -17,6 +17,7 @@ var three = require('three');
 var windowSize = require('@react-hook/window-size');
 var mergeRefs = _interopDefault(require('react-merge-refs'));
 var r3fScrollRig = require('@14islands/r3f-scroll-rig');
+var _inheritsLoose = _interopDefault(require('@babel/runtime/helpers/inheritsLoose'));
 var PropTypes = _interopDefault(require('prop-types'));
 var ReactDOM = _interopDefault(require('react-dom'));
 
@@ -77,7 +78,8 @@ var config = {
   hasGlobalCanvas: false
 };
 
-console.log('load STATS!');
+/* Copied from drei - no need to import just for this */
+
 function Stats(_ref) {
   var _ref$showPanel = _ref.showPanel,
       showPanel = _ref$showPanel === void 0 ? 0 : _ref$showPanel,
@@ -88,8 +90,6 @@ function Stats(_ref) {
       stats = _useState[0];
 
   React.useEffect(function () {
-    console.log('STATS!', stats);
-
     if (stats) {
       var node = parent && parent.current || document.body;
       stats.showPanel(showPanel);
@@ -780,6 +780,45 @@ var DefaultScrollTracker = function DefaultScrollTracker() {
   return null;
 };
 
+var CanvasErrorBoundary = /*#__PURE__*/function (_React$Component) {
+  _inheritsLoose(CanvasErrorBoundary, _React$Component);
+
+  function CanvasErrorBoundary(props) {
+    var _this;
+
+    _this = _React$Component.call(this, props) || this;
+    _this.state = {
+      error: false
+    };
+    _this.props = props;
+    return _this;
+  }
+
+  CanvasErrorBoundary.getDerivedStateFromError = function getDerivedStateFromError(error) {
+    // Update state so the next render will show the fallback UI.
+    return {
+      error: error
+    };
+  } // componentDidCatch(error, errorInfo) {
+  //   // You can also log the error to an error reporting service
+  //   // logErrorToMyService(error, errorInfo)
+  // }
+  ;
+
+  var _proto = CanvasErrorBoundary.prototype;
+
+  _proto.render = function render() {
+    if (this.state.error) {
+      this.props.onError && this.props.onError(this.state.error);
+      return null;
+    }
+
+    return this.props.children;
+  };
+
+  return CanvasErrorBoundary;
+}(React__default.Component);
+
 var GlobalCanvas = function GlobalCanvas(_ref) {
   var _ref$as = _ref.as,
       as = _ref$as === void 0 ? reactThreeFiber.Canvas : _ref$as,
@@ -867,6 +906,27 @@ var GlobalCanvas = function GlobalCanvas(_ref) {
     reflow: requestReflow,
     resizeOnHeight: resizeOnHeight
   }), /*#__PURE__*/React__default.createElement(DefaultScrollTracker, null));
+};
+
+var GlobalCanvasIfSupported = function GlobalCanvasIfSupported(_ref2) {
+  var _onError = _ref2.onError,
+      props = _objectWithoutPropertiesLoose(_ref2, ["onError"]);
+
+  var setCanvasAvailable = useCanvasStore(function (state) {
+    return state.setCanvasAvailable;
+  });
+  React.useLayoutEffect(function () {
+    document.documentElement.classList.add('js-has-global-canvas');
+  }, []);
+  return /*#__PURE__*/React__default.createElement(CanvasErrorBoundary, {
+    onError: function onError(err) {
+      _onError && _onError(err);
+      setCanvasAvailable(false);
+      /* WebGL failed to init */
+
+      document.documentElement.classList.remove('js-has-global-canvas');
+    }
+  }, /*#__PURE__*/React__default.createElement(GlobalCanvas, props));
 };
 
 /**
@@ -2398,7 +2458,7 @@ var useScrollbar = function useScrollbar() {
   };
 };
 
-exports.GlobalCanvas = GlobalCanvas;
+exports.GlobalCanvas = GlobalCanvasIfSupported;
 exports.HijackedScrollbar = HijackedScrollbar;
 exports.PerspectiveCameraScene = exports.ViewportScrollScene;
 exports.ScrollDomPortal = ScrollDomPortal;

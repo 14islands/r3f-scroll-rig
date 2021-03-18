@@ -68,7 +68,8 @@ const config = {
   hasGlobalCanvas: false
 };
 
-console.log('load STATS!');
+/* Copied from drei - no need to import just for this */
+
 function Stats({
   showPanel = 0,
   className,
@@ -76,8 +77,6 @@ function Stats({
 }) {
   const [stats] = useState(new StatsImpl());
   useEffect(() => {
-    console.log('STATS!', stats);
-
     if (stats) {
       const node = parent && parent.current || document.body;
       stats.showPanel(showPanel);
@@ -663,6 +662,37 @@ const DefaultScrollTracker = () => {
   return null;
 };
 
+class CanvasErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      error: false
+    };
+    this.props = props;
+  }
+
+  static getDerivedStateFromError(error) {
+    // Update state so the next render will show the fallback UI.
+    return {
+      error
+    };
+  } // componentDidCatch(error, errorInfo) {
+  //   // You can also log the error to an error reporting service
+  //   // logErrorToMyService(error, errorInfo)
+  // }
+
+
+  render() {
+    if (this.state.error) {
+      this.props.onError && this.props.onError(this.state.error);
+      return null;
+    }
+
+    return this.props.children;
+  }
+
+}
+
 const GlobalCanvas = (_ref) => {
   let {
     as = Canvas,
@@ -746,6 +776,27 @@ const GlobalCanvas = (_ref) => {
     reflow: requestReflow,
     resizeOnHeight: resizeOnHeight
   }), /*#__PURE__*/React.createElement(DefaultScrollTracker, null));
+};
+
+const GlobalCanvasIfSupported = (_ref2) => {
+  let {
+    onError: _onError
+  } = _ref2,
+      props = _objectWithoutPropertiesLoose(_ref2, ["onError"]);
+
+  const setCanvasAvailable = useCanvasStore(state => state.setCanvasAvailable);
+  useLayoutEffect(() => {
+    document.documentElement.classList.add('js-has-global-canvas');
+  }, []);
+  return /*#__PURE__*/React.createElement(CanvasErrorBoundary, {
+    onError: err => {
+      _onError && _onError(err);
+      setCanvasAvailable(false);
+      /* WebGL failed to init */
+
+      document.documentElement.classList.remove('js-has-global-canvas');
+    }
+  }, /*#__PURE__*/React.createElement(GlobalCanvas, props));
 };
 
 /**
@@ -2138,4 +2189,4 @@ const useScrollbar = () => {
   };
 };
 
-export { GlobalCanvas, HijackedScrollbar, ViewportScrollScene as PerspectiveCameraScene, ScrollDomPortal, ScrollScene, ViewportScrollScene, VirtualScrollbar, canvasStoreApi, config, useCanvas, useCanvasStore, useDelayedCanvas, useImgTagAsTexture, useScrollRig, useScrollbar, useTextureLoader, utils };
+export { GlobalCanvasIfSupported as GlobalCanvas, HijackedScrollbar, ViewportScrollScene as PerspectiveCameraScene, ScrollDomPortal, ScrollScene, ViewportScrollScene, VirtualScrollbar, canvasStoreApi, config, useCanvas, useCanvasStore, useDelayedCanvas, useImgTagAsTexture, useScrollRig, useScrollbar, useTextureLoader, utils };

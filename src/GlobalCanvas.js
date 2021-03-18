@@ -16,7 +16,7 @@ import OrthographicCamera from './OrthographicCamera'
 import DefaultScrollTracker from './DefaultScrollTracker'
 import CanvasErrorBoundary from './CanvasErrorBoundary'
 
-export const GlobalCanvas = ({
+const GlobalCanvas = ({
   as = Canvas,
   children,
   gl,

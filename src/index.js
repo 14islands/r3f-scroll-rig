@@ -2,7 +2,7 @@ import * as utils from './utils'
 
 // Public & battle-tested
 // ----------------------------------
-export { GlobalCanvas } from './GlobalCanvas'
+export { default as GlobalCanvas } from './GlobalCanvas'
 export { ScrollScene } from './ScrollScene'
 export { ScrollDomPortal } from './ScrollDomPortal'
 export { useScrollRig } from './useScrollRig'

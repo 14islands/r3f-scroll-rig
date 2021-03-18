@@ -2,12 +2,11 @@ import { useState, useEffect } from 'react'
 import { addEffect, addAfterEffect } from 'react-three-fiber'
 import StatsImpl from 'three/examples/js/libs/stats.min'
 
-console.log('load STATS!')
+/* Copied from drei - no need to import just for this */
 
 export function Stats({ showPanel = 0, className, parent }) {
   const [stats] = useState(new StatsImpl())
   useEffect(() => {
-    console.log('STATS!', stats)
     if (stats) {
       const node = (parent && parent.current) || document.body
       stats.showPanel(showPanel)
