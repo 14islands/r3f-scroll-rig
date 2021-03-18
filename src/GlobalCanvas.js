@@ -126,6 +126,7 @@ const GlobalCanvasIfSupported = ({ onError, ...props }) => {
         onError && onError(err)
         setCanvasAvailable(false) /* WebGL failed to init */
         document.documentElement.classList.remove('js-has-global-canvas')
+        document.documentElement.classList.add('js-global-canvas-error')
       }}
     >
       <GlobalCanvas {...props} />
