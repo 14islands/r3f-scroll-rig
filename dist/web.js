@@ -6,7 +6,7 @@ import { ResizeObserver } from '@juggle/resize-observer';
 import queryString from 'query-string';
 import StatsImpl from 'three/examples/js/libs/stats.min';
 import create from 'zustand';
-import { sRGBEncoding, NoToneMapping, MathUtils, ImageBitmapLoader, TextureLoader, CanvasTexture, LinearFilter, RGBFormat, RGBAFormat, Scene } from 'three';
+import { sRGBEncoding, NoToneMapping, Scene, MathUtils, ImageBitmapLoader, TextureLoader, CanvasTexture, LinearFilter, RGBFormat, RGBAFormat } from 'three';
 import { useWindowSize, useWindowHeight } from '@react-hook/window-size';
 import mergeRefs from 'react-merge-refs';
 import { config as config$1, useScrollRig as useScrollRig$1 } from '@14islands/r3f-scroll-rig';
@@ -826,8 +826,9 @@ let ScrollScene = (_ref) => {
   } = _ref,
       props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed"]);
 
-  const scene = useRef();
+  const inlineScene = useRef();
   const group = useRef();
+  const [scissorScene] = useState(() => new Scene());
   const [inViewport, setInViewport] = useState(false);
   const [scale, setScale] = useState({
     width: 1,
@@ -844,7 +845,8 @@ let ScrollScene = (_ref) => {
     renderFullscreen,
     renderScissor
   } = useScrollRig();
-  const pageReflowCompleted = useCanvasStore(state => state.pageReflowCompleted); // get initial scrollY and listen for transient updates
+  const pageReflowCompleted = useCanvasStore(state => state.pageReflowCompleted);
+  const scene = scissor ? scissorScene : inlineScene.current; // get initial scrollY and listen for transient updates
 
   const scrollY = useRef(useCanvasStore.getState().scrollY);
   useEffect(() => useCanvasStore.subscribe(y => {
@@ -886,7 +888,7 @@ let ScrollScene = (_ref) => {
   }, [el.current]);
 
   const updateSizeAndPosition = () => {
-    if (!el || !el.current) return;
+    if (!el || !el.current || !scene) return;
     const {
       bounds,
       prevBounds
@@ -915,7 +917,7 @@ let ScrollScene = (_ref) => {
     }); // place horizontally
 
     bounds.x = left - size.width * 0.5 + width * 0.5;
-    scene.current.position.x = bounds.x * config.scaleMultiplier; // prevents ghost lerp on first render
+    scene.position.x = bounds.x * config.scaleMultiplier; // prevents ghost lerp on first render
 
     if (transient.isFirstRender) {
       prevBounds.y = top - bounds.centerOffset;
@@ -928,13 +930,14 @@ let ScrollScene = (_ref) => {
 
   useLayoutEffect(() => {
     updateSizeAndPosition();
-  }, [pageReflowCompleted, updateLayout]); // RENDER FRAME
+  }, [pageReflowCompleted, updateLayout, scene]); // RENDER FRAME
 
   useFrame(({
     gl,
     camera,
     clock
   }) => {
+    if (!scene) return;
     const {
       bounds,
       prevBounds
@@ -943,7 +946,7 @@ let ScrollScene = (_ref) => {
     const initialPos = config.subpixelScrolling ? bounds.top - bounds.centerOffset : Math.floor(bounds.top - bounds.centerOffset);
     const y = initialPos - scrollY.current; // if previously hidden and now visible, update previous position to not get ghost easing when made visible
 
-    if (scene.current.visible && !bounds.inViewport) {
+    if (scene.visible && !bounds.inViewport) {
       prevBounds.y = y;
     } // frame delta
 
@@ -960,23 +963,23 @@ let ScrollScene = (_ref) => {
     setInViewportProp && requestIdleCallback(() => transient.mounted && setInViewport(!isOffscreen));
     prevBounds.y = lerpY; // hide/show scene
 
-    if (isOffscreen && scene.current.visible) {
-      scene.current.visible = false;
-    } else if (!isOffscreen && !scene.current.visible) {
-      scene.current.visible = visible;
+    if (isOffscreen && scene.visible) {
+      scene.visible = false;
+    } else if (!isOffscreen && !scene.visible) {
+      scene.visible = visible;
     }
 
-    if (scene.current.visible) {
+    if (scene.visible) {
       // move scene
       if (!positionFixed) {
-        scene.current.position.y = -newY * config.scaleMultiplier;
+        scene.position.y = -newY * config.scaleMultiplier;
       }
 
       const positiveYUpBottom = size.height * 0.5 - (newY + scale.pixelHeight * 0.5); // inverse Y
 
       if (scissor) {
         renderScissor({
-          scene: scene.current,
+          scene: scissorScene,
           camera,
           left: bounds.left - margin,
           top: positiveYUpBottom - margin,
@@ -998,6 +1001,7 @@ let ScrollScene = (_ref) => {
 
 
     if (!isOffscreen && delta > config.scrollRestDelta) {
+      config.debug && console.log('ScrollScene.requestFrame', delta);
       requestFrame();
     }
   }, config.PRIORITY_SCISSORS + renderOrder); // meshBasicMaterial shaders are excluded from prod build
@@ -1012,10 +1016,7 @@ let ScrollScene = (_ref) => {
     opacity: 0.5
   }));
 
-  return /*#__PURE__*/React.createElement("scene", {
-    ref: scene,
-    visible: transient.bounds.inViewport && visible
-  }, /*#__PURE__*/React.createElement("group", {
+  const content = /*#__PURE__*/React.createElement("group", {
     renderOrder: renderOrder
   }, (!children || debug) && renderDebugMesh(), children && children(_extends({
     // inherited props
@@ -1030,11 +1031,15 @@ let ScrollScene = (_ref) => {
     state: transient,
     // @deprecated
     scrollState: transient.bounds,
-    scene: scene.current,
+    scene,
     inViewport,
     // useFrame render priority (in case children need to run after)
     priority: config.PRIORITY_SCISSORS + renderOrder
-  }, props))));
+  }, props))); // portal if scissor or inline nested scene
+
+  return scissor ? createPortal(content, scissorScene) : /*#__PURE__*/React.createElement("scene", {
+    ref: inlineScene
+  }, content);
 };
 
 ScrollScene = /*#__PURE__*/React.memo(ScrollScene);

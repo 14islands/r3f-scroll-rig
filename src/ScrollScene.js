@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect, useLayoutEffect } from 'react'
 import PropTypes from 'prop-types'
-import { MathUtils } from 'three'
-import { useFrame, useThree } from 'react-three-fiber'
+import { MathUtils, Scene } from 'three'
+import { useFrame, useThree, createPortal } from 'react-three-fiber'
 
 import requestIdleCallback from './hooks/requestIdleCallback'
 
@@ -31,8 +31,9 @@ let ScrollScene = ({
   positionFixed = false,
   ...props
 }) => {
-  const scene = useRef()
+  const inlineScene = useRef()
   const group = useRef()
+  const [scissorScene] = useState(() => new Scene())
 
   const [inViewport, setInViewport] = useState(false)
   const [scale, setScale] = useState({
@@ -44,8 +45,8 @@ let ScrollScene = ({
   })
   const { size } = useThree()
   const { requestFrame, renderFullscreen, renderScissor } = useScrollRig()
-
   const pageReflowCompleted = useCanvasStore((state) => state.pageReflowCompleted)
+  const scene = scissor ? scissorScene : inlineScene.current
 
   // get initial scrollY and listen for transient updates
   const scrollY = useRef(useCanvasStore.getState().scrollY)
@@ -96,7 +97,7 @@ let ScrollScene = ({
   }, [el.current])
 
   const updateSizeAndPosition = () => {
-    if (!el || !el.current) return
+    if (!el || !el.current || !scene) return
 
     const { bounds, prevBounds } = transient
     const { top, left, width, height } = el.current.getBoundingClientRect()
@@ -121,7 +122,7 @@ let ScrollScene = ({
 
     // place horizontally
     bounds.x = left - size.width * 0.5 + width * 0.5
-    scene.current.position.x = bounds.x * config.scaleMultiplier
+    scene.position.x = bounds.x * config.scaleMultiplier
 
     // prevents ghost lerp on first render
     if (transient.isFirstRender) {
@@ -135,10 +136,11 @@ let ScrollScene = ({
   // Find bounding box & scale mesh on resize
   useLayoutEffect(() => {
     updateSizeAndPosition()
-  }, [pageReflowCompleted, updateLayout])
+  }, [pageReflowCompleted, updateLayout, scene])
 
   // RENDER FRAME
   useFrame(({ gl, camera, clock }) => {
+    if (!scene) return
     const { bounds, prevBounds } = transient
 
     // Find new Y based on cached position and scroll
@@ -148,7 +150,7 @@ let ScrollScene = ({
     const y = initialPos - scrollY.current
 
     // if previously hidden and now visible, update previous position to not get ghost easing when made visible
-    if (scene.current.visible && !bounds.inViewport) {
+    if (scene.visible && !bounds.inViewport) {
       prevBounds.y = y
     }
 
@@ -171,22 +173,22 @@ let ScrollScene = ({
     prevBounds.y = lerpY
 
     // hide/show scene
-    if (isOffscreen && scene.current.visible) {
-      scene.current.visible = false
-    } else if (!isOffscreen && !scene.current.visible) {
-      scene.current.visible = visible
+    if (isOffscreen && scene.visible) {
+      scene.visible = false
+    } else if (!isOffscreen && !scene.visible) {
+      scene.visible = visible
     }
 
-    if (scene.current.visible) {
+    if (scene.visible) {
       // move scene
       if (!positionFixed) {
-        scene.current.position.y = -newY * config.scaleMultiplier
+        scene.position.y = -newY * config.scaleMultiplier
       }
 
       const positiveYUpBottom = size.height * 0.5 - (newY + scale.pixelHeight * 0.5) // inverse Y
       if (scissor) {
         renderScissor({
-          scene: scene.current,
+          scene: scissorScene,
           camera,
           left: bounds.left - margin,
           top: positiveYUpBottom - margin,
@@ -206,6 +208,7 @@ let ScrollScene = ({
 
     // render another frame if delta is large enough
     if (!isOffscreen && delta > config.scrollRestDelta) {
+      config.debug && console.log('ScrollScene.requestFrame', delta)
       requestFrame()
     }
   }, config.PRIORITY_SCISSORS + renderOrder)
@@ -218,33 +221,34 @@ let ScrollScene = ({
     </mesh>
   )
 
-  return (
-    <scene ref={scene} visible={transient.bounds.inViewport && visible}>
-      <group renderOrder={renderOrder}>
-        {(!children || debug) && renderDebugMesh()}
-        {children &&
-          children({
-            // inherited props
-            el,
-            lerp: lerp || config.scrollLerp,
-            lerpOffset,
-            margin,
-            visible,
-            renderOrder,
-            // new props
-            scale,
-            state: transient, // @deprecated
-            scrollState: transient.bounds,
-            scene: scene.current,
-            inViewport,
-            // useFrame render priority (in case children need to run after)
-            priority: config.PRIORITY_SCISSORS + renderOrder,
-            // tunnel the rest
-            ...props,
-          })}
-      </group>
-    </scene>
+  const content = (
+    <group renderOrder={renderOrder}>
+      {(!children || debug) && renderDebugMesh()}
+      {children &&
+        children({
+          // inherited props
+          el,
+          lerp: lerp || config.scrollLerp,
+          lerpOffset,
+          margin,
+          visible,
+          renderOrder,
+          // new props
+          scale,
+          state: transient, // @deprecated
+          scrollState: transient.bounds,
+          scene,
+          inViewport,
+          // useFrame render priority (in case children need to run after)
+          priority: config.PRIORITY_SCISSORS + renderOrder,
+          // tunnel the rest
+          ...props,
+        })}
+    </group>
   )
+
+  // portal if scissor or inline nested scene
+  return scissor ? createPortal(content, scissorScene) : <scene ref={inlineScene}>{content}</scene>
 }
 
 ScrollScene = React.memo(ScrollScene)

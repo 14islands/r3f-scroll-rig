@@ -962,22 +962,27 @@ exports.ScrollScene = function ScrollScene(_ref) {
       positionFixed = _ref$positionFixed === void 0 ? false : _ref$positionFixed,
       props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed"]);
 
-  var scene = React.useRef();
+  var inlineScene = React.useRef();
   var group = React.useRef();
 
-  var _useState = React.useState(false),
-      inViewport = _useState[0],
-      setInViewport = _useState[1];
+  var _useState = React.useState(function () {
+    return new three.Scene();
+  }),
+      scissorScene = _useState[0];
 
-  var _useState2 = React.useState({
+  var _useState2 = React.useState(false),
+      inViewport = _useState2[0],
+      setInViewport = _useState2[1];
+
+  var _useState3 = React.useState({
     width: 1,
     height: 1,
     multiplier: config.scaleMultiplier,
     pixelWidth: 1,
     pixelHeight: 1
   }),
-      scale = _useState2[0],
-      setScale = _useState2[1];
+      scale = _useState3[0],
+      setScale = _useState3[1];
 
   var _useThree = reactThreeFiber.useThree(),
       size = _useThree.size;
@@ -989,7 +994,8 @@ exports.ScrollScene = function ScrollScene(_ref) {
 
   var pageReflowCompleted = useCanvasStore(function (state) {
     return state.pageReflowCompleted;
-  }); // get initial scrollY and listen for transient updates
+  });
+  var scene = scissor ? scissorScene : inlineScene.current; // get initial scrollY and listen for transient updates
 
   var scrollY = React.useRef(useCanvasStore.getState().scrollY);
   React.useEffect(function () {
@@ -1037,7 +1043,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
   }, [el.current]);
 
   var updateSizeAndPosition = function updateSizeAndPosition() {
-    if (!el || !el.current) return;
+    if (!el || !el.current || !scene) return;
     var bounds = _transient.bounds,
         prevBounds = _transient.prevBounds;
 
@@ -1065,7 +1071,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
     }); // place horizontally
 
     bounds.x = left - size.width * 0.5 + width * 0.5;
-    scene.current.position.x = bounds.x * config.scaleMultiplier; // prevents ghost lerp on first render
+    scene.position.x = bounds.x * config.scaleMultiplier; // prevents ghost lerp on first render
 
     if (_transient.isFirstRender) {
       prevBounds.y = top - bounds.centerOffset;
@@ -1078,19 +1084,20 @@ exports.ScrollScene = function ScrollScene(_ref) {
 
   React.useLayoutEffect(function () {
     updateSizeAndPosition();
-  }, [pageReflowCompleted, updateLayout]); // RENDER FRAME
+  }, [pageReflowCompleted, updateLayout, scene]); // RENDER FRAME
 
   reactThreeFiber.useFrame(function (_ref2) {
     var gl = _ref2.gl,
         camera = _ref2.camera,
         clock = _ref2.clock;
+    if (!scene) return;
     var bounds = _transient.bounds,
         prevBounds = _transient.prevBounds; // Find new Y based on cached position and scroll
 
     var initialPos = config.subpixelScrolling ? bounds.top - bounds.centerOffset : Math.floor(bounds.top - bounds.centerOffset);
     var y = initialPos - scrollY.current; // if previously hidden and now visible, update previous position to not get ghost easing when made visible
 
-    if (scene.current.visible && !bounds.inViewport) {
+    if (scene.visible && !bounds.inViewport) {
       prevBounds.y = y;
     } // frame delta
 
@@ -1109,23 +1116,23 @@ exports.ScrollScene = function ScrollScene(_ref) {
     });
     prevBounds.y = lerpY; // hide/show scene
 
-    if (isOffscreen && scene.current.visible) {
-      scene.current.visible = false;
-    } else if (!isOffscreen && !scene.current.visible) {
-      scene.current.visible = visible;
+    if (isOffscreen && scene.visible) {
+      scene.visible = false;
+    } else if (!isOffscreen && !scene.visible) {
+      scene.visible = visible;
     }
 
-    if (scene.current.visible) {
+    if (scene.visible) {
       // move scene
       if (!positionFixed) {
-        scene.current.position.y = -newY * config.scaleMultiplier;
+        scene.position.y = -newY * config.scaleMultiplier;
       }
 
       var positiveYUpBottom = size.height * 0.5 - (newY + scale.pixelHeight * 0.5); // inverse Y
 
       if (scissor) {
         renderScissor({
-          scene: scene.current,
+          scene: scissorScene,
           camera: camera,
           left: bounds.left - margin,
           top: positiveYUpBottom - margin,
@@ -1147,6 +1154,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
 
 
     if (!isOffscreen && delta > config.scrollRestDelta) {
+      config.debug && console.log('ScrollScene.requestFrame', delta);
       requestFrame();
     }
   }, config.PRIORITY_SCISSORS + renderOrder); // meshBasicMaterial shaders are excluded from prod build
@@ -1163,10 +1171,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
     }));
   };
 
-  return /*#__PURE__*/React__default.createElement("scene", {
-    ref: scene,
-    visible: _transient.bounds.inViewport && visible
-  }, /*#__PURE__*/React__default.createElement("group", {
+  var content = /*#__PURE__*/React__default.createElement("group", {
     renderOrder: renderOrder
   }, (!children || debug) && renderDebugMesh(), children && children(_extends({
     // inherited props
@@ -1181,11 +1186,15 @@ exports.ScrollScene = function ScrollScene(_ref) {
     state: _transient,
     // @deprecated
     scrollState: _transient.bounds,
-    scene: scene.current,
+    scene: scene,
     inViewport: inViewport,
     // useFrame render priority (in case children need to run after)
     priority: config.PRIORITY_SCISSORS + renderOrder
-  }, props))));
+  }, props))); // portal if scissor or inline nested scene
+
+  return scissor ? reactThreeFiber.createPortal(content, scissorScene) : /*#__PURE__*/React__default.createElement("scene", {
+    ref: inlineScene
+  }, content);
 };
 
 exports.ScrollScene = /*#__PURE__*/React__default.memo(exports.ScrollScene);
