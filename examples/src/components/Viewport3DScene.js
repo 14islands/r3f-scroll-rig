@@ -10,7 +10,7 @@ const BoxMesh = ({scale, scene, camera, scrollState, parallax = 0 }) => {
   const light2 = useRef()
   const icosahedron = useRef()
   const icosahedronWrap = useRef()
-  const { requestFrame, preloadScene } = useScrollRig()
+  const { invalidate, preloadScene } = useScrollRig()
 
   const size = Math.min(scale.width, scale.height) * 1.5
 
@@ -34,7 +34,7 @@ const BoxMesh = ({scale, scene, camera, scrollState, parallax = 0 }) => {
     light.current.intensity = (scrollState.viewport - 0.5) *2
 
     if (scrollState.inViewport) {
-      requestFrame()
+      invalidate()
     }
   })
 

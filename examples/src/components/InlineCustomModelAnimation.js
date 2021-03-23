@@ -12,7 +12,7 @@ const ModelMesh = ({ scale, camera, scene, scrollState, parallax = 0, size = .2,
   const mesh1 = useRef()
   const mesh2 = useRef()
   const mesh3 = useRef()
-  const { requestFrame, preloadScene } = useScrollRig()
+  const { invalidate, preloadScene } = useScrollRig()
 
   const gltf = useGLTF(tileModel)
 
@@ -35,7 +35,7 @@ const ModelMesh = ({ scale, camera, scene, scrollState, parallax = 0, size = .2,
 
 
     if (scrollState.inViewport) {
-      requestFrame()
+      invalidate()
     }
   })
 
@@ -83,12 +83,10 @@ const InlineCustomModelAnimation = ({ src, url, parallax, size, position, debug,
   const ref = useRef()
 
   useCanvas(
-    // <ScrollScene el={ref} debug={debug} scissor={false}>
-    <StickyScrollScene el={ref} stickyLerp={1} debug={false} inViewportMargin={100}>
+    <StickyScrollScene el={ref} stickyLerp={1} debug={debug} inViewportMargin={0}>
       {(props) => {
         return <ModelMesh {...props} url={url} parallax={parallax} size={size} position={position} {...mProps} />
       }}
-    {/* </ScrollScene>, */}
     </StickyScrollScene>,
   )
 

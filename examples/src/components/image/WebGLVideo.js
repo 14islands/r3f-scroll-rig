@@ -1,5 +1,5 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react'
-import { useScrollRig, useImgTagAsTexture, requestFrame } from '@14islands/r3f-scroll-rig'
+import { useScrollRig, useImgTagAsTexture, invalidate } from '@14islands/r3f-scroll-rig'
 import { useFrame, useThree } from 'react-three-fiber'
 
 import { LinearFilter, VideoTexture, sRGBEncoding, MathUtils } from 'three'
@@ -7,7 +7,7 @@ import { LinearFilter, VideoTexture, sRGBEncoding, MathUtils } from 'three'
 const WebGLVideo = ({ image, scale, scrollState, scene }) => {
   const material = useRef()
   const mesh = useRef()
-  const { requestFrame, pixelRatio, preloadScene } = useScrollRig()
+  const { invalidate, pixelRatio, preloadScene } = useScrollRig()
   const { camera, size, gl } = useThree()
   const [texture, setTexture] = useState(null)
 
@@ -44,7 +44,7 @@ const WebGLVideo = ({ image, scale, scrollState, scene }) => {
     // }
     mesh.current.rotation.y = Math.sin(clock.getElapsedTime())
 
-    requestFrame()
+    invalidate()
  })
 
   return (

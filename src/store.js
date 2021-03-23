@@ -15,14 +15,6 @@ const [useCanvasStore, canvasStoreApi] = create((set) => ({
   hasVirtualScrollbar: false,
   setVirtualScrollbar: (hasVirtualScrollbar) => set((state) => ({ hasVirtualScrollbar })),
 
-  // global render loop is suspended internally (NOT USED)
-  suspended: false,
-  setSuspended: (suspended) => set((state) => ({ suspended })),
-
-  // global render loop is paused by user action
-  paused: false,
-  setPaused: (paused) => set((state) => ({ paused })),
-
   // map of all components to render on the global canvas
   canvasChildren: {},
 

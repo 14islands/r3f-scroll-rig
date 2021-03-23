@@ -10,7 +10,7 @@ import { useGLTF, Shadow, softShadows } from '@react-three/drei'
 const ModelMesh = ({ url, scale, camera, scene, scrollState, parallax = 0, size = 1, position = [0, 0, 0], shadow, shadowPosition }) => {
   const mesh = useRef()
   const light = useRef()
-  const { requestFrame, preloadScene } = useScrollRig()
+  const { invalidate, preloadScene } = useScrollRig()
 
   const gltf = useGLTF(url)
 
@@ -25,7 +25,7 @@ const ModelMesh = ({ url, scale, camera, scene, scrollState, parallax = 0, size 
     //   mesh.current.position.y = parallax * parallaxProgress
 
     if (scrollState.inViewport) {
-      requestFrame()
+      invalidate()
     }
   })
 

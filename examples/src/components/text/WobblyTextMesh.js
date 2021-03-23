@@ -7,11 +7,11 @@ import WebGLText from '../stdlib/WebGLText'
 
 const WobblyTextMesh = ({ children, scrollState, scale, el, font }) => {
   const material = useResource()
-  const { requestFrame } = useScrollRig()
+  const { invalidate } = useScrollRig()
 
   useFrame(() => {
     if (material.current && scrollState.inViewport) {
-      requestFrame()
+      invalidate()
       material.current.factor = scrollState.progress * 0.5 //Math.max(0, scrollState.progress - 0.5) * 2
     }
   })

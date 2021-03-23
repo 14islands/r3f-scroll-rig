@@ -1,12 +1,12 @@
 import _extends from '@babel/runtime/helpers/esm/extends';
 import _objectWithoutPropertiesLoose from '@babel/runtime/helpers/esm/objectWithoutPropertiesLoose';
-import React, { useState, useEffect, useCallback, useRef, useLayoutEffect, Suspense, Fragment, forwardRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect, Suspense, Fragment, forwardRef, useMemo, useCallback } from 'react';
 import { addEffect, addAfterEffect, invalidate, useThree, useFrame, useUpdate, Canvas, createPortal } from 'react-three-fiber';
+import { Vector2, NoToneMapping, Scene, MathUtils, ImageBitmapLoader, TextureLoader, CanvasTexture, sRGBEncoding, LinearFilter, RGBFormat, RGBAFormat } from 'three';
 import { ResizeObserver } from '@juggle/resize-observer';
 import queryString from 'query-string';
 import StatsImpl from 'three/examples/js/libs/stats.min';
 import create from 'zustand';
-import { sRGBEncoding, NoToneMapping, Scene, MathUtils, ImageBitmapLoader, TextureLoader, CanvasTexture, LinearFilter, RGBFormat, RGBAFormat } from 'three';
 import { useWindowSize, useWindowHeight } from '@react-hook/window-size';
 import mergeRefs from 'react-merge-refs';
 import { config as config$1, useScrollRig as useScrollRig$1 } from '@14islands/r3f-scroll-rig';
@@ -49,21 +49,16 @@ const config = {
   // min delta to trigger animation frame on scroll
   subpixelScrolling: true,
   // Execution order for useFrames (highest = last render)
+  PRIORITY_PRELOAD: 0,
   PRIORITY_SCISSORS: 1,
   PRIORITY_VIEWPORTS: 1,
-  PRIORITY_GLOBAL: 1001,
-  // max renderOrder supported for scissors = 1000
+  PRIORITY_GLOBAL: 1000,
   // Scaling
   scaleMultiplier: 1,
   // scale pixels vs viewport units (1:1 by default)
   // Global rendering props
   globalRender: false,
   preloadQueue: [],
-  preRender: [],
-  postRender: [],
-  scissorQueue: [],
-  viewportQueueBefore: [],
-  viewportQueueAfter: [],
   hasVirtualScrollbar: false,
   hasGlobalCanvas: false
 };
@@ -132,16 +127,6 @@ const [useCanvasStore, canvasStoreApi] = create(set => ({
   hasVirtualScrollbar: false,
   setVirtualScrollbar: hasVirtualScrollbar => set(state => ({
     hasVirtualScrollbar
-  })),
-  // global render loop is suspended internally (NOT USED)
-  suspended: false,
-  setSuspended: suspended => set(state => ({
-    suspended
-  })),
-  // global render loop is paused by user action
-  paused: false,
-  setPaused: paused => set(state => ({
-    paused
   })),
   // map of all components to render on the global canvas
   canvasChildren: {},
@@ -228,30 +213,14 @@ const [useCanvasStore, canvasStoreApi] = create(set => ({
   }))
 }));
 
-const renderFullscreen = (layers = [0]) => {
+const viewportSize = new Vector2(); // Flag that we need global rendering (full screen)
+
+const requestRender = (layers = [0]) => {
   config.globalRender = config.globalRender || [0];
   config.globalRender = [...config.globalRender, ...layers];
 };
 const renderScissor = ({
-  scene,
-  camera,
-  left,
-  top,
-  width,
-  height,
-  layer = 0
-}) => {
-  if (!scene || !camera) return;
-  config.scissorQueue.push((gl, camera) => {
-    gl.setScissor(left, top, width, height);
-    gl.setScissorTest(true);
-    camera.layers.set(layer);
-    gl.clearDepth();
-    gl.render(scene, camera);
-    gl.setScissorTest(false);
-  });
-};
-const renderViewport = ({
+  gl,
   scene,
   camera,
   left,
@@ -259,20 +228,41 @@ const renderViewport = ({
   width,
   height,
   layer = 0,
-  renderOnTop = false
+  autoClear = false,
+  clearDepth = true
 }) => {
   if (!scene || !camera) return;
-  config[renderOnTop ? 'viewportQueueAfter' : 'viewportQueueBefore'].push((gl, size) => {
-    // console.log('VIEWPORT RENDER', layer)
-    gl.setViewport(left, top, width, height);
-    gl.setScissor(left, top, width, height);
-    gl.setScissorTest(true);
-    camera.layers.set(layer);
-    gl.clearDepth();
-    gl.render(scene, camera);
-    gl.setScissorTest(false);
-    gl.setViewport(0, 0, size.width, size.height);
-  });
+  gl.autoClear = autoClear;
+  gl.setScissor(left, top, width, height);
+  gl.setScissorTest(true);
+  camera.layers.set(layer);
+  clearDepth && gl.clearDepth();
+  gl.render(scene, camera);
+  gl.setScissorTest(false);
+};
+const renderViewport = ({
+  gl,
+  scene,
+  camera,
+  left,
+  top,
+  width,
+  height,
+  layer = 0,
+  autoClear = false,
+  clearDepth = true
+}) => {
+  if (!scene || !camera) return;
+  gl.getSize(viewportSize);
+  gl.autoClear = autoClear;
+  gl.setViewport(left, top, width, height);
+  gl.setScissor(left, top, width, height);
+  gl.setScissorTest(true);
+  camera.layers.set(layer);
+  clearDepth && gl.clearDepth();
+  gl.render(scene, camera);
+  gl.setScissorTest(false);
+  gl.setViewport(0, 0, viewportSize.x, viewportSize.y);
 };
 const preloadScene = (scene, camera, layer = 0, callback) => {
   if (!scene || !camera) return;
@@ -293,38 +283,16 @@ const preloadScene = (scene, camera, layer = 0, callback) => {
 const useScrollRig = () => {
   const isCanvasAvailable = useCanvasStore(state => state.isCanvasAvailable);
   const hasVirtualScrollbar = useCanvasStore(state => state.hasVirtualScrollbar);
-  const paused = useCanvasStore(state => state.paused);
-  const suspended = useCanvasStore(state => state.suspended);
-  const setPaused = useCanvasStore(state => state.setPaused);
   const requestReflow = useCanvasStore(state => state.requestReflow);
   const pageReflowCompleted = useCanvasStore(state => state.pageReflowCompleted);
   const pixelRatio = useCanvasStore(state => state.pixelRatio);
-  const requestFrame = useCallback(() => {
-    if (!paused && !suspended) {
-      invalidate();
-    }
-  }, [paused, suspended]);
-
-  const pause = () => {
-    config.debug && console.log('GlobalRenderer.pause()');
-    setPaused(true);
-  };
-
-  const resume = () => {
-    config.debug && console.log('GlobalRenderer.resume()');
-    setPaused(false);
-    requestFrame();
-  };
-
   return {
     isCanvasAvailable,
     hasVirtualScrollbar,
     pixelRatio,
-    requestFrame,
-    pause,
-    resume,
+    invalidate,
     preloadScene,
-    renderFullscreen,
+    requestRender,
     renderScissor,
     renderViewport,
     reflow: requestReflow,
@@ -341,39 +309,34 @@ const GlobalRenderer = ({
 }) => {
   const scene = useRef();
   const {
-    gl,
-    size
+    gl
   } = useThree();
   const canvasChildren = useCanvasStore(state => state.canvasChildren);
   const scrollRig = useScrollRig();
   useLayoutEffect(() => {
-    gl.outputEncoding = sRGBEncoding;
-    gl.setClearColor(0x000000, 0);
     gl.debug.checkShaderErrors = config.debug;
-    gl.toneMapping = NoToneMapping;
-  }, []); // GLOBAL RENDER LOOP
+  }, []); // PRELOAD RENDER LOOP
 
   useFrame(({
     camera,
     scene
   }) => {
-    // Render preload frames first and clear directly
+    gl.autoClear = false; // Render preload frames first and clear directly
+
     config.preloadQueue.forEach(render => render(gl));
-    if (config.preloadQueue.length) gl.clear(); // prevent viewport from being cleared if we have multiple render passes
+    if (config.preloadQueue.length) gl.clear(); // cleanup
 
-    if (config.viewportQueueBefore.length || config.viewportQueueAfter.length || config.scissorQueue.length) {
-      gl.autoClear = false;
-    } // Render viewports passes before
+    config.preloadQueue = [];
+  }, config.PRIORITY_PRELOAD); // GLOBAL RENDER LOOP
 
-
-    if (config.viewportQueueBefore.length) {
-      config.viewportQueueBefore.forEach(render => render(gl, size));
-    } // Global render pass
-
-
+  useFrame(({
+    camera,
+    scene
+  }) => {
+    // Global render pass
     if (config.globalRender) {
-      // run any pre-process frames
-      config.preRender.forEach(render => render(gl)); // render default layer, scene, camera
+      gl.autoClear = false; // will fail in VR
+      // render default layer, scene, camera
 
       camera.layers.disableAll();
       config.globalRender.forEach(layer => {
@@ -381,31 +344,11 @@ const GlobalRenderer = ({
       });
       gl.clearDepth(); // render as HUD over any other renders
 
-      gl.render(scene, camera); // run any post-render frame (additional layers etc)
+      gl.render(scene, camera); // cleanup for next frame
 
-      config.postRender.forEach(render => render(gl));
-    } // Render global scissors
-
-
-    if (config.scissorQueue.length) {
-      config.scissorQueue.forEach(render => render(gl, camera));
-    } // Render viewports after
-
-
-    if (config.viewportQueueAfter.length) {
-      gl.autoClear = false;
-      config.viewportQueueAfter.forEach(render => render(gl, size));
-    } // cleanup for next frame
-
-
-    config.globalRender = false;
-    config.preRender = [];
-    config.postRender = [];
-    config.preloadQueue = [];
-    config.scissorQueue = [];
-    config.viewportQueueBefore = [];
-    config.viewportQueueAfter = [];
-    gl.autoClear = true;
+      config.globalRender = false;
+      gl.autoClear = true;
+    }
   }, config.PRIORITY_GLOBAL); // Take over rendering
 
   config.debug && console.log('GlobalRenderer', Object.keys(canvasChildren).length);
@@ -742,7 +685,7 @@ const GlobalCanvas = (_ref) => {
       // https://blog.tojicode.com/2013/12/failifmajorperformancecaveat-with-great.html
       failIfMajorPerformanceCaveat: true
     }, gl),
-    colorManagement: true // ACESFilmic seems incorrect for non-HDR settings - images get weird colors?
+    colorManagement: true // ACESFilmic seems incorrect for non-HDR settings - images get weird color
     ,
     noEvents: noEvents,
     resize: {
@@ -766,7 +709,12 @@ const GlobalCanvas = (_ref) => {
     } // use our own default camera
     ,
     camera: null,
-    updateDefaultCamera: false // allow to override anything of the above
+    updateDefaultCamera: false,
+    onCreated: ({
+      gl
+    }) => {
+      gl.toneMapping = NoToneMapping; // turn off tonemapping by default to provide better hex matching
+    } // allow to override anything of the above
 
   }, props), /*#__PURE__*/React.createElement(GlobalRenderer, null, children), !orthographic && /*#__PURE__*/React.createElement(PerspectiveCamera, {
     makeDefault: true
@@ -814,6 +762,7 @@ let ScrollScene = (_ref) => {
     lerpOffset = 0,
     children,
     renderOrder = 1,
+    priority = config.PRIORITY_SCISSORS,
     margin = 14,
     // Margin outside viewport to avoid clipping vertex displacement (px)
     inViewportMargin,
@@ -824,7 +773,7 @@ let ScrollScene = (_ref) => {
     updateLayout = 0,
     positionFixed = false
   } = _ref,
-      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed"]);
+      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "priority", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed"]);
 
   const inlineScene = useRef();
   const group = useRef();
@@ -841,8 +790,8 @@ let ScrollScene = (_ref) => {
     size
   } = useThree();
   const {
-    requestFrame,
-    renderFullscreen,
+    invalidate,
+    requestRender,
     renderScissor
   } = useScrollRig();
   const pageReflowCompleted = useCanvasStore(state => state.pageReflowCompleted);
@@ -851,7 +800,7 @@ let ScrollScene = (_ref) => {
   const scrollY = useRef(useCanvasStore.getState().scrollY);
   useEffect(() => useCanvasStore.subscribe(y => {
     scrollY.current = y;
-    requestFrame(); // Trigger render on scroll
+    invalidate(); // Trigger render on scroll
   }, state => state.scrollY), []); // non-reactive state
 
   const transient = useRef({
@@ -924,7 +873,7 @@ let ScrollScene = (_ref) => {
       transient.isFirstRender = false;
     }
 
-    requestFrame(); // trigger render
+    invalidate(); // trigger render
   }; // Find bounding box & scale mesh on resize
 
 
@@ -979,6 +928,7 @@ let ScrollScene = (_ref) => {
 
       if (scissor) {
         renderScissor({
+          gl,
           scene: scissorScene,
           camera,
           left: bounds.left - margin,
@@ -987,7 +937,7 @@ let ScrollScene = (_ref) => {
           height: bounds.height + margin * 2
         });
       } else {
-        renderFullscreen();
+        requestRender();
       } // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
 
 
@@ -1001,10 +951,9 @@ let ScrollScene = (_ref) => {
 
 
     if (!isOffscreen && delta > config.scrollRestDelta) {
-      config.debug && console.log('ScrollScene.requestFrame', delta);
-      requestFrame();
+      invalidate();
     }
-  }, config.PRIORITY_SCISSORS + renderOrder); // meshBasicMaterial shaders are excluded from prod build
+  }, priority); // meshBasicMaterial shaders are excluded from prod build
 
   const renderDebugMesh = () => /*#__PURE__*/React.createElement("mesh", null, /*#__PURE__*/React.createElement("planeBufferGeometry", {
     attach: "geometry",
@@ -1108,7 +1057,7 @@ const ScrollDomPortal = /*#__PURE__*/forwardRef(({
   const viewportHeight = useWindowHeight();
   const pageReflowCompleted = useCanvasStore(state => state.pageReflowCompleted);
 
-  const requestFrame = () => {
+  const invalidate = () => {
     window.cancelAnimationFrame(local.raf);
     local.raf = window.requestAnimationFrame(frame);
   }; // get initial scrollY and listen for transient updates
@@ -1117,7 +1066,7 @@ const ScrollDomPortal = /*#__PURE__*/forwardRef(({
   const scrollY = useRef(useCanvasStore.getState().scrollY);
   useEffect(() => useCanvasStore.subscribe(y => {
     scrollY.current = y;
-    requestFrame(); // Trigger render on scroll
+    invalidate(); // Trigger render on scroll
   }, state => state.scrollY), []); // Find initial position of proxy element on mount
 
   useEffect(() => {
@@ -1144,7 +1093,7 @@ const ScrollDomPortal = /*#__PURE__*/forwardRef(({
     copyEl.current.style.position = 'fixed'; // trigger render
 
     local.needUpdate = true;
-    requestFrame();
+    invalidate();
   }, [el]); // TODO: decide if react to size.height to avoid mobile viewport scroll bugs
   // Update position on window resize or if `live` flag changes
 
@@ -1178,7 +1127,7 @@ const ScrollDomPortal = /*#__PURE__*/forwardRef(({
       prevBounds.top = -window.pageYOffset; // trigger render
 
       local.needUpdate = true;
-      requestFrame();
+      invalidate();
     }, {
       timeout: 100
     });
@@ -1238,7 +1187,7 @@ const ScrollDomPortal = /*#__PURE__*/forwardRef(({
     local.needUpdate = false; // render another frame if delta is large enough
 
     if (!isOffscreen && delta > config.scrollRestDelta) {
-      requestFrame();
+      invalidate();
       local.needUpdate = true;
     }
   };
@@ -1435,6 +1384,7 @@ let ViewportScrollScene = (_ref) => {
     // Margin outside viewport to avoid clipping vertex displacement (px)
     visible = true,
     renderOrder,
+    priority = config.PRIORITY_VIEWPORTS,
     debug = false,
     setInViewportProp = false,
     renderOnTop = false,
@@ -1442,7 +1392,7 @@ let ViewportScrollScene = (_ref) => {
     // use global setting as default
     orthographic = false
   } = _ref,
-      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "margin", "visible", "renderOrder", "debug", "setInViewportProp", "renderOnTop", "scaleMultiplier", "orthographic"]);
+      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "margin", "visible", "renderOrder", "priority", "debug", "setInViewportProp", "renderOnTop", "scaleMultiplier", "orthographic"]);
 
   const camera = useRef();
   const [scene] = useState(() => new Scene());
@@ -1458,7 +1408,7 @@ let ViewportScrollScene = (_ref) => {
     size
   } = useThree();
   const {
-    requestFrame,
+    invalidate,
     renderViewport
   } = useScrollRig();
   const pageReflowCompleted = useCanvasStore(state => state.pageReflowCompleted);
@@ -1487,7 +1437,7 @@ let ViewportScrollScene = (_ref) => {
   const scrollY = useRef(useCanvasStore.getState().scrollY);
   useEffect(() => useCanvasStore.subscribe(y => {
     scrollY.current = y;
-    requestFrame(); // Trigger render on scroll
+    invalidate(); // Trigger render on scroll
   }, state => state.scrollY), []);
   useEffect(() => {
     transient.mounted = true;
@@ -1548,7 +1498,7 @@ let ViewportScrollScene = (_ref) => {
       camera.current.updateMatrixWorld();
     }
 
-    requestFrame(); // trigger render
+    invalidate(); // trigger render
   }; // Find bounding box & scale mesh on resize
 
 
@@ -1556,7 +1506,9 @@ let ViewportScrollScene = (_ref) => {
     updateSizeAndPosition();
   }, [pageReflowCompleted]); // RENDER FRAME
 
-  useFrame(() => {
+  useFrame(({
+    gl
+  }) => {
     if (!scene) return;
     const {
       bounds,
@@ -1589,6 +1541,7 @@ let ViewportScrollScene = (_ref) => {
       const positiveYUpBottom = size.height - (newTop + bounds.height); // inverse Y
 
       renderViewport({
+        gl,
         scene,
         camera: camera.current,
         left: bounds.left - margin,
@@ -1608,9 +1561,9 @@ let ViewportScrollScene = (_ref) => {
 
 
     if (!isOffscreen && delta > config.scrollRestDelta) {
-      requestFrame();
+      invalidate();
     }
-  }, config.PRIORITY_VIEWPORTS + renderOrder);
+  }, priority);
 
   const renderDebugMesh = () => /*#__PURE__*/React.createElement("mesh", null, /*#__PURE__*/React.createElement("planeBufferGeometry", {
     attach: "geometry",

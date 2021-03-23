@@ -21,6 +21,7 @@ let ScrollScene = ({
   lerpOffset = 0,
   children,
   renderOrder = 1,
+  priority = config.PRIORITY_SCISSORS,
   margin = 14, // Margin outside viewport to avoid clipping vertex displacement (px)
   inViewportMargin,
   visible = true,
@@ -44,7 +45,7 @@ let ScrollScene = ({
     pixelHeight: 1,
   })
   const { size } = useThree()
-  const { requestFrame, renderFullscreen, renderScissor } = useScrollRig()
+  const { invalidate, requestRender, renderScissor } = useScrollRig()
   const pageReflowCompleted = useCanvasStore((state) => state.pageReflowCompleted)
   const scene = scissor ? scissorScene : inlineScene.current
 
@@ -55,7 +56,7 @@ let ScrollScene = ({
       useCanvasStore.subscribe(
         (y) => {
           scrollY.current = y
-          requestFrame() // Trigger render on scroll
+          invalidate() // Trigger render on scroll
         },
         (state) => state.scrollY,
       ),
@@ -130,7 +131,7 @@ let ScrollScene = ({
       transient.isFirstRender = false
     }
 
-    requestFrame() // trigger render
+    invalidate() // trigger render
   }
 
   // Find bounding box & scale mesh on resize
@@ -188,6 +189,7 @@ let ScrollScene = ({
       const positiveYUpBottom = size.height * 0.5 - (newY + scale.pixelHeight * 0.5) // inverse Y
       if (scissor) {
         renderScissor({
+          gl,
           scene: scissorScene,
           camera,
           left: bounds.left - margin,
@@ -196,7 +198,7 @@ let ScrollScene = ({
           height: bounds.height + margin * 2,
         })
       } else {
-        renderFullscreen()
+        requestRender()
       }
 
       // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
@@ -208,10 +210,9 @@ let ScrollScene = ({
 
     // render another frame if delta is large enough
     if (!isOffscreen && delta > config.scrollRestDelta) {
-      config.debug && console.log('ScrollScene.requestFrame', delta)
-      requestFrame()
+      invalidate()
     }
-  }, config.PRIORITY_SCISSORS + renderOrder)
+  }, priority)
 
   // meshBasicMaterial shaders are excluded from prod build
   const renderDebugMesh = () => (
@@ -259,7 +260,7 @@ ScrollScene.propTypes = {
   lerpOffset: PropTypes.number, // Offset applied to `lerp`
   renderOrder: PropTypes.number, // threejs render order
   visible: PropTypes.bool, // threejs render order,
-  margin: PropTypes.number, // custom margin around DOM el to avoid clipping
+  margin: PropTypes.number, // custom margin around DOM el when using scissor to avoid clipping
   scissor: PropTypes.bool, // render using scissor test for better peformance
   debug: PropTypes.bool, // show debug mesh
   setInViewportProp: PropTypes.bool, // update inViewport property on child (might cause lag)

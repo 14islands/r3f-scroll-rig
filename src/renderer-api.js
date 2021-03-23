@@ -1,37 +1,60 @@
 import config from './config'
 import * as utils from './utils'
+import { Vector2 } from 'three'
+
+const viewportSize = new Vector2()
 
 // Flag that we need global rendering (full screen)
-export const renderFullscreen = (layers = [0]) => {
+export const requestRender = (layers = [0]) => {
   config.globalRender = config.globalRender || [0]
   config.globalRender = [...config.globalRender, ...layers]
 }
 
-export const renderScissor = ({ scene, camera, left, top, width, height, layer = 0 }) => {
+export const renderScissor = ({
+  gl,
+  scene,
+  camera,
+  left,
+  top,
+  width,
+  height,
+  layer = 0,
+  autoClear = false,
+  clearDepth = true,
+}) => {
   if (!scene || !camera) return
-  config.scissorQueue.push((gl, camera) => {
-    gl.setScissor(left, top, width, height)
-    gl.setScissorTest(true)
-    camera.layers.set(layer)
-    gl.clearDepth()
-    gl.render(scene, camera)
-    gl.setScissorTest(false)
-  })
+  gl.autoClear = autoClear
+  gl.setScissor(left, top, width, height)
+  gl.setScissorTest(true)
+  camera.layers.set(layer)
+  clearDepth && gl.clearDepth()
+  gl.render(scene, camera)
+  gl.setScissorTest(false)
 }
 
-export const renderViewport = ({ scene, camera, left, top, width, height, layer = 0, renderOnTop = false }) => {
+export const renderViewport = ({
+  gl,
+  scene,
+  camera,
+  left,
+  top,
+  width,
+  height,
+  layer = 0,
+  autoClear = false,
+  clearDepth = true,
+}) => {
   if (!scene || !camera) return
-  config[renderOnTop ? 'viewportQueueAfter' : 'viewportQueueBefore'].push((gl, size) => {
-    // console.log('VIEWPORT RENDER', layer)
-    gl.setViewport(left, top, width, height)
-    gl.setScissor(left, top, width, height)
-    gl.setScissorTest(true)
-    camera.layers.set(layer)
-    gl.clearDepth()
-    gl.render(scene, camera)
-    gl.setScissorTest(false)
-    gl.setViewport(0, 0, size.width, size.height)
-  })
+  gl.getSize(viewportSize)
+  gl.autoClear = autoClear
+  gl.setViewport(left, top, width, height)
+  gl.setScissor(left, top, width, height)
+  gl.setScissorTest(true)
+  camera.layers.set(layer)
+  clearDepth && gl.clearDepth()
+  gl.render(scene, camera)
+  gl.setScissorTest(false)
+  gl.setViewport(0, 0, viewportSize.x, viewportSize.y)
 }
 
 export const preloadScene = (scene, camera, layer = 0, callback) => {

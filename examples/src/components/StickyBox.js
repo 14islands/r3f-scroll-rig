@@ -8,7 +8,7 @@ import StickyScrollScene from './stdlib/StickyScrollScene'
 
 const BoxMesh = ({scale, scrollState, lerp }) => {
   const mesh = useRef()
-  const { requestFrame } = useScrollRig()
+  const { invalidate } = useScrollRig()
 
   const size = scale.width * 0.25
 
@@ -42,7 +42,7 @@ const BoxMesh = ({scale, scrollState, lerp }) => {
     mesh.current.rotation.y = (Math.PI / 8) + scrollState.progress * Math.PI * 3
     mesh.current.rotation.x = Math.PI / 8 - scrollState.progress * Math.PI * 0.25
 
-    requestFrame()
+    invalidate()
   })
 
 

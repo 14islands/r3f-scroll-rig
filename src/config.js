@@ -12,9 +12,10 @@ export const config = {
   subpixelScrolling: true,
 
   // Execution order for useFrames (highest = last render)
+  PRIORITY_PRELOAD: 0,
   PRIORITY_SCISSORS: 1,
   PRIORITY_VIEWPORTS: 1,
-  PRIORITY_GLOBAL: 1001, // max renderOrder supported for scissors = 1000
+  PRIORITY_GLOBAL: 1000,
 
   // Scaling
   scaleMultiplier: 1, // scale pixels vs viewport units (1:1 by default)
@@ -22,11 +23,6 @@ export const config = {
   // Global rendering props
   globalRender: false,
   preloadQueue: [],
-  preRender: [],
-  postRender: [],
-  scissorQueue: [],
-  viewportQueueBefore: [],
-  viewportQueueAfter: [],
   hasVirtualScrollbar: false,
   hasGlobalCanvas: false,
 }

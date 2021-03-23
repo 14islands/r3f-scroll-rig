@@ -24,6 +24,7 @@ let ViewportScrollScene = ({
   margin = 0, // Margin outside viewport to avoid clipping vertex displacement (px)
   visible = true,
   renderOrder,
+  priority = config.PRIORITY_VIEWPORTS,
   debug = false,
   setInViewportProp = false,
   renderOnTop = false,
@@ -43,7 +44,7 @@ let ViewportScrollScene = ({
     pixelHeight: 1,
   })
   const { size } = useThree()
-  const { requestFrame, renderViewport } = useScrollRig()
+  const { invalidate, renderViewport } = useScrollRig()
 
   const pageReflowCompleted = useCanvasStore((state) => state.pageReflowCompleted)
 
@@ -72,7 +73,7 @@ let ViewportScrollScene = ({
       useCanvasStore.subscribe(
         (y) => {
           scrollY.current = y
-          requestFrame() // Trigger render on scroll
+          invalidate() // Trigger render on scroll
         },
         (state) => state.scrollY,
       ),
@@ -136,7 +137,7 @@ let ViewportScrollScene = ({
       camera.current.updateMatrixWorld()
     }
 
-    requestFrame() // trigger render
+    invalidate() // trigger render
   }
 
   // Find bounding box & scale mesh on resize
@@ -145,7 +146,7 @@ let ViewportScrollScene = ({
   }, [pageReflowCompleted])
 
   // RENDER FRAME
-  useFrame(() => {
+  useFrame(({ gl }) => {
     if (!scene) return
     const { bounds, prevBounds } = transient
 
@@ -181,6 +182,7 @@ let ViewportScrollScene = ({
       const positiveYUpBottom = size.height - (newTop + bounds.height) // inverse Y
 
       renderViewport({
+        gl,
         scene,
         camera: camera.current,
         left: bounds.left - margin,
@@ -199,9 +201,9 @@ let ViewportScrollScene = ({
 
     // render another frame if delta is large enough
     if (!isOffscreen && delta > config.scrollRestDelta) {
-      requestFrame()
+      invalidate()
     }
-  }, config.PRIORITY_VIEWPORTS + renderOrder)
+  }, priority)
 
   const renderDebugMesh = () => (
     <mesh>

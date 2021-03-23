@@ -60,7 +60,7 @@ export const renderAsSticky = (children, { stickyLerp, scaleToViewport }) => {
 
 export const StickyScrollScene = ({ children, stickyLerp, scaleToViewport = true, ...props }) => {
   return (
-    <ScrollScene {...props} scissor={false}>
+    <ScrollScene scissor={false} {...props} >
       {renderAsSticky(children, { stickyLerp, scaleToViewport })}
     </ScrollScene>
   )

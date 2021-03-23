@@ -42,7 +42,7 @@ const ScrollDomPortal = forwardRef(
 
     const pageReflowCompleted = useCanvasStore((state) => state.pageReflowCompleted)
 
-    const requestFrame = () => {
+    const invalidate = () => {
       window.cancelAnimationFrame(local.raf)
       local.raf = window.requestAnimationFrame(frame)
     }
@@ -54,7 +54,7 @@ const ScrollDomPortal = forwardRef(
         useCanvasStore.subscribe(
           (y) => {
             scrollY.current = y
-            requestFrame() // Trigger render on scroll
+            invalidate() // Trigger render on scroll
           },
           (state) => state.scrollY,
         ),
@@ -84,7 +84,7 @@ const ScrollDomPortal = forwardRef(
 
       // trigger render
       local.needUpdate = true
-      requestFrame()
+      invalidate()
     }, [el]) // TODO: decide if react to size.height to avoid mobile viewport scroll bugs
 
     // Update position on window resize or if `live` flag changes
@@ -114,7 +114,7 @@ const ScrollDomPortal = forwardRef(
 
           // trigger render
           local.needUpdate = true
-          requestFrame()
+          invalidate()
         },
         { timeout: 100 },
       )
@@ -174,7 +174,7 @@ const ScrollDomPortal = forwardRef(
 
       // render another frame if delta is large enough
       if (!isOffscreen && delta > config.scrollRestDelta) {
-        requestFrame()
+        invalidate()
         local.needUpdate = true
       }
     }

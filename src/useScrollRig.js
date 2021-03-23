@@ -1,10 +1,8 @@
-import { useCallback } from 'react'
 import { invalidate } from 'react-three-fiber'
 
-import config from './config'
 import { useCanvasStore } from './store'
 
-import { preloadScene, renderFullscreen, renderScissor, renderViewport } from './renderer-api'
+import { preloadScene, requestRender, renderScissor, renderViewport } from './renderer-api'
 
 /**
  * Public interface for ScrollRig
@@ -12,39 +10,17 @@ import { preloadScene, renderFullscreen, renderScissor, renderViewport } from '.
 export const useScrollRig = () => {
   const isCanvasAvailable = useCanvasStore((state) => state.isCanvasAvailable)
   const hasVirtualScrollbar = useCanvasStore((state) => state.hasVirtualScrollbar)
-  const paused = useCanvasStore((state) => state.paused)
-  const suspended = useCanvasStore((state) => state.suspended)
-  const setPaused = useCanvasStore((state) => state.setPaused)
   const requestReflow = useCanvasStore((state) => state.requestReflow)
   const pageReflowCompleted = useCanvasStore((state) => state.pageReflowCompleted)
   const pixelRatio = useCanvasStore((state) => state.pixelRatio)
-
-  const requestFrame = useCallback(() => {
-    if (!paused && !suspended) {
-      invalidate()
-    }
-  }, [paused, suspended])
-
-  const pause = () => {
-    config.debug && console.log('GlobalRenderer.pause()')
-    setPaused(true)
-  }
-
-  const resume = () => {
-    config.debug && console.log('GlobalRenderer.resume()')
-    setPaused(false)
-    requestFrame()
-  }
 
   return {
     isCanvasAvailable,
     hasVirtualScrollbar,
     pixelRatio,
-    requestFrame,
-    pause,
-    resume,
+    invalidate,
     preloadScene,
-    renderFullscreen,
+    requestRender,
     renderScissor,
     renderViewport,
     reflow: requestReflow,

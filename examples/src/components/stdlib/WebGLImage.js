@@ -7,7 +7,7 @@ import { useFrame, useThree } from 'react-three-fiber'
 const WebGLImage = ({ image, scale, scrollState, scene, vertexShader, fragmentShader, invalidateFrameLoop = false, widthSegments = 128, heightSegments = 128 }) => {
   const material = useRef()
   const mesh = useRef()
-  const { requestFrame, pixelRatio, preloadScene } = useScrollRig()
+  const { invalidate, pixelRatio, preloadScene } = useScrollRig()
   const { camera, size } = useThree()
 
   const [texture] = useImgTagAsTexture(image.current)
@@ -54,7 +54,7 @@ const WebGLImage = ({ image, scale, scrollState, scene, vertexShader, fragmentSh
     // percent of window height scrolled since visible
     material.current.uniforms.u_viewport.value = scrollState.viewport
 
-    if (invalidateFrameLoop) requestFrame()
+    if (invalidateFrameLoop) invalidate()
  })
 
   return (

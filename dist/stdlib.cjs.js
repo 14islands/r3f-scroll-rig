@@ -97,7 +97,7 @@ var WebGLImage = function WebGLImage(_ref) {
   var mesh = React.useRef();
 
   var _useScrollRig = r3fScrollRig.useScrollRig(),
-      requestFrame = _useScrollRig.requestFrame,
+      invalidate = _useScrollRig.invalidate,
       pixelRatio = _useScrollRig.pixelRatio,
       preloadScene = _useScrollRig.preloadScene;
 
@@ -161,7 +161,7 @@ var WebGLImage = function WebGLImage(_ref) {
     material.current.uniforms.u_visibility.value = scrollState.visibility; // percent of window height scrolled since visible
 
     material.current.uniforms.u_viewport.value = scrollState.viewport;
-    if (invalidateFrameLoop) requestFrame();
+    if (invalidateFrameLoop) invalidate();
   });
   return /*#__PURE__*/React__default.createElement("mesh", {
     ref: mesh

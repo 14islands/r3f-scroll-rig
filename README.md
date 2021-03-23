@@ -250,7 +250,7 @@ The child node will be passed the following `props`:
 
 This library runs a manual render loop of the global scene inside r3f. It runs with priority `1001` if a component has requested a global render frame.
 
-To request global render call `renderFullscreen()` from `useScrollRig` on each frame.
+To request global render call `requestRender()` from `useScrollRig` on each frame.
 
 This library also supports rendering viewports as a separate render pass by calling `renderViewport()`. This way we can render scenes with separate lights or different camera than the global scene. 
 

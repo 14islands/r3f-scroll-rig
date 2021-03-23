@@ -1,22 +1,22 @@
 {
   "web.js": {
-    "bundled": 66486,
-    "minified": 30385,
-    "gzipped": 9031,
+    "bundled": 64728,
+    "minified": 29483,
+    "gzipped": 8825,
     "treeshaked": {
       "rollup": {
-        "code": 14531,
-        "import_statements": 731
+        "code": 14147,
+        "import_statements": 727
       },
       "webpack": {
-        "code": 16959
+        "code": 16559
       }
     }
   },
   "web.cjs.js": {
-    "bundled": 81261,
-    "minified": 36103,
-    "gzipped": 9691
+    "bundled": 79533,
+    "minified": 35050,
+    "gzipped": 9533
   },
   "vscroll.js": {
     "bundled": 12612,
@@ -38,23 +38,23 @@
     "gzipped": 2419
   },
   "scrollbar.js": {
-    "bundled": 15221,
-    "minified": 6337,
-    "gzipped": 2420,
+    "bundled": 14817,
+    "minified": 6174,
+    "gzipped": 2370,
     "treeshaked": {
       "rollup": {
-        "code": 1599,
+        "code": 1506,
         "import_statements": 190
       },
       "webpack": {
-        "code": 3107
+        "code": 2944
       }
     }
   },
   "scrollbar.cjs.js": {
-    "bundled": 18976,
-    "minified": 7696,
-    "gzipped": 2655
+    "bundled": 18372,
+    "minified": 7467,
+    "gzipped": 2604
   },
   "examples.js": {
     "bundled": 2866,
@@ -76,9 +76,9 @@
     "gzipped": 973
   },
   "stdlib.js": {
-    "bundled": 5912,
-    "minified": 3263,
-    "gzipped": 1344,
+    "bundled": 5908,
+    "minified": 3261,
+    "gzipped": 1340,
     "treeshaked": {
       "rollup": {
         "code": 221,
@@ -90,8 +90,8 @@
     }
   },
   "stdlib.cjs.js": {
-    "bundled": 7878,
-    "minified": 3943,
-    "gzipped": 1531
+    "bundled": 7872,
+    "minified": 3941,
+    "gzipped": 1527
   }
 }

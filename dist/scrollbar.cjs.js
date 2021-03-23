@@ -42,21 +42,16 @@ var config = {
   // min delta to trigger animation frame on scroll
   subpixelScrolling: true,
   // Execution order for useFrames (highest = last render)
+  PRIORITY_PRELOAD: 0,
   PRIORITY_SCISSORS: 1,
   PRIORITY_VIEWPORTS: 1,
-  PRIORITY_GLOBAL: 1001,
-  // max renderOrder supported for scissors = 1000
+  PRIORITY_GLOBAL: 1000,
   // Scaling
   scaleMultiplier: 1,
   // scale pixels vs viewport units (1:1 by default)
   // Global rendering props
   globalRender: false,
   preloadQueue: [],
-  preRender: [],
-  postRender: [],
-  scissorQueue: [],
-  viewportQueueBefore: [],
-  viewportQueueAfter: [],
   hasVirtualScrollbar: false,
   hasGlobalCanvas: false
 };
@@ -85,24 +80,6 @@ var _create = create(function (set) {
       return set(function (state) {
         return {
           hasVirtualScrollbar: hasVirtualScrollbar
-        };
-      });
-    },
-    // global render loop is suspended internally (NOT USED)
-    suspended: false,
-    setSuspended: function setSuspended(suspended) {
-      return set(function (state) {
-        return {
-          suspended: suspended
-        };
-      });
-    },
-    // global render loop is paused by user action
-    paused: false,
-    setPaused: function setPaused(paused) {
-      return set(function (state) {
-        return {
-          paused: paused
         };
       });
     },

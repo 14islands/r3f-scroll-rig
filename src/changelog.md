@@ -1,5 +1,18 @@
 # Changelog
 
+## v2.0.0
+
+Breaking upgrade. Simplify and remove as much as possible.
+
+- `requestFrame` is now removed. please use `invalidate` to trigger useFrame
+- global render pass now run with priority `1000`
+- `renderFullscreen` has been renamed to `requestRender` - use this to trigger a global render pass.
+- `renderScissor` and `renderViewport` now renders immediately. use `useFrame() priority` to render before or after global render
+- `preloadScene` now runs with priority `0`
+- `ScrollScene` and `ViewportScrollScene` runs with priority `1` by default
+- `ScrollScene` and `ViewportScrollScene` now accepts a `priority` prop to change the `useFrame` priority.
+- all `pause` and `suspend` logic has been removed
+
 ## v1.11.0
 
 Added `stdlib` export target with the following reusable components:

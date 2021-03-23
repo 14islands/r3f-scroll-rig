@@ -5,7 +5,7 @@ import { RayGrab, Hover } from '@react-three/xr'
 
 const BoxMesh = ({scale, scrollState, parallax = 0 }) => {
   const mesh = useRef()
-  const { requestFrame } = useScrollRig()
+  const { invalidate } = useScrollRig()
 
   useFrame(() => {
     mesh.current.rotation.y = Math.PI / 8 + scrollState.progress * Math.PI * 1
@@ -15,7 +15,7 @@ const BoxMesh = ({scale, scrollState, parallax = 0 }) => {
     mesh.current.position.y = parallax * parallaxProgress * 0.001
 
     if (scrollState.inViewport) {
-      requestFrame()
+      invalidate()
     }
   })
 

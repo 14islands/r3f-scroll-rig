@@ -1,6 +1,7 @@
 import React, { useEffect, useLayoutEffect, useMemo } from 'react'
 import PropTypes from 'prop-types'
 import { Canvas } from 'react-three-fiber'
+import { NoToneMapping } from 'three'
 import { ResizeObserver } from '@juggle/resize-observer'
 import queryString from 'query-string'
 
@@ -71,7 +72,7 @@ const GlobalCanvas = ({
         failIfMajorPerformanceCaveat: true, // skip webgl if slow device
         ...gl,
       }}
-      colorManagement={true} // ACESFilmic seems incorrect for non-HDR settings - images get weird colors?
+      colorManagement={true} // ACESFilmic seems incorrect for non-HDR settings - images get weird color
       noEvents={noEvents}
       resize={{ scroll: false, debounce: 0, polyfill: ResizeObserver }}
       // concurrent // zustand (state mngr) is not compatible with concurrent mode yet
@@ -89,6 +90,9 @@ const GlobalCanvas = ({
       // use our own default camera
       camera={null}
       updateDefaultCamera={false}
+      onCreated={({ gl }) => {
+        gl.toneMapping = NoToneMapping // turn off tonemapping by default to provide better hex matching
+      }}
       // allow to override anything of the above
       {...props}
     >
