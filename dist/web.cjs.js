@@ -1010,6 +1010,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
       _transient.isFirstRender = false;
     }
 
+    config.debug && console.log('ScrollScene.updateSizeAndPosition()', 'DONE', scale);
     invalidate(); // trigger render
   }; // Find bounding box & scale mesh on resize
 

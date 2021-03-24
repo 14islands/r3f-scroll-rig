@@ -134,6 +134,8 @@ let ScrollScene = ({
       transient.isFirstRender = false
     }
 
+    config.debug && console.log('ScrollScene.updateSizeAndPosition()', 'DONE', scale)
+
     invalidate() // trigger render
   }
 
