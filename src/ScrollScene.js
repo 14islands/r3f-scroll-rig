@@ -98,7 +98,10 @@ let ScrollScene = ({
   }, [el.current])
 
   const updateSizeAndPosition = () => {
-    if (!el || !el.current || !scene) return
+    if (!el || !el.current || !scene) {
+      config.debug && console.log('ScrollScene.updateSizeAndPosition()', 'ABORT', el.current, scene)
+      return
+    }
 
     const { bounds, prevBounds } = transient
     const { top, left, width, height } = el.current.getBoundingClientRect()
@@ -135,7 +138,16 @@ let ScrollScene = ({
   }
 
   // Find bounding box & scale mesh on resize
-  useLayoutEffect(() => {
+  useEffect(() => {
+    config.debug &&
+      console.log(
+        'ScrollScene',
+        'trigger updateSizeAndPosition()',
+        pageReflowCompleted,
+        updateLayout,
+        scissorScene,
+        inlineScene,
+      )
     updateSizeAndPosition()
   }, [pageReflowCompleted, updateLayout, scissorScene, inlineScene])
 

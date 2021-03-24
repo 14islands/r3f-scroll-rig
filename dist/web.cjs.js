@@ -971,7 +971,11 @@ exports.ScrollScene = function ScrollScene(_ref) {
   }, [el.current]);
 
   var updateSizeAndPosition = function updateSizeAndPosition() {
-    if (!el || !el.current || !scene) return;
+    if (!el || !el.current || !scene) {
+      config.debug && console.log('ScrollScene.updateSizeAndPosition()', 'ABORT', el.current, scene);
+      return;
+    }
+
     var bounds = _transient.bounds,
         prevBounds = _transient.prevBounds;
 
@@ -1010,7 +1014,8 @@ exports.ScrollScene = function ScrollScene(_ref) {
   }; // Find bounding box & scale mesh on resize
 
 
-  React.useLayoutEffect(function () {
+  React.useEffect(function () {
+    config.debug && console.log('ScrollScene', 'trigger updateSizeAndPosition()', pageReflowCompleted, updateLayout, scissorScene, inlineScene);
     updateSizeAndPosition();
   }, [pageReflowCompleted, updateLayout, scissorScene, inlineScene]); // RENDER FRAME
 
