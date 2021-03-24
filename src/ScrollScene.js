@@ -137,7 +137,7 @@ let ScrollScene = ({
   // Find bounding box & scale mesh on resize
   useLayoutEffect(() => {
     updateSizeAndPosition()
-  }, [pageReflowCompleted, updateLayout, scene])
+  }, [pageReflowCompleted, updateLayout, scissorScene, inlineScene])
 
   // RENDER FRAME
   useFrame(({ gl, camera, clock }) => {

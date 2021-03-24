@@ -879,7 +879,7 @@ let ScrollScene = (_ref) => {
 
   useLayoutEffect(() => {
     updateSizeAndPosition();
-  }, [pageReflowCompleted, updateLayout, scene]); // RENDER FRAME
+  }, [pageReflowCompleted, updateLayout, scissorScene, inlineScene]); // RENDER FRAME
 
   useFrame(({
     gl,

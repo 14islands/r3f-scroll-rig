@@ -1012,7 +1012,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
 
   React.useLayoutEffect(function () {
     updateSizeAndPosition();
-  }, [pageReflowCompleted, updateLayout, scene]); // RENDER FRAME
+  }, [pageReflowCompleted, updateLayout, scissorScene, inlineScene]); // RENDER FRAME
 
   reactThreeFiber.useFrame(function (_ref2) {
     var gl = _ref2.gl,
