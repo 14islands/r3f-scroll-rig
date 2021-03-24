@@ -890,19 +890,17 @@ exports.ScrollScene = function ScrollScene(_ref) {
       positionFixed = _ref$positionFixed === void 0 ? false : _ref$positionFixed,
       props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "priority", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed"]);
 
-  // const inlineScene = useRef()
-  var inlineScene = React.useCallback(function (node) {
+  var inlineSceneRef = React.useCallback(function (node) {
     if (node !== null) {
       config.debug && console.log('ScrollScene', 'GOT SCENE REF', node);
-      updateSizeAndPosition();
+      setScene(node);
     }
   }, []);
   var group = React.useRef();
 
-  var _useState = React.useState(function () {
-    return new three.Scene();
-  }),
-      scissorScene = _useState[0];
+  var _useState = React.useState(scissor && new three.Scene()),
+      scene = _useState[0],
+      setScene = _useState[1];
 
   var _useState2 = React.useState(false),
       inViewport = _useState2[0],
@@ -928,8 +926,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
 
   var pageReflowCompleted = useCanvasStore(function (state) {
     return state.pageReflowCompleted;
-  });
-  var scene = scissor ? scissorScene : inlineScene.current; // get initial scrollY and listen for transient updates
+  }); // get initial scrollY and listen for transient updates
 
   var scrollY = React.useRef(useCanvasStore.getState().scrollY);
   React.useEffect(function () {
@@ -1022,9 +1019,9 @@ exports.ScrollScene = function ScrollScene(_ref) {
 
 
   React.useLayoutEffect(function () {
-    config.debug && console.log('ScrollScene', 'trigger updateSizeAndPosition()', pageReflowCompleted, updateLayout, scissorScene, inlineScene);
+    config.debug && console.log('ScrollScene', 'trigger updateSizeAndPosition()', pageReflowCompleted, updateLayout, scene);
     updateSizeAndPosition();
-  }, [pageReflowCompleted, updateLayout]); // RENDER FRAME
+  }, [pageReflowCompleted, updateLayout, scene]); // RENDER FRAME
 
   reactThreeFiber.useFrame(function (_ref2) {
     var gl = _ref2.gl,
@@ -1073,7 +1070,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
       if (scissor) {
         renderScissor({
           gl: gl,
-          scene: scissorScene,
+          scene: scene,
           camera: camera,
           left: bounds.left - margin,
           top: positiveYUpBottom - margin,
@@ -1132,8 +1129,8 @@ exports.ScrollScene = function ScrollScene(_ref) {
     priority: config.PRIORITY_SCISSORS + renderOrder
   }, props))); // portal if scissor or inline nested scene
 
-  return scissor ? reactThreeFiber.createPortal(content, scissorScene) : /*#__PURE__*/React__default.createElement("scene", {
-    ref: inlineScene
+  return scissor ? reactThreeFiber.createPortal(content, scene) : /*#__PURE__*/React__default.createElement("scene", {
+    ref: inlineSceneRef
   }, content);
 };
 

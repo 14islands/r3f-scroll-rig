@@ -775,15 +775,14 @@ let ScrollScene = (_ref) => {
   } = _ref,
       props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "priority", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed"]);
 
-  // const inlineScene = useRef()
-  const inlineScene = useCallback(node => {
+  const inlineSceneRef = useCallback(node => {
     if (node !== null) {
       config.debug && console.log('ScrollScene', 'GOT SCENE REF', node);
-      updateSizeAndPosition();
+      setScene(node);
     }
   }, []);
   const group = useRef();
-  const [scissorScene] = useState(() => new Scene());
+  const [scene, setScene] = useState(scissor && new Scene());
   const [inViewport, setInViewport] = useState(false);
   const [scale, setScale] = useState({
     width: 1,
@@ -800,8 +799,7 @@ let ScrollScene = (_ref) => {
     requestRender,
     renderScissor
   } = useScrollRig();
-  const pageReflowCompleted = useCanvasStore(state => state.pageReflowCompleted);
-  const scene = scissor ? scissorScene : inlineScene.current; // get initial scrollY and listen for transient updates
+  const pageReflowCompleted = useCanvasStore(state => state.pageReflowCompleted); // get initial scrollY and listen for transient updates
 
   const scrollY = useRef(useCanvasStore.getState().scrollY);
   useEffect(() => useCanvasStore.subscribe(y => {
@@ -889,9 +887,9 @@ let ScrollScene = (_ref) => {
 
 
   useLayoutEffect(() => {
-    config.debug && console.log('ScrollScene', 'trigger updateSizeAndPosition()', pageReflowCompleted, updateLayout, scissorScene, inlineScene);
+    config.debug && console.log('ScrollScene', 'trigger updateSizeAndPosition()', pageReflowCompleted, updateLayout, scene);
     updateSizeAndPosition();
-  }, [pageReflowCompleted, updateLayout]); // RENDER FRAME
+  }, [pageReflowCompleted, updateLayout, scene]); // RENDER FRAME
 
   useFrame(({
     gl,
@@ -941,7 +939,7 @@ let ScrollScene = (_ref) => {
       if (scissor) {
         renderScissor({
           gl,
-          scene: scissorScene,
+          scene,
           camera,
           left: bounds.left - margin,
           top: positiveYUpBottom - margin,
@@ -998,8 +996,8 @@ let ScrollScene = (_ref) => {
     priority: config.PRIORITY_SCISSORS + renderOrder
   }, props))); // portal if scissor or inline nested scene
 
-  return scissor ? createPortal(content, scissorScene) : /*#__PURE__*/React.createElement("scene", {
-    ref: inlineScene
+  return scissor ? createPortal(content, scene) : /*#__PURE__*/React.createElement("scene", {
+    ref: inlineSceneRef
   }, content);
 };
 

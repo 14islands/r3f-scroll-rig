@@ -32,16 +32,15 @@ let ScrollScene = ({
   positionFixed = false,
   ...props
 }) => {
-  // const inlineScene = useRef()
-  const inlineScene = useCallback((node) => {
+  const inlineSceneRef = useCallback((node) => {
     if (node !== null) {
       config.debug && console.log('ScrollScene', 'GOT SCENE REF', node)
-      updateSizeAndPosition()
+      setScene(node)
     }
   }, [])
 
   const group = useRef()
-  const [scissorScene] = useState(() => new Scene())
+  const [scene, setScene] = useState(scissor && new Scene())
 
   const [inViewport, setInViewport] = useState(false)
   const [scale, setScale] = useState({
@@ -54,7 +53,6 @@ let ScrollScene = ({
   const { size } = useThree()
   const { invalidate, requestRender, renderScissor } = useScrollRig()
   const pageReflowCompleted = useCanvasStore((state) => state.pageReflowCompleted)
-  const scene = scissor ? scissorScene : inlineScene.current
 
   // get initial scrollY and listen for transient updates
   const scrollY = useRef(useCanvasStore.getState().scrollY)
@@ -149,16 +147,9 @@ let ScrollScene = ({
   // Find bounding box & scale mesh on resize
   useLayoutEffect(() => {
     config.debug &&
-      console.log(
-        'ScrollScene',
-        'trigger updateSizeAndPosition()',
-        pageReflowCompleted,
-        updateLayout,
-        scissorScene,
-        inlineScene,
-      )
+      console.log('ScrollScene', 'trigger updateSizeAndPosition()', pageReflowCompleted, updateLayout, scene)
     updateSizeAndPosition()
-  }, [pageReflowCompleted, updateLayout])
+  }, [pageReflowCompleted, updateLayout, scene])
 
   // RENDER FRAME
   useFrame(({ gl, camera, clock }) => {
@@ -211,7 +202,7 @@ let ScrollScene = ({
       if (scissor) {
         renderScissor({
           gl,
-          scene: scissorScene,
+          scene,
           camera,
           left: bounds.left - margin,
           top: positiveYUpBottom - margin,
@@ -270,7 +261,7 @@ let ScrollScene = ({
   )
 
   // portal if scissor or inline nested scene
-  return scissor ? createPortal(content, scissorScene) : <scene ref={inlineScene}>{content}</scene>
+  return scissor ? createPortal(content, scene) : <scene ref={inlineSceneRef}>{content}</scene>
 }
 
 ScrollScene = React.memo(ScrollScene)
