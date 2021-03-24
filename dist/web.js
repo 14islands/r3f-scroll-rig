@@ -775,7 +775,13 @@ let ScrollScene = (_ref) => {
   } = _ref,
       props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "priority", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed"]);
 
-  const inlineScene = useRef();
+  // const inlineScene = useRef()
+  const inlineScene = useCallback(node => {
+    if (node !== null) {
+      config.debug && console.log('ScrollScene', 'GOT SCENE REF', node);
+      updateSizeAndPosition();
+    }
+  }, []);
   const group = useRef();
   const [scissorScene] = useState(() => new Scene());
   const [inViewport, setInViewport] = useState(false);
@@ -882,10 +888,10 @@ let ScrollScene = (_ref) => {
   }; // Find bounding box & scale mesh on resize
 
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     config.debug && console.log('ScrollScene', 'trigger updateSizeAndPosition()', pageReflowCompleted, updateLayout, scissorScene, inlineScene);
     updateSizeAndPosition();
-  }, [pageReflowCompleted, updateLayout, scissorScene, inlineScene]); // RENDER FRAME
+  }, [pageReflowCompleted, updateLayout]); // RENDER FRAME
 
   useFrame(({
     gl,

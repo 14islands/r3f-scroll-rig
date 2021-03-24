@@ -890,7 +890,13 @@ exports.ScrollScene = function ScrollScene(_ref) {
       positionFixed = _ref$positionFixed === void 0 ? false : _ref$positionFixed,
       props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "priority", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed"]);
 
-  var inlineScene = React.useRef();
+  // const inlineScene = useRef()
+  var inlineScene = React.useCallback(function (node) {
+    if (node !== null) {
+      config.debug && console.log('ScrollScene', 'GOT SCENE REF', node);
+      updateSizeAndPosition();
+    }
+  }, []);
   var group = React.useRef();
 
   var _useState = React.useState(function () {
@@ -1015,10 +1021,10 @@ exports.ScrollScene = function ScrollScene(_ref) {
   }; // Find bounding box & scale mesh on resize
 
 
-  React.useEffect(function () {
+  React.useLayoutEffect(function () {
     config.debug && console.log('ScrollScene', 'trigger updateSizeAndPosition()', pageReflowCompleted, updateLayout, scissorScene, inlineScene);
     updateSizeAndPosition();
-  }, [pageReflowCompleted, updateLayout, scissorScene, inlineScene]); // RENDER FRAME
+  }, [pageReflowCompleted, updateLayout]); // RENDER FRAME
 
   reactThreeFiber.useFrame(function (_ref2) {
     var gl = _ref2.gl,

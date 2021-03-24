@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useLayoutEffect } from 'react'
+import React, { useRef, useState, useEffect, useLayoutEffect, useCallback } from 'react'
 import PropTypes from 'prop-types'
 import { MathUtils, Scene } from 'three'
 import { useFrame, useThree, createPortal } from 'react-three-fiber'
@@ -32,7 +32,14 @@ let ScrollScene = ({
   positionFixed = false,
   ...props
 }) => {
-  const inlineScene = useRef()
+  // const inlineScene = useRef()
+  const inlineScene = useCallback((node) => {
+    if (node !== null) {
+      config.debug && console.log('ScrollScene', 'GOT SCENE REF', node)
+      updateSizeAndPosition()
+    }
+  }, [])
+
   const group = useRef()
   const [scissorScene] = useState(() => new Scene())
 
@@ -140,7 +147,7 @@ let ScrollScene = ({
   }
 
   // Find bounding box & scale mesh on resize
-  useEffect(() => {
+  useLayoutEffect(() => {
     config.debug &&
       console.log(
         'ScrollScene',
@@ -151,7 +158,7 @@ let ScrollScene = ({
         inlineScene,
       )
     updateSizeAndPosition()
-  }, [pageReflowCompleted, updateLayout, scissorScene, inlineScene])
+  }, [pageReflowCompleted, updateLayout])
 
   // RENDER FRAME
   useFrame(({ gl, camera, clock }) => {
