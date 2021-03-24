@@ -748,12 +748,24 @@ const GlobalCanvasIfSupported = (_ref2) => {
   }, /*#__PURE__*/React.createElement(GlobalCanvas, props));
 };
 
+const DebugMesh = ({
+  scale
+}) => /*#__PURE__*/React.createElement("mesh", null, /*#__PURE__*/React.createElement("planeBufferGeometry", {
+  attach: "geometry",
+  args: [scale.width, scale.height, 1, 1]
+}), /*#__PURE__*/React.createElement("meshBasicMaterial", {
+  color: "pink",
+  attach: "material",
+  transparent: true,
+  opacity: 0.5
+}));
 /**
  * Generic THREE.js Scene that tracks the dimensions and position of a DOM element while scrolling
  * Scene is positioned and scaled exactly above DOM element
  *
  * @author david@14islands.com
  */
+
 
 let ScrollScene = (_ref) => {
   let {
@@ -777,20 +789,13 @@ let ScrollScene = (_ref) => {
 
   const inlineSceneRef = useCallback(node => {
     if (node !== null) {
-      config.debug && console.log('ScrollScene', 'GOT SCENE REF', node);
       setScene(node);
     }
   }, []);
   const group = useRef();
-  const [scene, setScene] = useState(scissor && new Scene());
+  const [scene, setScene] = useState(scissor ? new Scene() : null);
   const [inViewport, setInViewport] = useState(false);
-  const [scale, setScale] = useState({
-    width: 1,
-    height: 1,
-    multiplier: config.scaleMultiplier,
-    pixelWidth: 1,
-    pixelHeight: 1
-  });
+  const [scale, setScale] = useState(null);
   const {
     size
   } = useThree();
@@ -842,7 +847,6 @@ let ScrollScene = (_ref) => {
 
   const updateSizeAndPosition = () => {
     if (!el || !el.current || !scene) {
-      config.debug && console.log('ScrollScene.updateSizeAndPosition()', 'ABORT', el.current, scene);
       return;
     }
 
@@ -881,13 +885,12 @@ let ScrollScene = (_ref) => {
       transient.isFirstRender = false;
     }
 
-    config.debug && console.log('ScrollScene.updateSizeAndPosition()', 'DONE', scale);
     invalidate(); // trigger render
   }; // Find bounding box & scale mesh on resize
 
 
   useLayoutEffect(() => {
-    config.debug && console.log('ScrollScene', 'trigger updateSizeAndPosition()', pageReflowCompleted, updateLayout, scene);
+    config.debug && console.log('ScrollScene', 'trigger updateSizeAndPosition()', scene);
     updateSizeAndPosition();
   }, [pageReflowCompleted, updateLayout, scene]); // RENDER FRAME
 
@@ -896,7 +899,7 @@ let ScrollScene = (_ref) => {
     camera,
     clock
   }) => {
-    if (!scene) return;
+    if (!scene && !scale) return;
     const {
       bounds,
       prevBounds
@@ -963,21 +966,12 @@ let ScrollScene = (_ref) => {
     if (!isOffscreen && delta > config.scrollRestDelta) {
       invalidate();
     }
-  }, priority); // meshBasicMaterial shaders are excluded from prod build
-
-  const renderDebugMesh = () => /*#__PURE__*/React.createElement("mesh", null, /*#__PURE__*/React.createElement("planeBufferGeometry", {
-    attach: "geometry",
-    args: [scale.width, scale.height, 1, 1]
-  }), /*#__PURE__*/React.createElement("meshBasicMaterial", {
-    color: "pink",
-    attach: "material",
-    transparent: true,
-    opacity: 0.5
-  }));
-
+  }, priority);
   const content = /*#__PURE__*/React.createElement("group", {
     renderOrder: renderOrder
-  }, (!children || debug) && renderDebugMesh(), children && children(_extends({
+  }, (!children || debug) && /*#__PURE__*/React.createElement(DebugMesh, {
+    scale: scale
+  }), children && scene && scale && children(_extends({
     // inherited props
     el,
     lerp: lerp || config.scrollLerp,

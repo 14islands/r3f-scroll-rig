@@ -34,22 +34,15 @@ let ScrollScene = ({
 }) => {
   const inlineSceneRef = useCallback((node) => {
     if (node !== null) {
-      config.debug && console.log('ScrollScene', 'GOT SCENE REF', node)
       setScene(node)
     }
   }, [])
 
   const group = useRef()
-  const [scene, setScene] = useState(scissor && new Scene())
+  const [scene, setScene] = useState(scissor ? new Scene() : null)
 
   const [inViewport, setInViewport] = useState(false)
-  const [scale, setScale] = useState({
-    width: 1,
-    height: 1,
-    multiplier: config.scaleMultiplier,
-    pixelWidth: 1,
-    pixelHeight: 1,
-  })
+  const [scale, setScale] = useState(null)
   const { size } = useThree()
   const { invalidate, requestRender, renderScissor } = useScrollRig()
   const pageReflowCompleted = useCanvasStore((state) => state.pageReflowCompleted)
@@ -104,7 +97,6 @@ let ScrollScene = ({
 
   const updateSizeAndPosition = () => {
     if (!el || !el.current || !scene) {
-      config.debug && console.log('ScrollScene.updateSizeAndPosition()', 'ABORT', el.current, scene)
       return
     }
 
@@ -139,21 +131,18 @@ let ScrollScene = ({
       transient.isFirstRender = false
     }
 
-    config.debug && console.log('ScrollScene.updateSizeAndPosition()', 'DONE', scale)
-
     invalidate() // trigger render
   }
 
   // Find bounding box & scale mesh on resize
   useLayoutEffect(() => {
-    config.debug &&
-      console.log('ScrollScene', 'trigger updateSizeAndPosition()', pageReflowCompleted, updateLayout, scene)
+    config.debug && console.log('ScrollScene', 'trigger updateSizeAndPosition()', scene)
     updateSizeAndPosition()
   }, [pageReflowCompleted, updateLayout, scene])
 
   // RENDER FRAME
   useFrame(({ gl, camera, clock }) => {
-    if (!scene) return
+    if (!scene && !scale) return
     const { bounds, prevBounds } = transient
 
     // Find new Y based on cached position and scroll
@@ -226,18 +215,12 @@ let ScrollScene = ({
     }
   }, priority)
 
-  // meshBasicMaterial shaders are excluded from prod build
-  const renderDebugMesh = () => (
-    <mesh>
-      <planeBufferGeometry attach="geometry" args={[scale.width, scale.height, 1, 1]} />
-      <meshBasicMaterial color="pink" attach="material" transparent opacity={0.5} />
-    </mesh>
-  )
-
   const content = (
     <group renderOrder={renderOrder}>
-      {(!children || debug) && renderDebugMesh()}
+      {(!children || debug) && <DebugMesh scale={scale} />}
       {children &&
+        scene &&
+        scale &&
         children({
           // inherited props
           el,
@@ -266,6 +249,16 @@ let ScrollScene = ({
 
 ScrollScene = React.memo(ScrollScene)
 
+const DebugMesh = ({ scale }) => (
+  <mesh>
+    <planeBufferGeometry attach="geometry" args={[scale.width, scale.height, 1, 1]} />
+    <meshBasicMaterial color="pink" attach="material" transparent opacity={0.5} />
+  </mesh>
+)
+DebugMesh.propTypes = {
+  scale: ScrollScene.childPropTypes.scale,
+}
+
 ScrollScene.propTypes = {
   el: PropTypes.object, // DOM element to track,
   lerp: PropTypes.number, // Base lerp ratio
@@ -274,6 +267,7 @@ ScrollScene.propTypes = {
   visible: PropTypes.bool, // threejs render order,
   margin: PropTypes.number, // custom margin around DOM el when using scissor to avoid clipping
   scissor: PropTypes.bool, // render using scissor test for better peformance
+  priority: PropTypes.number, // useFrame priority
   debug: PropTypes.bool, // show debug mesh
   setInViewportProp: PropTypes.bool, // update inViewport property on child (might cause lag)
   positionFixed: PropTypes.bool, // scene stays fixed in viewport and doesn't follow scroll direction
