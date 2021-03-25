@@ -957,7 +957,7 @@ let ScrollScene = (_ref) => {
   }, priority);
   const content = /*#__PURE__*/React.createElement("group", {
     renderOrder: renderOrder
-  }, (!children || debug) && /*#__PURE__*/React.createElement(DebugMesh, {
+  }, (!children || debug) && scale && /*#__PURE__*/React.createElement(DebugMesh, {
     scale: scale
   }), children && scene && scale && children(_extends({
     // inherited props
@@ -1579,7 +1579,7 @@ let ViewportScrollScene = (_ref) => {
     near: 0.001
   }), /*#__PURE__*/React.createElement("group", {
     renderOrder: renderOrder
-  }, (!children || debug) && /*#__PURE__*/React.createElement(DebugMesh$1, {
+  }, (!children || debug) && scale && /*#__PURE__*/React.createElement(DebugMesh$1, {
     scale: scale
   }), children && scene && scale && children(_extends({
     // inherited props

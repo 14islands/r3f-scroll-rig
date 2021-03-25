@@ -217,7 +217,7 @@ let ScrollScene = ({
 
   const content = (
     <group renderOrder={renderOrder}>
-      {(!children || debug) && <DebugMesh scale={scale} />}
+      {(!children || debug) && scale && <DebugMesh scale={scale} />}
       {children &&
         scene &&
         scale &&

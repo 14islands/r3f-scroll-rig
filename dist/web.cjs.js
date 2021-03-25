@@ -1088,7 +1088,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
   }, priority);
   var content = /*#__PURE__*/React__default.createElement("group", {
     renderOrder: renderOrder
-  }, (!children || debug) && /*#__PURE__*/React__default.createElement(DebugMesh, {
+  }, (!children || debug) && scale && /*#__PURE__*/React__default.createElement(DebugMesh, {
     scale: scale
   }), children && scene && scale && children(_extends({
     // inherited props
@@ -1785,7 +1785,7 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
     near: 0.001
   }), /*#__PURE__*/React__default.createElement("group", {
     renderOrder: renderOrder
-  }, (!children || debug) && /*#__PURE__*/React__default.createElement(DebugMesh$1, {
+  }, (!children || debug) && scale && /*#__PURE__*/React__default.createElement(DebugMesh$1, {
     scale: scale
   }), children && scene && scale && children(_extends({
     // inherited props
