@@ -76,7 +76,7 @@
     "gzipped": 973
   },
   "stdlib.js": {
-    "bundled": 5918,
+    "bundled": 5924,
     "minified": 3271,
     "gzipped": 1346,
     "treeshaked": {
@@ -90,7 +90,7 @@
     }
   },
   "stdlib.cjs.js": {
-    "bundled": 7882,
+    "bundled": 7888,
     "minified": 3951,
     "gzipped": 1532
   }

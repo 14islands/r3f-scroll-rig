@@ -35,8 +35,8 @@ export const WebGLText = ({ el, children, material, scale, font, fontOffsetY = 0
   }, [material, color, overrideEmissive])
 
   let xOffset = 0
-  textAlign === 'left' && (xOffset = scale.width * -0.5)
-  textAlign === 'right' && (xOffset = scale.width * 0.5)
+  textAlign === ('left' || 'start') && (xOffset = scale.width * -0.5)
+  textAlign === ('right' || 'end') && (xOffset = scale.width * 0.5)
 
   const yOffset = scale ? scale.height * 0.5 : size.height * 0.5
 
