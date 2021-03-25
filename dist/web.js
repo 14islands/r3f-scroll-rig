@@ -748,24 +748,12 @@ const GlobalCanvasIfSupported = (_ref2) => {
   }, /*#__PURE__*/React.createElement(GlobalCanvas, props));
 };
 
-const DebugMesh = ({
-  scale
-}) => /*#__PURE__*/React.createElement("mesh", null, /*#__PURE__*/React.createElement("planeBufferGeometry", {
-  attach: "geometry",
-  args: [scale.width, scale.height, 1, 1]
-}), /*#__PURE__*/React.createElement("meshBasicMaterial", {
-  color: "pink",
-  attach: "material",
-  transparent: true,
-  opacity: 0.5
-}));
 /**
  * Generic THREE.js Scene that tracks the dimensions and position of a DOM element while scrolling
  * Scene is positioned and scaled exactly above DOM element
  *
  * @author david@14islands.com
  */
-
 
 let ScrollScene = (_ref) => {
   let {
@@ -899,7 +887,7 @@ let ScrollScene = (_ref) => {
     camera,
     clock
   }) => {
-    if (!scene && !scale) return;
+    if (!scene || !scale) return;
     const {
       bounds,
       prevBounds
@@ -996,6 +984,19 @@ let ScrollScene = (_ref) => {
 };
 
 ScrollScene = /*#__PURE__*/React.memo(ScrollScene);
+
+const DebugMesh = ({
+  scale
+}) => /*#__PURE__*/React.createElement("mesh", null, /*#__PURE__*/React.createElement("planeBufferGeometry", {
+  attach: "geometry",
+  args: [scale.width, scale.height, 1, 1]
+}), /*#__PURE__*/React.createElement("meshBasicMaterial", {
+  color: "pink",
+  attach: "material",
+  transparent: true,
+  opacity: 0.5
+}));
+
 ScrollScene.childPropTypes = _extends({}, ScrollScene.propTypes, {
   scale: PropTypes.shape({
     width: PropTypes.number,
@@ -1401,13 +1402,7 @@ let ViewportScrollScene = (_ref) => {
   const camera = useRef();
   const [scene] = useState(() => new Scene());
   const [inViewport, setInViewport] = useState(false);
-  const [scale, setScale] = useState({
-    width: 1,
-    height: 1,
-    multiplier: scaleMultiplier,
-    pixelWidth: 1,
-    pixelHeight: 1
-  });
+  const [scale, setScale] = useState(null);
   const {
     size
   } = useThree();
@@ -1513,7 +1508,7 @@ let ViewportScrollScene = (_ref) => {
   useFrame(({
     gl
   }) => {
-    if (!scene) return;
+    if (!scene || !scale) return;
     const {
       bounds,
       prevBounds
@@ -1568,17 +1563,6 @@ let ViewportScrollScene = (_ref) => {
       invalidate();
     }
   }, priority);
-
-  const renderDebugMesh = () => /*#__PURE__*/React.createElement("mesh", null, /*#__PURE__*/React.createElement("planeBufferGeometry", {
-    attach: "geometry",
-    args: [scale.width, scale.height, 1, 1]
-  }), /*#__PURE__*/React.createElement("meshBasicMaterial", {
-    color: "pink",
-    attach: "material",
-    transparent: true,
-    opacity: 0.5
-  }));
-
   return createPortal( /*#__PURE__*/React.createElement(React.Fragment, null, !orthographic && /*#__PURE__*/React.createElement("perspectiveCamera", {
     ref: camera,
     position: [0, 0, cameraDistance],
@@ -1595,7 +1579,9 @@ let ViewportScrollScene = (_ref) => {
     near: 0.001
   }), /*#__PURE__*/React.createElement("group", {
     renderOrder: renderOrder
-  }, (!children || debug) && renderDebugMesh(), children && children(_extends({
+  }, (!children || debug) && /*#__PURE__*/React.createElement(DebugMesh$1, {
+    scale: scale
+  }), children && scene && scale && children(_extends({
     // inherited props
     el,
     lerp: lerp || config.scrollLerp,
@@ -1618,6 +1604,19 @@ let ViewportScrollScene = (_ref) => {
 };
 
 ViewportScrollScene = /*#__PURE__*/React.memo(ViewportScrollScene);
+
+const DebugMesh$1 = ({
+  scale
+}) => /*#__PURE__*/React.createElement("mesh", null, /*#__PURE__*/React.createElement("planeBufferGeometry", {
+  attach: "geometry",
+  args: [scale.width, scale.height, 1, 1]
+}), /*#__PURE__*/React.createElement("meshBasicMaterial", {
+  color: "pink",
+  attach: "material",
+  transparent: true,
+  opacity: 0.5
+}));
+
 ViewportScrollScene.childPropTypes = _extends({}, ViewportScrollScene.propTypes, {
   scale: PropTypes.shape({
     width: PropTypes.number,

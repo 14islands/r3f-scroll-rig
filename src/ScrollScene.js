@@ -142,7 +142,7 @@ let ScrollScene = ({
 
   // RENDER FRAME
   useFrame(({ gl, camera, clock }) => {
-    if (!scene && !scale) return
+    if (!scene || !scale) return
     const { bounds, prevBounds } = transient
 
     // Find new Y based on cached position and scroll
@@ -249,16 +249,6 @@ let ScrollScene = ({
 
 ScrollScene = React.memo(ScrollScene)
 
-const DebugMesh = ({ scale }) => (
-  <mesh>
-    <planeBufferGeometry attach="geometry" args={[scale.width, scale.height, 1, 1]} />
-    <meshBasicMaterial color="pink" attach="material" transparent opacity={0.5} />
-  </mesh>
-)
-DebugMesh.propTypes = {
-  scale: ScrollScene.childPropTypes.scale,
-}
-
 ScrollScene.propTypes = {
   el: PropTypes.object, // DOM element to track,
   lerp: PropTypes.number, // Base lerp ratio
@@ -271,6 +261,16 @@ ScrollScene.propTypes = {
   debug: PropTypes.bool, // show debug mesh
   setInViewportProp: PropTypes.bool, // update inViewport property on child (might cause lag)
   positionFixed: PropTypes.bool, // scene stays fixed in viewport and doesn't follow scroll direction
+}
+
+const DebugMesh = ({ scale }) => (
+  <mesh>
+    <planeBufferGeometry attach="geometry" args={[scale.width, scale.height, 1, 1]} />
+    <meshBasicMaterial color="pink" attach="material" transparent opacity={0.5} />
+  </mesh>
+)
+DebugMesh.propTypes = {
+  scale: ScrollScene.childPropTypes.scale,
 }
 
 ScrollScene.childPropTypes = {

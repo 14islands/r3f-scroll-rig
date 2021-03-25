@@ -856,18 +856,6 @@ var GlobalCanvasIfSupported = function GlobalCanvasIfSupported(_ref3) {
   }, /*#__PURE__*/React__default.createElement(GlobalCanvas, props));
 };
 
-var DebugMesh = function DebugMesh(_ref) {
-  var scale = _ref.scale;
-  return /*#__PURE__*/React__default.createElement("mesh", null, /*#__PURE__*/React__default.createElement("planeBufferGeometry", {
-    attach: "geometry",
-    args: [scale.width, scale.height, 1, 1]
-  }), /*#__PURE__*/React__default.createElement("meshBasicMaterial", {
-    color: "pink",
-    attach: "material",
-    transparent: true,
-    opacity: 0.5
-  }));
-};
 /**
  * Generic THREE.js Scene that tracks the dimensions and position of a DOM element while scrolling
  * Scene is positioned and scaled exactly above DOM element
@@ -875,33 +863,32 @@ var DebugMesh = function DebugMesh(_ref) {
  * @author david@14islands.com
  */
 
-
-exports.ScrollScene = function ScrollScene(_ref2) {
-  var el = _ref2.el,
-      lerp = _ref2.lerp,
-      _ref2$lerpOffset = _ref2.lerpOffset,
-      lerpOffset = _ref2$lerpOffset === void 0 ? 0 : _ref2$lerpOffset,
-      children = _ref2.children,
-      _ref2$renderOrder = _ref2.renderOrder,
-      renderOrder = _ref2$renderOrder === void 0 ? 1 : _ref2$renderOrder,
-      _ref2$priority = _ref2.priority,
-      priority = _ref2$priority === void 0 ? config.PRIORITY_SCISSORS : _ref2$priority,
-      _ref2$margin = _ref2.margin,
-      margin = _ref2$margin === void 0 ? 14 : _ref2$margin,
-      inViewportMargin = _ref2.inViewportMargin,
-      _ref2$visible = _ref2.visible,
-      visible = _ref2$visible === void 0 ? true : _ref2$visible,
-      _ref2$scissor = _ref2.scissor,
-      scissor = _ref2$scissor === void 0 ? false : _ref2$scissor,
-      _ref2$debug = _ref2.debug,
-      debug = _ref2$debug === void 0 ? false : _ref2$debug,
-      _ref2$setInViewportPr = _ref2.setInViewportProp,
-      setInViewportProp = _ref2$setInViewportPr === void 0 ? false : _ref2$setInViewportPr,
-      _ref2$updateLayout = _ref2.updateLayout,
-      updateLayout = _ref2$updateLayout === void 0 ? 0 : _ref2$updateLayout,
-      _ref2$positionFixed = _ref2.positionFixed,
-      positionFixed = _ref2$positionFixed === void 0 ? false : _ref2$positionFixed,
-      props = _objectWithoutPropertiesLoose(_ref2, ["el", "lerp", "lerpOffset", "children", "renderOrder", "priority", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed"]);
+exports.ScrollScene = function ScrollScene(_ref) {
+  var el = _ref.el,
+      lerp = _ref.lerp,
+      _ref$lerpOffset = _ref.lerpOffset,
+      lerpOffset = _ref$lerpOffset === void 0 ? 0 : _ref$lerpOffset,
+      children = _ref.children,
+      _ref$renderOrder = _ref.renderOrder,
+      renderOrder = _ref$renderOrder === void 0 ? 1 : _ref$renderOrder,
+      _ref$priority = _ref.priority,
+      priority = _ref$priority === void 0 ? config.PRIORITY_SCISSORS : _ref$priority,
+      _ref$margin = _ref.margin,
+      margin = _ref$margin === void 0 ? 14 : _ref$margin,
+      inViewportMargin = _ref.inViewportMargin,
+      _ref$visible = _ref.visible,
+      visible = _ref$visible === void 0 ? true : _ref$visible,
+      _ref$scissor = _ref.scissor,
+      scissor = _ref$scissor === void 0 ? false : _ref$scissor,
+      _ref$debug = _ref.debug,
+      debug = _ref$debug === void 0 ? false : _ref$debug,
+      _ref$setInViewportPro = _ref.setInViewportProp,
+      setInViewportProp = _ref$setInViewportPro === void 0 ? false : _ref$setInViewportPro,
+      _ref$updateLayout = _ref.updateLayout,
+      updateLayout = _ref$updateLayout === void 0 ? 0 : _ref$updateLayout,
+      _ref$positionFixed = _ref.positionFixed,
+      positionFixed = _ref$positionFixed === void 0 ? false : _ref$positionFixed,
+      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "priority", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed"]);
 
   var inlineSceneRef = React.useCallback(function (node) {
     if (node !== null) {
@@ -1027,11 +1014,11 @@ exports.ScrollScene = function ScrollScene(_ref2) {
     updateSizeAndPosition();
   }, [pageReflowCompleted, updateLayout, scene]); // RENDER FRAME
 
-  reactThreeFiber.useFrame(function (_ref3) {
-    var gl = _ref3.gl,
-        camera = _ref3.camera,
-        clock = _ref3.clock;
-    if (!scene && !scale) return;
+  reactThreeFiber.useFrame(function (_ref2) {
+    var gl = _ref2.gl,
+        camera = _ref2.camera,
+        clock = _ref2.clock;
+    if (!scene || !scale) return;
     var bounds = _transient.bounds,
         prevBounds = _transient.prevBounds; // Find new Y based on cached position and scroll
 
@@ -1128,6 +1115,20 @@ exports.ScrollScene = function ScrollScene(_ref2) {
 };
 
 exports.ScrollScene = /*#__PURE__*/React__default.memo(exports.ScrollScene);
+
+var DebugMesh = function DebugMesh(_ref3) {
+  var scale = _ref3.scale;
+  return /*#__PURE__*/React__default.createElement("mesh", null, /*#__PURE__*/React__default.createElement("planeBufferGeometry", {
+    attach: "geometry",
+    args: [scale.width, scale.height, 1, 1]
+  }), /*#__PURE__*/React__default.createElement("meshBasicMaterial", {
+    color: "pink",
+    attach: "material",
+    transparent: true,
+    opacity: 0.5
+  }));
+};
+
 exports.ScrollScene.childPropTypes = _extends({}, exports.ScrollScene.propTypes, {
   scale: PropTypes.shape({
     width: PropTypes.number,
@@ -1592,13 +1593,7 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
       inViewport = _useState2[0],
       setInViewport = _useState2[1];
 
-  var _useState3 = React.useState({
-    width: 1,
-    height: 1,
-    multiplier: scaleMultiplier,
-    pixelWidth: 1,
-    pixelHeight: 1
-  }),
+  var _useState3 = React.useState(null),
       scale = _useState3[0],
       setScale = _useState3[1];
 
@@ -1715,7 +1710,7 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
 
   reactThreeFiber.useFrame(function (_ref2) {
     var gl = _ref2.gl;
-    if (!scene) return;
+    if (!scene || !scale) return;
     var bounds = _transient.bounds,
         prevBounds = _transient.prevBounds; // add scroll value to bounds to get current position
 
@@ -1770,19 +1765,6 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
       invalidate();
     }
   }, priority);
-
-  var renderDebugMesh = function renderDebugMesh() {
-    return /*#__PURE__*/React__default.createElement("mesh", null, /*#__PURE__*/React__default.createElement("planeBufferGeometry", {
-      attach: "geometry",
-      args: [scale.width, scale.height, 1, 1]
-    }), /*#__PURE__*/React__default.createElement("meshBasicMaterial", {
-      color: "pink",
-      attach: "material",
-      transparent: true,
-      opacity: 0.5
-    }));
-  };
-
   return reactThreeFiber.createPortal( /*#__PURE__*/React__default.createElement(React__default.Fragment, null, !orthographic && /*#__PURE__*/React__default.createElement("perspectiveCamera", {
     ref: camera,
     position: [0, 0, cameraDistance],
@@ -1803,7 +1785,9 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
     near: 0.001
   }), /*#__PURE__*/React__default.createElement("group", {
     renderOrder: renderOrder
-  }, (!children || debug) && renderDebugMesh(), children && children(_extends({
+  }, (!children || debug) && /*#__PURE__*/React__default.createElement(DebugMesh$1, {
+    scale: scale
+  }), children && scene && scale && children(_extends({
     // inherited props
     el: el,
     lerp: lerp || config.scrollLerp,
@@ -1826,6 +1810,20 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
 };
 
 exports.ViewportScrollScene = /*#__PURE__*/React__default.memo(exports.ViewportScrollScene);
+
+var DebugMesh$1 = function DebugMesh(_ref3) {
+  var scale = _ref3.scale;
+  return /*#__PURE__*/React__default.createElement("mesh", null, /*#__PURE__*/React__default.createElement("planeBufferGeometry", {
+    attach: "geometry",
+    args: [scale.width, scale.height, 1, 1]
+  }), /*#__PURE__*/React__default.createElement("meshBasicMaterial", {
+    color: "pink",
+    attach: "material",
+    transparent: true,
+    opacity: 0.5
+  }));
+};
+
 exports.ViewportScrollScene.childPropTypes = _extends({}, exports.ViewportScrollScene.propTypes, {
   scale: PropTypes.shape({
     width: PropTypes.number,

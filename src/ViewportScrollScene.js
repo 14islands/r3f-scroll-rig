@@ -36,13 +36,7 @@ let ViewportScrollScene = ({
   const [scene] = useState(() => new Scene())
 
   const [inViewport, setInViewport] = useState(false)
-  const [scale, setScale] = useState({
-    width: 1,
-    height: 1,
-    multiplier: scaleMultiplier,
-    pixelWidth: 1,
-    pixelHeight: 1,
-  })
+  const [scale, setScale] = useState(null)
   const { size } = useThree()
   const { invalidate, renderViewport } = useScrollRig()
 
@@ -147,7 +141,7 @@ let ViewportScrollScene = ({
 
   // RENDER FRAME
   useFrame(({ gl }) => {
-    if (!scene) return
+    if (!scene || !scale) return
     const { bounds, prevBounds } = transient
 
     // add scroll value to bounds to get current position
@@ -205,13 +199,6 @@ let ViewportScrollScene = ({
     }
   }, priority)
 
-  const renderDebugMesh = () => (
-    <mesh>
-      <planeBufferGeometry attach="geometry" args={[scale.width, scale.height, 1, 1]} />
-      <meshBasicMaterial color="pink" attach="material" transparent opacity={0.5} />
-    </mesh>
-  )
-
   return createPortal(
     <>
       {/* Use local camera for viewport rendering */}
@@ -237,8 +224,10 @@ let ViewportScrollScene = ({
       )}
 
       <group renderOrder={renderOrder}>
-        {(!children || debug) && renderDebugMesh()}
+        {(!children || debug) && <DebugMesh scale={scale} />}
         {children &&
+          scene &&
+          scale &&
           children({
             // inherited props
             el,
@@ -278,6 +267,16 @@ ViewportScrollScene.propTypes = {
   debug: PropTypes.bool, // show debug mesh
   setInViewportProp: PropTypes.bool, // update inViewport property on child (might cause lag)
   orthographic: PropTypes.bool, // use orthographic of perspective camera
+}
+
+const DebugMesh = ({ scale }) => (
+  <mesh>
+    <planeBufferGeometry attach="geometry" args={[scale.width, scale.height, 1, 1]} />
+    <meshBasicMaterial color="pink" attach="material" transparent opacity={0.5} />
+  </mesh>
+)
+DebugMesh.propTypes = {
+  scale: ViewportScrollScene.childPropTypes.scale,
 }
 
 ViewportScrollScene.childPropTypes = {
