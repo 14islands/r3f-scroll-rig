@@ -1,8 +1,8 @@
 import _extends from '@babel/runtime/helpers/esm/extends';
 import _objectWithoutPropertiesLoose from '@babel/runtime/helpers/esm/objectWithoutPropertiesLoose';
 import React, { useState, useEffect, useRef, useLayoutEffect, Suspense, Fragment, forwardRef, useMemo, useCallback } from 'react';
-import { addEffect, addAfterEffect, invalidate, useThree, useFrame, useUpdate, Canvas, createPortal } from 'react-three-fiber';
-import { Vector2, NoToneMapping, Scene, MathUtils, ImageBitmapLoader, TextureLoader, CanvasTexture, sRGBEncoding, LinearFilter, RGBFormat, RGBAFormat } from 'three';
+import { addEffect, addAfterEffect, invalidate, useThree, useFrame, useUpdate, Canvas, extend, createPortal } from 'react-three-fiber';
+import { Vector2, NoToneMapping, Color, Scene, MathUtils, ImageBitmapLoader, TextureLoader, CanvasTexture, sRGBEncoding, LinearFilter, RGBFormat, RGBAFormat } from 'three';
 import { ResizeObserver } from '@juggle/resize-observer';
 import queryString from 'query-string';
 import StatsImpl from 'three/examples/js/libs/stats.min';
@@ -11,6 +11,7 @@ import { useWindowSize, useWindowHeight } from '@react-hook/window-size';
 import mergeRefs from 'react-merge-refs';
 import { config as config$1, useScrollRig as useScrollRig$1 } from '@14islands/r3f-scroll-rig';
 import PropTypes from 'prop-types';
+import { shaderMaterial } from '@react-three/drei/core/shaderMaterial';
 import ReactDOM from 'react-dom';
 
 // Use to override Frustum temporarily to pre-upload textures to GPU
@@ -748,6 +749,27 @@ const GlobalCanvasIfSupported = (_ref2) => {
   }, /*#__PURE__*/React.createElement(GlobalCanvas, props));
 };
 
+const DebugMaterial = shaderMaterial({
+  color: new Color(1.0, 0.0, 0.0),
+  opacity: 1
+}, // vertex shader
+" varying vec2 vUv;\n    void main() {\n      vUv = uv;\n      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n  }", // fragment shader
+"\n    uniform vec3 color;\n    uniform float opacity;\n    varying vec2 vUv;\n    void main() {\n      gl_FragColor.rgba = vec4(color, opacity);\n    }\n  ");
+extend({
+  DebugMaterial
+});
+const DebugMesh = ({
+  scale
+}) => /*#__PURE__*/React.createElement("mesh", null, /*#__PURE__*/React.createElement("planeBufferGeometry", {
+  attach: "geometry",
+  args: [scale.width, scale.height, 1, 1]
+}), /*#__PURE__*/React.createElement("debugMaterial", {
+  color: "hotpink",
+  attach: "material",
+  transparent: true,
+  opacity: 0.5
+}));
+
 /**
  * Generic THREE.js Scene that tracks the dimensions and position of a DOM element while scrolling
  * Scene is positioned and scaled exactly above DOM element
@@ -984,19 +1006,6 @@ let ScrollScene = (_ref) => {
 };
 
 ScrollScene = /*#__PURE__*/React.memo(ScrollScene);
-
-const DebugMesh = ({
-  scale
-}) => /*#__PURE__*/React.createElement("mesh", null, /*#__PURE__*/React.createElement("planeBufferGeometry", {
-  attach: "geometry",
-  args: [scale.width, scale.height, 1, 1]
-}), /*#__PURE__*/React.createElement("meshBasicMaterial", {
-  color: "pink",
-  attach: "material",
-  transparent: true,
-  opacity: 0.5
-}));
-
 ScrollScene.childPropTypes = _extends({}, ScrollScene.propTypes, {
   scale: PropTypes.shape({
     width: PropTypes.number,
@@ -1579,7 +1588,7 @@ let ViewportScrollScene = (_ref) => {
     near: 0.001
   }), /*#__PURE__*/React.createElement("group", {
     renderOrder: renderOrder
-  }, (!children || debug) && scale && /*#__PURE__*/React.createElement(DebugMesh$1, {
+  }, (!children || debug) && scale && /*#__PURE__*/React.createElement(DebugMesh, {
     scale: scale
   }), children && scene && scale && children(_extends({
     // inherited props
@@ -1604,19 +1613,6 @@ let ViewportScrollScene = (_ref) => {
 };
 
 ViewportScrollScene = /*#__PURE__*/React.memo(ViewportScrollScene);
-
-const DebugMesh$1 = ({
-  scale
-}) => /*#__PURE__*/React.createElement("mesh", null, /*#__PURE__*/React.createElement("planeBufferGeometry", {
-  attach: "geometry",
-  args: [scale.width, scale.height, 1, 1]
-}), /*#__PURE__*/React.createElement("meshBasicMaterial", {
-  color: "pink",
-  attach: "material",
-  transparent: true,
-  opacity: 0.5
-}));
-
 ViewportScrollScene.childPropTypes = _extends({}, ViewportScrollScene.propTypes, {
   scale: PropTypes.shape({
     width: PropTypes.number,

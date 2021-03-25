@@ -8,6 +8,7 @@ import requestIdleCallback from './hooks/requestIdleCallback'
 import config from './config'
 import { useCanvasStore } from './store'
 import useScrollRig from './useScrollRig'
+import DebugMesh from './DebugMesh'
 
 /**
  * Generic THREE.js Scene that tracks the dimensions and position of a DOM element while scrolling
@@ -267,16 +268,6 @@ ViewportScrollScene.propTypes = {
   debug: PropTypes.bool, // show debug mesh
   setInViewportProp: PropTypes.bool, // update inViewport property on child (might cause lag)
   orthographic: PropTypes.bool, // use orthographic of perspective camera
-}
-
-const DebugMesh = ({ scale }) => (
-  <mesh>
-    <planeBufferGeometry attach="geometry" args={[scale.width, scale.height, 1, 1]} />
-    <meshBasicMaterial color="pink" attach="material" transparent opacity={0.5} />
-  </mesh>
-)
-DebugMesh.propTypes = {
-  scale: ViewportScrollScene.childPropTypes.scale,
 }
 
 ViewportScrollScene.childPropTypes = {

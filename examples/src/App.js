@@ -52,7 +52,7 @@ function App() {
 
                 <Text>A ScrollScene with a Cube mesh inside using global lights.</Text>
                 <div style={{ margin: '-15vw auto 20vw', width: '80vw', height: '80vw' }}>
-                  <InlineBox />
+                  <InlineBox  />
                 </div>
 
                 <Text>A ViewportScrollScene can controls its own lights.</Text>

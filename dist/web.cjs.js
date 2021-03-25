@@ -19,6 +19,7 @@ var mergeRefs = _interopDefault(require('react-merge-refs'));
 var r3fScrollRig = require('@14islands/r3f-scroll-rig');
 var _inheritsLoose = _interopDefault(require('@babel/runtime/helpers/inheritsLoose'));
 var PropTypes = _interopDefault(require('prop-types'));
+var shaderMaterial = require('@react-three/drei/core/shaderMaterial');
 var ReactDOM = _interopDefault(require('react-dom'));
 
 // Use to override Frustum temporarily to pre-upload textures to GPU
@@ -856,6 +857,28 @@ var GlobalCanvasIfSupported = function GlobalCanvasIfSupported(_ref3) {
   }, /*#__PURE__*/React__default.createElement(GlobalCanvas, props));
 };
 
+var DebugMaterial = shaderMaterial.shaderMaterial({
+  color: new three.Color(1.0, 0.0, 0.0),
+  opacity: 1
+}, // vertex shader
+" varying vec2 vUv;\n    void main() {\n      vUv = uv;\n      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n  }", // fragment shader
+"\n    uniform vec3 color;\n    uniform float opacity;\n    varying vec2 vUv;\n    void main() {\n      gl_FragColor.rgba = vec4(color, opacity);\n    }\n  ");
+reactThreeFiber.extend({
+  DebugMaterial: DebugMaterial
+});
+var DebugMesh = function DebugMesh(_ref) {
+  var scale = _ref.scale;
+  return /*#__PURE__*/React__default.createElement("mesh", null, /*#__PURE__*/React__default.createElement("planeBufferGeometry", {
+    attach: "geometry",
+    args: [scale.width, scale.height, 1, 1]
+  }), /*#__PURE__*/React__default.createElement("debugMaterial", {
+    color: "hotpink",
+    attach: "material",
+    transparent: true,
+    opacity: 0.5
+  }));
+};
+
 /**
  * Generic THREE.js Scene that tracks the dimensions and position of a DOM element while scrolling
  * Scene is positioned and scaled exactly above DOM element
@@ -1115,20 +1138,6 @@ exports.ScrollScene = function ScrollScene(_ref) {
 };
 
 exports.ScrollScene = /*#__PURE__*/React__default.memo(exports.ScrollScene);
-
-var DebugMesh = function DebugMesh(_ref3) {
-  var scale = _ref3.scale;
-  return /*#__PURE__*/React__default.createElement("mesh", null, /*#__PURE__*/React__default.createElement("planeBufferGeometry", {
-    attach: "geometry",
-    args: [scale.width, scale.height, 1, 1]
-  }), /*#__PURE__*/React__default.createElement("meshBasicMaterial", {
-    color: "pink",
-    attach: "material",
-    transparent: true,
-    opacity: 0.5
-  }));
-};
-
 exports.ScrollScene.childPropTypes = _extends({}, exports.ScrollScene.propTypes, {
   scale: PropTypes.shape({
     width: PropTypes.number,
@@ -1785,7 +1794,7 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
     near: 0.001
   }), /*#__PURE__*/React__default.createElement("group", {
     renderOrder: renderOrder
-  }, (!children || debug) && scale && /*#__PURE__*/React__default.createElement(DebugMesh$1, {
+  }, (!children || debug) && scale && /*#__PURE__*/React__default.createElement(DebugMesh, {
     scale: scale
   }), children && scene && scale && children(_extends({
     // inherited props
@@ -1810,20 +1819,6 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
 };
 
 exports.ViewportScrollScene = /*#__PURE__*/React__default.memo(exports.ViewportScrollScene);
-
-var DebugMesh$1 = function DebugMesh(_ref3) {
-  var scale = _ref3.scale;
-  return /*#__PURE__*/React__default.createElement("mesh", null, /*#__PURE__*/React__default.createElement("planeBufferGeometry", {
-    attach: "geometry",
-    args: [scale.width, scale.height, 1, 1]
-  }), /*#__PURE__*/React__default.createElement("meshBasicMaterial", {
-    color: "pink",
-    attach: "material",
-    transparent: true,
-    opacity: 0.5
-  }));
-};
-
 exports.ViewportScrollScene.childPropTypes = _extends({}, exports.ViewportScrollScene.propTypes, {
   scale: PropTypes.shape({
     width: PropTypes.number,
