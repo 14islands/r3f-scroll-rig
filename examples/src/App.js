@@ -4,8 +4,7 @@ import { MathUtils } from 'three'
 import { useFrame } from 'react-three-fiber'
 
 import { GlobalCanvas, VirtualScrollbar } from '@14islands/r3f-scroll-rig'
-import { Loader } from '@react-three/drei'
-import { VRCanvas, DefaultXRControllers } from '@react-three/xr'
+import { Loader } from '@react-three/drei/web/Loader'
 
 import Text from './components/text/Text'
 import Image from './components/image'

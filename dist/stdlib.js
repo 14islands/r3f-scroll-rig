@@ -3,7 +3,7 @@ import _objectWithoutPropertiesLoose from '@babel/runtime/helpers/esm/objectWith
 import React, { useMemo, useEffect, useRef } from 'react';
 import { Color, Vector2 } from 'three';
 import { useThree, useFrame } from 'react-three-fiber';
-import { Text } from '@react-three/drei';
+import { Text } from '@react-three/drei/core/Text';
 import { useScrollRig, useImgTagAsTexture, ScrollScene } from '@14islands/r3f-scroll-rig';
 
 /**

@@ -10,7 +10,7 @@ var React = require('react');
 var React__default = _interopDefault(React);
 var three = require('three');
 var reactThreeFiber = require('react-three-fiber');
-var drei = require('@react-three/drei');
+var Text = require('@react-three/drei/core/Text');
 var r3fScrollRig = require('@14islands/r3f-scroll-rig');
 
 /**
@@ -63,7 +63,7 @@ var WebGLText = function WebGLText(_ref) {
   textAlign === 'left' && (xOffset = scale.width * -0.5);
   textAlign === 'right' && (xOffset = scale.width * 0.5);
   var yOffset = scale ? scale.height * 0.5 : size.height * 0.5;
-  return /*#__PURE__*/React__default.createElement(drei.Text, _extends({
+  return /*#__PURE__*/React__default.createElement(Text.Text, _extends({
     fontSize: fontSize,
     maxWidth: scale ? scale.width : size.width,
     lineHeight: lineHeight,
