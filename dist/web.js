@@ -1782,7 +1782,6 @@ const HijackedScrollbar = ({
   };
 
   const onTouchStart = e => {
-    e.preventDefault();
     const startY = e.touches[0].clientY;
     let deltaY = 0;
     let velY = 0;
@@ -1832,7 +1831,6 @@ const HijackedScrollbar = ({
     };
 
     const onTouchEnd = e => {
-      e.preventDefault();
       window.removeEventListener('touchmove', onTouchMove, {
         passive: false
       });

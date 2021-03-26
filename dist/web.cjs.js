@@ -2018,7 +2018,6 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
   };
 
   var onTouchStart = function onTouchStart(e) {
-    e.preventDefault();
     var startY = e.touches[0].clientY;
     var deltaY = 0;
     var velY = 0;
@@ -2068,7 +2067,6 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
     };
 
     var onTouchEnd = function onTouchEnd(e) {
-      e.preventDefault();
       window.removeEventListener('touchmove', onTouchMove, {
         passive: false
       });
