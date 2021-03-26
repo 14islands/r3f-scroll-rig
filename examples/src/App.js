@@ -3,7 +3,7 @@ import './App.css'
 import { MathUtils } from 'three'
 import { useFrame } from 'react-three-fiber'
 
-import { GlobalCanvas, VirtualScrollbar } from '@14islands/r3f-scroll-rig'
+import { GlobalCanvas, HijackedScrollbar } from '@14islands/r3f-scroll-rig'
 import { Loader } from '@react-three/drei/web/Loader'
 
 import Text from './components/text/Text'
@@ -34,7 +34,7 @@ function App() {
   return (
     <>
       <Suspense fallback={null}>
-        <VirtualScrollbar>
+        <HijackedScrollbar subpixelScrolling>
           {(bind) => (
             <div className="App" {...bind}>
               <header className="App-header">
@@ -135,7 +135,7 @@ function App() {
               </footer>
             </div>
           )}
-        </VirtualScrollbar>
+        </HijackedScrollbar>
         <GlobalCanvas
           // shadowMap
           // shadowMap={{

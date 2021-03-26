@@ -1903,10 +1903,16 @@ var useDelayedCanvas = function useDelayedCanvas(object, ms, deps, key) {
 //   return <HijackedScrollbar {...props} useFrameLoop={addEffect} invalidate={invalidate} />
 // }
 
+function map_range(value, low1, high1, low2, high2) {
+  return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
+}
+
 function _lerp(v0, v1, t) {
   return v0 * (1 - t) + v1 * t;
 }
 
+var DRAG_ACTIVE_LERP = 0.3;
+var DRAG_INERTIA_LERP = 0.05;
 var HijackedScrollbar = function HijackedScrollbar(_ref) {
   var children = _ref.children,
       disabled = _ref.disabled,
@@ -1940,7 +1946,7 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
   var documentHeight = React.useRef(0);
   var delta = React.useRef(0);
 
-  var animate = function animate() {
+  var animate = function animate(ts) {
     if (!scrolling.current) return; // use internal target with floating point precision to make sure lerp is smooth
 
     var newTarget = _lerp(y.current, y.target, lerp || config.scrollLerp);
@@ -2009,6 +2015,94 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
       setScrollY(y.target);
       onUpdate && onUpdate(y);
     }
+  };
+
+  var onTouchStart = function onTouchStart(e) {
+    e.preventDefault();
+    var startY = e.touches[0].clientY;
+    var deltaY = 0;
+    var velY = 0;
+    var lastEventTs = 0;
+    var frameDelta;
+    y.target = y.current;
+    setScrollY(y.target);
+
+    function calculateTouchScroll(touch) {
+      var newDeltaY = touch.clientY - startY;
+      frameDelta = deltaY - newDeltaY;
+      deltaY = newDeltaY;
+      var now = Date.now();
+      var elapsed = now - lastEventTs;
+      lastEventTs = now; // calculate velocity
+
+      var v = 1000 * frameDelta / (1 + elapsed); // smooth using moving average filter (https://ariya.io/2013/11/javascript-kinetic-scrolling-part-2)
+
+      velY = 0.1 * v + 0.9 * velY;
+    }
+
+    var onTouchMove = function onTouchMove(e) {
+      e.preventDefault();
+      calculateTouchScroll(e.touches[0]);
+      config.scrollLerp = DRAG_ACTIVE_LERP;
+      y.target = Math.min(Math.max(y.target + frameDelta * speed, 0), documentHeight.current);
+
+      if (!scrolling.current) {
+        scrolling.current = true;
+        invalidate ? invalidate() : window.requestAnimationFrame(animate);
+      }
+
+      setScrollY(y.target);
+    };
+
+    var onTouchCancel = function onTouchCancel(e) {
+      e.preventDefault();
+      window.removeEventListener('touchmove', onTouchMove, {
+        passive: false
+      });
+      window.removeEventListener('touchend', onTouchEnd, {
+        passive: false
+      });
+      window.removeEventListener('touchcancel', onTouchCancel, {
+        passive: false
+      });
+    };
+
+    var onTouchEnd = function onTouchEnd(e) {
+      e.preventDefault();
+      window.removeEventListener('touchmove', onTouchMove, {
+        passive: false
+      });
+      window.removeEventListener('touchend', onTouchEnd, {
+        passive: false
+      });
+      window.removeEventListener('touchcancel', onTouchCancel, {
+        passive: false
+      }); // reduce velocity if took time to release finger
+
+      var elapsed = Date.now() - lastEventTs;
+      var time = Math.min(1, Math.max(0, map_range(elapsed, 0, 100, 0, 1)));
+      velY = _lerp(velY, 0, time); // inertia lerp
+
+      config.scrollLerp = DRAG_INERTIA_LERP;
+      y.target = Math.min(Math.max(y.current + velY, 0), documentHeight.current);
+
+      if (!scrolling.current) {
+        scrolling.current = true;
+        invalidate ? invalidate() : window.requestAnimationFrame(animate);
+      }
+
+      setScrollY(y.target);
+    };
+
+    window.addEventListener('touchmove', onTouchMove, {
+      passive: false
+    });
+    window.addEventListener('touchend', onTouchEnd, {
+      passive: false
+    });
+    window.addEventListener('touchcancel', onTouchCancel, {
+      passive: false
+    });
   }; // find available scroll height
 
 
@@ -2042,11 +2136,17 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
       passive: false
     });
     window.addEventListener('scroll', onScrollEvent);
+    window.addEventListener('touchstart', onTouchStart, {
+      passive: false
+    });
     return function () {
       window.removeEventListener('wheel', onWheelEvent, {
         passive: false
       });
       window.removeEventListener('scroll', onScrollEvent);
+      window.removeEventListener('touchstart', onTouchStart, {
+        passive: false
+      });
     };
   }, [disabled]);
   return /*#__PURE__*/React__default.createElement(React__default.Fragment, null, children({}), !config.hasGlobalCanvas && /*#__PURE__*/React__default.createElement(ResizeManager, {
