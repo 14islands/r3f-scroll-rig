@@ -793,9 +793,12 @@ let ScrollScene = (_ref) => {
     debug = false,
     setInViewportProp = false,
     updateLayout = 0,
-    positionFixed = false
+    positionFixed = false,
+    hiddenStyles = {
+      opacity: 0
+    }
   } = _ref,
-      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "priority", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed"]);
+      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "priority", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed", "hiddenStyles"]);
 
   const inlineSceneRef = useCallback(node => {
     if (node !== null) {
@@ -848,10 +851,16 @@ let ScrollScene = (_ref) => {
   useLayoutEffect(() => {
     // hide image - leave in DOM to measure and get events
     if (!(el == null ? void 0 : el.current)) return;
-    el.current.style.opacity = debug ? 0.5 : 0;
+
+    if (debug) {
+      el.current.style.opacity = 0.5;
+    } else {
+      Object.assign(el.current.style, _extends({}, hiddenStyles));
+    }
+
     return () => {
       if (!(el == null ? void 0 : el.current)) return;
-      el.current.style.opacity = '';
+      Object.keys(hiddenStyles).forEach(key => el.current.style[key] = '');
     };
   }, [el.current]);
 

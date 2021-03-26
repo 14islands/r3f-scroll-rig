@@ -911,7 +911,11 @@ exports.ScrollScene = function ScrollScene(_ref) {
       updateLayout = _ref$updateLayout === void 0 ? 0 : _ref$updateLayout,
       _ref$positionFixed = _ref.positionFixed,
       positionFixed = _ref$positionFixed === void 0 ? false : _ref$positionFixed,
-      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "priority", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed"]);
+      _ref$hiddenStyles = _ref.hiddenStyles,
+      hiddenStyles = _ref$hiddenStyles === void 0 ? {
+    opacity: 0
+  } : _ref$hiddenStyles,
+      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "priority", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed", "hiddenStyles"]);
 
   var inlineSceneRef = React.useCallback(function (node) {
     if (node !== null) {
@@ -982,10 +986,18 @@ exports.ScrollScene = function ScrollScene(_ref) {
   React.useLayoutEffect(function () {
     // hide image - leave in DOM to measure and get events
     if (!(el == null ? void 0 : el.current)) return;
-    el.current.style.opacity = debug ? 0.5 : 0;
+
+    if (debug) {
+      el.current.style.opacity = 0.5;
+    } else {
+      Object.assign(el.current.style, _extends({}, hiddenStyles));
+    }
+
     return function () {
       if (!(el == null ? void 0 : el.current)) return;
-      el.current.style.opacity = '';
+      Object.keys(hiddenStyles).forEach(function (key) {
+        return el.current.style[key] = '';
+      });
     };
   }, [el.current]);
 

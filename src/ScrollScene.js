@@ -31,6 +31,7 @@ let ScrollScene = ({
   setInViewportProp = false,
   updateLayout = 0,
   positionFixed = false,
+  hiddenStyles = { opacity: 0 },
   ...props
 }) => {
   const inlineSceneRef = useCallback((node) => {
@@ -89,10 +90,18 @@ let ScrollScene = ({
   useLayoutEffect(() => {
     // hide image - leave in DOM to measure and get events
     if (!el?.current) return
-    el.current.style.opacity = debug ? 0.5 : 0
+
+    if (debug) {
+      el.current.style.opacity = 0.5
+    } else {
+      Object.assign(el.current.style, {
+        ...hiddenStyles,
+      })
+    }
+
     return () => {
       if (!el?.current) return
-      el.current.style.opacity = ''
+      Object.keys(hiddenStyles).forEach((key) => (el.current.style[key] = ''))
     }
   }, [el.current])
 
