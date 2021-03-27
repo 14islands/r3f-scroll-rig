@@ -4,7 +4,7 @@ import React, { useMemo, useEffect, useRef } from 'react';
 import { Color, Vector2 } from 'three';
 import { useThree, useFrame } from 'react-three-fiber';
 import { Text } from '@react-three/drei/core/Text';
-import { useScrollRig, useImgTagAsTexture, ScrollScene } from '@14islands/r3f-scroll-rig';
+import { config, useScrollRig, useImgTagAsTexture, ScrollScene } from '@14islands/r3f-scroll-rig';
 
 /**
  * Returns a WebGL Troika text mesh styled as the source DOM element
