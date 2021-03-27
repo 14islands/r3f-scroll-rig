@@ -38,6 +38,8 @@ export const WebGLText = ({ el, children, material, scale, font, fontOffsetY = 0
   textAlign === ('left' || 'start') && (xOffset = scale.width * -0.5)
   textAlign === ('right' || 'end') && (xOffset = scale.width * 0.5)
 
+  config.debug && console.log('WebGLText', textAlign, xOffset, scale.width)
+
   const yOffset = scale ? scale.height * 0.5 : size.height * 0.5
 
   return (

@@ -62,6 +62,7 @@ var WebGLText = function WebGLText(_ref) {
   var xOffset = 0;
   textAlign === ('left' ) && (xOffset = scale.width * -0.5);
   textAlign === ('right' ) && (xOffset = scale.width * 0.5);
+  config.debug && console.log('WebGLText', textAlign, xOffset, scale.width);
   var yOffset = scale ? scale.height * 0.5 : size.height * 0.5;
   return /*#__PURE__*/React__default.createElement(Text.Text, _extends({
     fontSize: fontSize,

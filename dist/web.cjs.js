@@ -911,11 +911,11 @@ exports.ScrollScene = function ScrollScene(_ref) {
       updateLayout = _ref$updateLayout === void 0 ? 0 : _ref$updateLayout,
       _ref$positionFixed = _ref.positionFixed,
       positionFixed = _ref$positionFixed === void 0 ? false : _ref$positionFixed,
-      _ref$hiddenStyles = _ref.hiddenStyles,
-      hiddenStyles = _ref$hiddenStyles === void 0 ? {
+      _ref$hiddenStyle = _ref.hiddenStyle,
+      hiddenStyle = _ref$hiddenStyle === void 0 ? {
     opacity: 0
-  } : _ref$hiddenStyles,
-      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "priority", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed", "hiddenStyles"]);
+  } : _ref$hiddenStyle,
+      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "priority", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed", "hiddenStyle"]);
 
   var inlineSceneRef = React.useCallback(function (node) {
     if (node !== null) {
@@ -990,12 +990,12 @@ exports.ScrollScene = function ScrollScene(_ref) {
     if (debug) {
       el.current.style.opacity = 0.5;
     } else {
-      Object.assign(el.current.style, _extends({}, hiddenStyles));
+      Object.assign(el.current.style, _extends({}, hiddenStyle));
     }
 
     return function () {
       if (!(el == null ? void 0 : el.current)) return;
-      Object.keys(hiddenStyles).forEach(function (key) {
+      Object.keys(hiddenStyle).forEach(function (key) {
         return el.current.style[key] = '';
       });
     };
@@ -1601,7 +1601,11 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
       scaleMultiplier = _ref$scaleMultiplier === void 0 ? config.scaleMultiplier : _ref$scaleMultiplier,
       _ref$orthographic = _ref.orthographic,
       orthographic = _ref$orthographic === void 0 ? false : _ref$orthographic,
-      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "margin", "visible", "renderOrder", "priority", "debug", "setInViewportProp", "renderOnTop", "scaleMultiplier", "orthographic"]);
+      _ref$hiddenStyle = _ref.hiddenStyle,
+      hiddenStyle = _ref$hiddenStyle === void 0 ? {
+    opacity: 0
+  } : _ref$hiddenStyle,
+      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "margin", "visible", "renderOrder", "priority", "debug", "setInViewportProp", "renderOnTop", "scaleMultiplier", "orthographic", "hiddenStyle"]);
 
   var camera = React.useRef();
 
@@ -1673,10 +1677,18 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
   React.useLayoutEffect(function () {
     // hide image - leave in DOM to measure and get events
     if (!(el == null ? void 0 : el.current)) return;
-    el.current.style.opacity = debug ? 0.5 : 0;
+
+    if (debug) {
+      el.current.style.opacity = 0.5;
+    } else {
+      Object.assign(el.current.style, _extends({}, hiddenStyle));
+    }
+
     return function () {
       if (!(el == null ? void 0 : el.current)) return;
-      el.current.style.opacity = '';
+      Object.keys(hiddenStyle).forEach(function (key) {
+        return el.current.style[key] = '';
+      });
     };
   }, [el.current]);
 

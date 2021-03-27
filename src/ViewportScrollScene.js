@@ -31,6 +31,7 @@ let ViewportScrollScene = ({
   renderOnTop = false,
   scaleMultiplier = config.scaleMultiplier, // use global setting as default
   orthographic = false,
+  hiddenStyle = { opacity: 0 },
   ...props
 }) => {
   const camera = useRef()
@@ -86,10 +87,18 @@ let ViewportScrollScene = ({
   useLayoutEffect(() => {
     // hide image - leave in DOM to measure and get events
     if (!el?.current) return
-    el.current.style.opacity = debug ? 0.5 : 0
+
+    if (debug) {
+      el.current.style.opacity = 0.5
+    } else {
+      Object.assign(el.current.style, {
+        ...hiddenStyle,
+      })
+    }
+
     return () => {
       if (!el?.current) return
-      el.current.style.opacity = ''
+      Object.keys(hiddenStyle).forEach((key) => (el.current.style[key] = ''))
     }
   }, [el.current])
 

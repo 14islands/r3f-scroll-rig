@@ -31,7 +31,7 @@ let ScrollScene = ({
   setInViewportProp = false,
   updateLayout = 0,
   positionFixed = false,
-  hiddenStyles = { opacity: 0 },
+  hiddenStyle = { opacity: 0 },
   ...props
 }) => {
   const inlineSceneRef = useCallback((node) => {
@@ -95,13 +95,13 @@ let ScrollScene = ({
       el.current.style.opacity = 0.5
     } else {
       Object.assign(el.current.style, {
-        ...hiddenStyles,
+        ...hiddenStyle,
       })
     }
 
     return () => {
       if (!el?.current) return
-      Object.keys(hiddenStyles).forEach((key) => (el.current.style[key] = ''))
+      Object.keys(hiddenStyle).forEach((key) => (el.current.style[key] = ''))
     }
   }, [el.current])
 
