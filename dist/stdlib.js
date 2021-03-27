@@ -52,9 +52,14 @@ const WebGLText = (_ref) => {
     }
   }, [material, color, overrideEmissive]);
   let xOffset = 0;
-  textAlign === ('left' ) && (xOffset = scale.width * -0.5);
-  textAlign === ('right' ) && (xOffset = scale.width * 0.5);
-  config.debug && console.log('WebGLText', textAlign, xOffset, scale.width);
+
+  if (textAlign == ('left' )) {
+    xOffset = scale.width * -0.5;
+    config.debug && console.log('WebGLText', textAlign, 'set', xOffset, textAlign == 'start', textAlign === 'start');
+  } else if (textAlign == ('right' )) {
+    xOffset = scale.width * 0.5;
+  }
+
   const yOffset = scale ? scale.height * 0.5 : size.height * 0.5;
   return /*#__PURE__*/React.createElement(Text, _extends({
     fontSize: fontSize,

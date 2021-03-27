@@ -36,10 +36,15 @@ export const WebGLText = ({ el, children, material, scale, font, fontOffsetY = 0
   }, [material, color, overrideEmissive])
 
   let xOffset = 0
-  textAlign === ('left' || 'start') && (xOffset = scale.width * -0.5)
-  textAlign === ('right' || 'end') && (xOffset = scale.width * 0.5)
+  if (textAlign == ('left' || 'start')) {
+    xOffset = scale.width * -0.5
 
-  config.debug && console.log('WebGLText', textAlign, xOffset, scale.width)
+    config.debug && console.log('WebGLText', textAlign, 'set', xOffset, textAlign == 'start', textAlign === 'start')
+  }
+  else if (textAlign == ('right' || 'end')) {
+    xOffset = scale.width * 0.5
+  }
+
 
   const yOffset = scale ? scale.height * 0.5 : size.height * 0.5
 
