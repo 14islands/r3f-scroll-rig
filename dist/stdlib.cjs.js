@@ -63,11 +63,11 @@ var WebGLText = function WebGLText(_ref) {
 
   if (textAlign == ('left' )) {
     xOffset = scale.width * -0.5;
-    r3fScrollRig.config.debug && console.log('WebGLText', textAlign, 'set', xOffset, textAlign == 'start', textAlign === 'start');
   } else if (textAlign == ('right' )) {
     xOffset = scale.width * 0.5;
   }
 
+  r3fScrollRig.config.debug && console.log('WebGLText align', textAlign, 'xOffset', xOffset, textAlign == 'start', textAlign === 'start');
   var yOffset = scale ? scale.height * 0.5 : size.height * 0.5;
   return /*#__PURE__*/React__default.createElement(Text.Text, _extends({
     fontSize: fontSize,
