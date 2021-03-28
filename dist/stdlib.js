@@ -4,7 +4,7 @@ import React, { useMemo, useEffect, useRef } from 'react';
 import { Color, Vector2 } from 'three';
 import { useThree, useFrame } from 'react-three-fiber';
 import { Text } from '@react-three/drei/core/Text';
-import { config, useScrollRig, useImgTagAsTexture, ScrollScene } from '@14islands/r3f-scroll-rig';
+import { useScrollRig, useImgTagAsTexture, ScrollScene } from '@14islands/r3f-scroll-rig';
 
 /**
  * Returns a WebGL Troika text mesh styled as the source DOM element
@@ -53,13 +53,12 @@ const WebGLText = (_ref) => {
   }, [material, color, overrideEmissive]);
   let xOffset = 0;
 
-  if (textAlign == ('left' )) {
+  if (textAlign === 'left' || textAlign === 'start') {
     xOffset = scale.width * -0.5;
-  } else if (textAlign == ('right' )) {
+  } else if (textAlign === 'right' || textAlign === 'end') {
     xOffset = scale.width * 0.5;
   }
 
-  config.debug && console.log('WebGLText align', textAlign, 'xOffset', xOffset, textAlign == 'start', textAlign === 'start');
   const yOffset = scale ? scale.height * 0.5 : size.height * 0.5;
   return /*#__PURE__*/React.createElement(Text, _extends({
     fontSize: fontSize,
