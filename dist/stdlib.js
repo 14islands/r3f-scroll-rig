@@ -39,11 +39,11 @@ const WebGLText = (_ref) => {
 
     const letterSpacing = (parseFloat(cs.letterSpacing) || 0) / parseFloat(cs.fontSize);
     const lineHeight = (parseFloat(cs.lineHeight) || 0) / parseFloat(cs.fontSize);
-    const color = new Color(color || cs.color).convertSRGBToLinear();
+    const textColor = new Color(color || cs.color).convertSRGBToLinear();
     return _extends({}, cs, {
       letterSpacing,
       lineHeight,
-      color,
+      color: textColor,
       fontSize: parseFloat(cs.fontSize) * scale.multiplier
     }); // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [el, size, scale, color]); // recalc on resize

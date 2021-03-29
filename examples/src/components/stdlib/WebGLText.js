@@ -17,13 +17,13 @@ export const WebGLText = ({ el, children, material, scale, font, fontOffsetY = 0
     // font size relative letter spacing
     const letterSpacing = (parseFloat(cs.letterSpacing) || 0) / parseFloat(cs.fontSize)
     const lineHeight = (parseFloat(cs.lineHeight) || 0) / parseFloat(cs.fontSize)
-    const color = new Color(color || cs.color).convertSRGBToLinear()
+    const textColor = new Color(color || cs.color).convertSRGBToLinear()
 
     return {
       ...cs,
       letterSpacing,
       lineHeight,
-      color,
+      color: textColor,
       fontSize: parseFloat(cs.fontSize) * scale.multiplier,
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

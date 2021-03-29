@@ -41,11 +41,11 @@ var WebGLText = function WebGLText(_ref) {
 
     var letterSpacing = (parseFloat(cs.letterSpacing) || 0) / parseFloat(cs.fontSize);
     var lineHeight = (parseFloat(cs.lineHeight) || 0) / parseFloat(cs.fontSize);
-    var color = new three.Color(color || cs.color).convertSRGBToLinear();
+    var textColor = new three.Color(color || cs.color).convertSRGBToLinear();
     return _extends({}, cs, {
       letterSpacing: letterSpacing,
       lineHeight: lineHeight,
-      color: color,
+      color: textColor,
       fontSize: parseFloat(cs.fontSize) * scale.multiplier
     }); // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [el, size, scale, color]),
