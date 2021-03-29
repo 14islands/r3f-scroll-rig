@@ -1736,7 +1736,7 @@ const HijackedScrollbar = ({
     delta.current = Math.abs(y.current - newTarget);
     y.current = newTarget; // round for scrollbar
 
-    roundedY.current = Math.floor(y.current); // if (!useFrameLoop) {
+    roundedY.current = config.subpixelScrolling ? y.current : Math.floor(y.current); // if (!useFrameLoop) {
 
     setScrollPosition(); // }
   };

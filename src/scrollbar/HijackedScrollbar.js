@@ -58,7 +58,7 @@ export const HijackedScrollbar = ({
     y.current = newTarget
 
     // round for scrollbar
-    roundedY.current = Math.floor(y.current)
+    roundedY.current = config.subpixelScrolling ? y.current : Math.floor(y.current)
 
     // if (!useFrameLoop) {
     setScrollPosition()
