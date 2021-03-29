@@ -45,7 +45,7 @@ var WebGLText = function WebGLText(_ref) {
     return _extends({}, cs, {
       letterSpacing: letterSpacing,
       lineHeight: lineHeight,
-      color: textColor,
+      textColor: textColor,
       fontSize: parseFloat(cs.fontSize) * scale.multiplier
     }); // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [el, size, scale, color]),

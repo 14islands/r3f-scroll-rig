@@ -1,8 +1,8 @@
 {
   "web.js": {
-    "bundled": 68285,
-    "minified": 31426,
-    "gzipped": 9437,
+    "bundled": 68219,
+    "minified": 31322,
+    "gzipped": 9467,
     "treeshaked": {
       "rollup": {
         "code": 14655,
@@ -14,9 +14,9 @@
     }
   },
   "web.cjs.js": {
-    "bundled": 83387,
-    "minified": 37148,
-    "gzipped": 10175
+    "bundled": 83457,
+    "minified": 37127,
+    "gzipped": 10205
   },
   "vscroll.js": {
     "bundled": 12612,
@@ -76,8 +76,8 @@
     "gzipped": 973
   },
   "stdlib.js": {
-    "bundled": 6068,
-    "minified": 3321,
+    "bundled": 6061,
+    "minified": 3325,
     "gzipped": 1382,
     "treeshaked": {
       "rollup": {
@@ -90,8 +90,8 @@
     }
   },
   "stdlib.cjs.js": {
-    "bundled": 8049,
-    "minified": 4003,
-    "gzipped": 1561
+    "bundled": 8053,
+    "minified": 4007,
+    "gzipped": 1563
   }
 }

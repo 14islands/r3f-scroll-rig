@@ -23,7 +23,7 @@ export const WebGLText = ({ el, children, material, scale, font, fontOffsetY = 0
       ...cs,
       letterSpacing,
       lineHeight,
-      color: textColor,
+      textColor,
       fontSize: parseFloat(cs.fontSize) * scale.multiplier,
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

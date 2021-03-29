@@ -47,11 +47,13 @@ export const HijackedScrollbar = ({
   const documentHeight = useRef(0)
   const delta = useRef(0)
 
+  const originalLerp = useRef(lerp || config.scrollLerp).current
+
   const animate = (ts) => {
     if (!scrolling.current) return
 
     // use internal target with floating point precision to make sure lerp is smooth
-    const newTarget = _lerp(y.current, y.target, lerp || config.scrollLerp)
+    const newTarget = _lerp(y.current, y.target, config.scrollLerp)
 
     delta.current = Math.abs(y.current - newTarget)
 
@@ -65,9 +67,34 @@ export const HijackedScrollbar = ({
     // }
   }
 
+  const scrollTo = (newY, lerp = originalLerp) => {
+    config.scrollLerp = lerp
+
+    y.target = Math.min(Math.max(newY, 0), documentHeight.current)
+
+    if (!scrolling.current) {
+      scrolling.current = true
+      invalidate ? invalidate() : window.requestAnimationFrame(animate)
+    }
+
+    setScrollY(y.target)
+  }
+
+  // override window.scrollTo(0, targetY)
+  useEffect(() => {
+    window.__origScrollTo = window.scrollTo
+    window.__origScroll = window.scroll
+    window.scrollTo = (x, y, lerp) => scrollTo(y, lerp)
+    window.scroll = (x, y, lerp) => scrollTo(y, lerp)
+    return () => {
+      window.scrollTo = window.__origScrollTo
+      window.scroll = window.__origScroll
+    }
+  }, [pageReflowRequested, location])
+
   const setScrollPosition = () => {
     if (!scrolling.current) return
-    window.scrollTo(0, roundedY.current)
+    window.__origScrollTo(0, roundedY.current)
 
     // Trigger optional callback here
     onUpdate && onUpdate(y)
@@ -121,10 +148,10 @@ export const HijackedScrollbar = ({
       y.target = window.scrollY
 
       // set lerp to 1 temporarily so stuff moves immediately
-      if (!config._scrollLerp) {
-        config._scrollLerp = config.scrollLerp
-      }
-      config.scrollLerp = 1
+      // if (!config._scrollLerp) {
+      //   config._scrollLerp = config.scrollLerp
+      // }
+      // config.scrollLerp = 1
 
       setScrollY(y.target)
       onUpdate && onUpdate(y)
@@ -161,16 +188,7 @@ export const HijackedScrollbar = ({
       e.preventDefault()
       calculateTouchScroll(e.touches[0])
 
-      config.scrollLerp = DRAG_ACTIVE_LERP
-
-      y.target = Math.min(Math.max(y.target + frameDelta * speed, 0), documentHeight.current)
-
-      if (!scrolling.current) {
-        scrolling.current = true
-        invalidate ? invalidate() : window.requestAnimationFrame(animate)
-      }
-
-      setScrollY(y.target)
+      scrollTo(y.target + frameDelta * speed, DRAG_ACTIVE_LERP)
     }
 
     const onTouchCancel = (e) => {
@@ -191,16 +209,7 @@ export const HijackedScrollbar = ({
       velY = _lerp(velY, 0, time)
 
       // inertia lerp
-      config.scrollLerp = DRAG_INERTIA_LERP
-
-      y.target = Math.min(Math.max(y.current + velY, 0), documentHeight.current)
-
-      if (!scrolling.current) {
-        scrolling.current = true
-        invalidate ? invalidate() : window.requestAnimationFrame(animate)
-      }
-
-      setScrollY(y.target)
+      scrollTo(y.current + velY, DRAG_INERTIA_LERP)
     }
 
     window.addEventListener('touchmove', onTouchMove, { passive: false })
@@ -218,18 +227,7 @@ export const HijackedScrollbar = ({
   const onWheelEvent = (e) => {
     e.preventDefault()
 
-    y.target = Math.min(Math.max(y.target + e.deltaY * speed, 0), documentHeight.current)
-
-    if (!scrolling.current) {
-      scrolling.current = true
-      invalidate ? invalidate() : window.requestAnimationFrame(animate)
-    }
-
-    // restore lerp from saved value in case scrolled manually
-    config.scrollLerp = config._scrollLerp || config.scrollLerp
-    config._scrollLerp = undefined
-
-    setScrollY(y.target)
+    scrollTo(y.target + e.deltaY * speed)
   }
 
   useEffect(() => {
