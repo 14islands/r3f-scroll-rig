@@ -2,32 +2,32 @@ import React, { useMemo, useEffect } from 'react'
 import { Color } from 'three'
 import { useThree } from 'react-three-fiber'
 import { Text } from '@react-three/drei/core/Text'
-import { config } from '@14islands/r3f-scroll-rig'
 
 /**
  * Returns a WebGL Troika text mesh styled as the source DOM element
  */
 
-export const WebGLText = ({ el, children, material, scale, font, fontOffsetY = 0, fontOffsetX = 0, overrideEmissive = false, ...props }) => {
+export const WebGLText = ({ el, children, material, scale, font, fontOffsetY = 0, fontOffsetX = 0, overrideEmissive = false, color, ...props }) => {
   const { size } = useThree()
 
-  const { color, fontSize, textAlign, lineHeight, letterSpacing } = useMemo(() => {
+  const { textColor, fontSize, textAlign, lineHeight, letterSpacing } = useMemo(() => {
     if (!el.current) return {}
     const cs = window.getComputedStyle(el.current)
 
     // font size relative letter spacing
     const letterSpacing = (parseFloat(cs.letterSpacing) || 0) / parseFloat(cs.fontSize)
     const lineHeight = (parseFloat(cs.lineHeight) || 0) / parseFloat(cs.fontSize)
+    const color = new Color(color || cs.color).convertSRGBToLinear()
 
     return {
       ...cs,
       letterSpacing,
       lineHeight,
-      color: new Color(cs.color).convertSRGBToLinear(),
+      color,
       fontSize: parseFloat(cs.fontSize) * scale.multiplier,
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [el, size, scale]) // recalc on resize
+  }, [el, size, scale, color]) // recalc on resize
 
   useEffect(() => {
     if (material && overrideEmissive) {
@@ -54,7 +54,7 @@ export const WebGLText = ({ el, children, material, scale, font, fontOffsetY = 0
       textAlign={textAlign}
       letterSpacing={letterSpacing}
       font={font}
-      color={color}
+      color={textColor}
       anchorX={textAlign}
       anchorY="top" // so text moves down if row breaks
       position={[xOffset + fontSize * fontOffsetX, yOffset + fontSize * fontOffsetY, 0]} // font specific

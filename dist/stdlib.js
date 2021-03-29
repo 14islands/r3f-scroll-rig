@@ -19,15 +19,16 @@ const WebGLText = (_ref) => {
     font,
     fontOffsetY = 0,
     fontOffsetX = 0,
-    overrideEmissive = false
+    overrideEmissive = false,
+    color
   } = _ref,
-      props = _objectWithoutPropertiesLoose(_ref, ["el", "children", "material", "scale", "font", "fontOffsetY", "fontOffsetX", "overrideEmissive"]);
+      props = _objectWithoutPropertiesLoose(_ref, ["el", "children", "material", "scale", "font", "fontOffsetY", "fontOffsetX", "overrideEmissive", "color"]);
 
   const {
     size
   } = useThree();
   const {
-    color,
+    textColor,
     fontSize,
     textAlign,
     lineHeight,
@@ -38,13 +39,14 @@ const WebGLText = (_ref) => {
 
     const letterSpacing = (parseFloat(cs.letterSpacing) || 0) / parseFloat(cs.fontSize);
     const lineHeight = (parseFloat(cs.lineHeight) || 0) / parseFloat(cs.fontSize);
+    const color = new Color(color || cs.color).convertSRGBToLinear();
     return _extends({}, cs, {
       letterSpacing,
       lineHeight,
-      color: new Color(cs.color).convertSRGBToLinear(),
+      color,
       fontSize: parseFloat(cs.fontSize) * scale.multiplier
     }); // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [el, size, scale]); // recalc on resize
+  }, [el, size, scale, color]); // recalc on resize
 
   useEffect(() => {
     if (material && overrideEmissive) {
@@ -67,7 +69,7 @@ const WebGLText = (_ref) => {
     textAlign: textAlign,
     letterSpacing: letterSpacing,
     font: font,
-    color: color,
+    color: textColor,
     anchorX: textAlign,
     anchorY: "top" // so text moves down if row breaks
     ,

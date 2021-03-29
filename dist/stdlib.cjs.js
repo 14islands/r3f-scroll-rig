@@ -29,7 +29,8 @@ var WebGLText = function WebGLText(_ref) {
       fontOffsetX = _ref$fontOffsetX === void 0 ? 0 : _ref$fontOffsetX,
       _ref$overrideEmissive = _ref.overrideEmissive,
       overrideEmissive = _ref$overrideEmissive === void 0 ? false : _ref$overrideEmissive,
-      props = _objectWithoutPropertiesLoose(_ref, ["el", "children", "material", "scale", "font", "fontOffsetY", "fontOffsetX", "overrideEmissive"]);
+      color = _ref.color,
+      props = _objectWithoutPropertiesLoose(_ref, ["el", "children", "material", "scale", "font", "fontOffsetY", "fontOffsetX", "overrideEmissive", "color"]);
 
   var _useThree = reactThreeFiber.useThree(),
       size = _useThree.size;
@@ -40,14 +41,15 @@ var WebGLText = function WebGLText(_ref) {
 
     var letterSpacing = (parseFloat(cs.letterSpacing) || 0) / parseFloat(cs.fontSize);
     var lineHeight = (parseFloat(cs.lineHeight) || 0) / parseFloat(cs.fontSize);
+    var color = new three.Color(color || cs.color).convertSRGBToLinear();
     return _extends({}, cs, {
       letterSpacing: letterSpacing,
       lineHeight: lineHeight,
-      color: new three.Color(cs.color).convertSRGBToLinear(),
+      color: color,
       fontSize: parseFloat(cs.fontSize) * scale.multiplier
     }); // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [el, size, scale]),
-      color = _useMemo.color,
+  }, [el, size, scale, color]),
+      textColor = _useMemo.textColor,
       fontSize = _useMemo.fontSize,
       textAlign = _useMemo.textAlign,
       lineHeight = _useMemo.lineHeight,
@@ -75,7 +77,7 @@ var WebGLText = function WebGLText(_ref) {
     textAlign: textAlign,
     letterSpacing: letterSpacing,
     font: font,
-    color: color,
+    color: textColor,
     anchorX: textAlign,
     anchorY: "top" // so text moves down if row breaks
     ,
