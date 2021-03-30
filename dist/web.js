@@ -1725,15 +1725,33 @@ const HijackedScrollbar = ({
   const requestReflow = useCanvasStore(state => state.requestReflow);
   const pageReflowRequested = useCanvasStore(state => state.pageReflowRequested);
   const setScrollY = useCanvasStore(state => state.setScrollY);
+  const ref = useRef();
   const y = useRef({
     current: 0,
     target: 0
   }).current;
   const roundedY = useRef(0);
   const scrolling = useRef(false);
+  const preventPointer = useRef(false);
   const documentHeight = useRef(0);
   const delta = useRef(0);
   const originalLerp = useRef(lerp || config.scrollLerp).current;
+
+  const setScrollPosition = () => {
+    if (!scrolling.current) return;
+
+    window.__origScrollTo(0, roundedY.current); // Trigger optional callback here
+
+
+    onUpdate && onUpdate(y); // TODO set scrolling.current = false here instead to avoid trailing scroll event
+
+    if (delta.current <= (restDelta || config.scrollRestDelta)) {
+      scrolling.current = false;
+      preventPointerEvents(false);
+    } else {
+      invalidate ? invalidate() : window.requestAnimationFrame(animate);
+    }
+  };
 
   const animate = ts => {
     if (!scrolling.current) return; // use internal target with floating point precision to make sure lerp is smooth
@@ -1755,11 +1773,36 @@ const HijackedScrollbar = ({
     if (!scrolling.current) {
       scrolling.current = true;
       invalidate ? invalidate() : window.requestAnimationFrame(animate);
+      setTimeout(() => {
+        preventPointerEvents(true);
+        preventPointer.current = true;
+      }, 0);
     }
 
     setScrollY(y.target);
-  }; // override window.scrollTo(0, targetY)
+  }; // disable pointer events while scrolling to avoid slow event handlers
 
+
+  const preventPointerEvents = prevent => {
+    if (ref.current) {
+      ref.current.style.pointerEvents = prevent ? 'none' : '';
+    }
+
+    preventPointer.current = prevent;
+  }; // reset pointer events when moving mouse
+
+
+  const onMouseMove = () => {
+    if (preventPointer.current) {
+      preventPointerEvents(false);
+    }
+  }; // Bind mouse event
+
+
+  useEffect(() => {
+    window.addEventListener('mousemove', onMouseMove);
+    return () => window.removeEventListener('mousemove', onMouseMove);
+  }, []); // override window.scrollTo(0, targetY)
 
   useEffect(() => {
     window.__origScrollTo = window.scrollTo;
@@ -1773,29 +1816,13 @@ const HijackedScrollbar = ({
       window.scrollTo = window.__origScrollTo;
       window.scroll = window.__origScroll;
     };
-  }, [pageReflowRequested, location]);
-
-  const setScrollPosition = () => {
-    if (!scrolling.current) return;
-
-    window.__origScrollTo(0, roundedY.current); // Trigger optional callback here
-
-
-    onUpdate && onUpdate(y); // TODO set scrolling.current = false here instead to avoid trailing scroll event
-
-    if (delta.current <= (restDelta || config.scrollRestDelta)) {
-      scrolling.current = false;
-    } else {
-      invalidate ? invalidate() : window.requestAnimationFrame(animate);
-    }
-  }; // update scroll position last
+  }, [pageReflowRequested, location]); // update scroll position last
   // useEffect(() => {
   //   if (useFrameLoop) {
   //     return addAfterEffect(setScrollPosition)
   //   }
   // }, [])
   // disable subpixelScrolling for better visual sync with canvas
-
 
   useEffect(() => {
     const ssBefore = config.subpixelScrolling;
@@ -1938,7 +1965,9 @@ const HijackedScrollbar = ({
       });
     };
   }, [disabled]);
-  return /*#__PURE__*/React.createElement(React.Fragment, null, children({}), !config.hasGlobalCanvas && /*#__PURE__*/React.createElement(ResizeManager, {
+  return /*#__PURE__*/React.createElement(React.Fragment, null, children({
+    ref
+  }), !config.hasGlobalCanvas && /*#__PURE__*/React.createElement(ResizeManager, {
     reflow: requestReflow
   }));
 };

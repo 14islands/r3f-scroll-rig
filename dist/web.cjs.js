@@ -1960,15 +1960,33 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
   var setScrollY = useCanvasStore(function (state) {
     return state.setScrollY;
   });
+  var ref = React.useRef();
   var y = React.useRef({
     current: 0,
     target: 0
   }).current;
   var roundedY = React.useRef(0);
   var scrolling = React.useRef(false);
+  var preventPointer = React.useRef(false);
   var documentHeight = React.useRef(0);
   var delta = React.useRef(0);
   var originalLerp = React.useRef(lerp || config.scrollLerp).current;
+
+  var setScrollPosition = function setScrollPosition() {
+    if (!scrolling.current) return;
+
+    window.__origScrollTo(0, roundedY.current); // Trigger optional callback here
+
+
+    onUpdate && onUpdate(y); // TODO set scrolling.current = false here instead to avoid trailing scroll event
+
+    if (delta.current <= (restDelta || config.scrollRestDelta)) {
+      scrolling.current = false;
+      preventPointerEvents(false);
+    } else {
+      invalidate ? invalidate() : window.requestAnimationFrame(animate);
+    }
+  };
 
   var animate = function animate(ts) {
     if (!scrolling.current) return; // use internal target with floating point precision to make sure lerp is smooth
@@ -1994,11 +2012,38 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
     if (!scrolling.current) {
       scrolling.current = true;
       invalidate ? invalidate() : window.requestAnimationFrame(animate);
+      setTimeout(function () {
+        preventPointerEvents(true);
+        preventPointer.current = true;
+      }, 0);
     }
 
     setScrollY(y.target);
-  }; // override window.scrollTo(0, targetY)
+  }; // disable pointer events while scrolling to avoid slow event handlers
 
+
+  var preventPointerEvents = function preventPointerEvents(prevent) {
+    if (ref.current) {
+      ref.current.style.pointerEvents = prevent ? 'none' : '';
+    }
+
+    preventPointer.current = prevent;
+  }; // reset pointer events when moving mouse
+
+
+  var onMouseMove = function onMouseMove() {
+    if (preventPointer.current) {
+      preventPointerEvents(false);
+    }
+  }; // Bind mouse event
+
+
+  React.useEffect(function () {
+    window.addEventListener('mousemove', onMouseMove);
+    return function () {
+      return window.removeEventListener('mousemove', onMouseMove);
+    };
+  }, []); // override window.scrollTo(0, targetY)
 
   React.useEffect(function () {
     window.__origScrollTo = window.scrollTo;
@@ -2016,29 +2061,13 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
       window.scrollTo = window.__origScrollTo;
       window.scroll = window.__origScroll;
     };
-  }, [pageReflowRequested, location]);
-
-  var setScrollPosition = function setScrollPosition() {
-    if (!scrolling.current) return;
-
-    window.__origScrollTo(0, roundedY.current); // Trigger optional callback here
-
-
-    onUpdate && onUpdate(y); // TODO set scrolling.current = false here instead to avoid trailing scroll event
-
-    if (delta.current <= (restDelta || config.scrollRestDelta)) {
-      scrolling.current = false;
-    } else {
-      invalidate ? invalidate() : window.requestAnimationFrame(animate);
-    }
-  }; // update scroll position last
+  }, [pageReflowRequested, location]); // update scroll position last
   // useEffect(() => {
   //   if (useFrameLoop) {
   //     return addAfterEffect(setScrollPosition)
   //   }
   // }, [])
   // disable subpixelScrolling for better visual sync with canvas
-
 
   React.useEffect(function () {
     var ssBefore = config.subpixelScrolling;
@@ -2181,7 +2210,9 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
       });
     };
   }, [disabled]);
-  return /*#__PURE__*/React__default.createElement(React__default.Fragment, null, children({}), !config.hasGlobalCanvas && /*#__PURE__*/React__default.createElement(ResizeManager, {
+  return /*#__PURE__*/React__default.createElement(React__default.Fragment, null, children({
+    ref: ref
+  }), !config.hasGlobalCanvas && /*#__PURE__*/React__default.createElement(ResizeManager, {
     reflow: requestReflow
   }));
 };
