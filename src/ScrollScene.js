@@ -18,8 +18,8 @@ import DebugMesh from './DebugMesh'
  */
 let ScrollScene = ({
   el,
-  lerp,
-  lerpOffset = 0,
+  lerp, // override global lerp. don't change if you want to stay synched with the virtual scrollbar
+  lerpOffset = 1, // change current lerp by a factor - use this instead of `lerp`
   children,
   renderOrder = 1,
   priority = config.PRIORITY_SCISSORS,
@@ -170,7 +170,7 @@ let ScrollScene = ({
     const delta = Math.abs(prevBounds.y - y)
 
     // Lerp the distance to simulate easing
-    const lerpY = MathUtils.lerp(prevBounds.y, y, (lerp || config.scrollLerp) + lerpOffset)
+    const lerpY = MathUtils.lerp(prevBounds.y, y, (lerp || config.scrollLerp) * lerpOffset)
     const newY = config.subpixelScrolling ? lerpY : Math.floor(lerpY)
 
     // Abort if element not in screen
@@ -262,7 +262,7 @@ ScrollScene = React.memo(ScrollScene)
 ScrollScene.propTypes = {
   el: PropTypes.object, // DOM element to track,
   lerp: PropTypes.number, // Base lerp ratio
-  lerpOffset: PropTypes.number, // Offset applied to `lerp`
+  lerpOffset: PropTypes.number, // Offset factor applied to `lerp`
   renderOrder: PropTypes.number, // threejs render order
   visible: PropTypes.bool, // threejs render order,
   margin: PropTypes.number, // custom margin around DOM el when using scissor to avoid clipping

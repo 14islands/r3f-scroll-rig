@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.1.0
+
+### ViewportScrollScene, ScrollScene, ScrollDomPortal
+
+- `lerpOffset` is now a factor that is multiplied with the lerp instead of added. Default value is now `1` instead of `0`.
+
 ## v2.0.0
 
 Breaking upgrade. Simplify and remove as much as possible.

@@ -890,7 +890,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
   var el = _ref.el,
       lerp = _ref.lerp,
       _ref$lerpOffset = _ref.lerpOffset,
-      lerpOffset = _ref$lerpOffset === void 0 ? 0 : _ref$lerpOffset,
+      lerpOffset = _ref$lerpOffset === void 0 ? 1 : _ref$lerpOffset,
       children = _ref.children,
       _ref$renderOrder = _ref.renderOrder,
       renderOrder = _ref$renderOrder === void 0 ? 1 : _ref$renderOrder,
@@ -1067,7 +1067,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
 
     var delta = Math.abs(prevBounds.y - y); // Lerp the distance to simulate easing
 
-    var lerpY = three.MathUtils.lerp(prevBounds.y, y, (lerp || config.scrollLerp) + lerpOffset);
+    var lerpY = three.MathUtils.lerp(prevBounds.y, y, (lerp || config.scrollLerp) * lerpOffset);
     var newY = config.subpixelScrolling ? lerpY : Math.floor(lerpY); // Abort if element not in screen
 
     var scrollMargin = inViewportMargin || size.height * 0.33;
@@ -1184,10 +1184,9 @@ var LAYOUT_LERP = 0.1;
 var ScrollDomPortal = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
   var el = _ref.el,
       portalEl = _ref.portalEl,
-      _ref$lerp = _ref.lerp,
-      lerp = _ref$lerp === void 0 ? config.scrollLerp : _ref$lerp,
+      lerp = _ref.lerp,
       _ref$lerpOffset = _ref.lerpOffset,
-      lerpOffset = _ref$lerpOffset === void 0 ? 0 : _ref$lerpOffset,
+      lerpOffset = _ref$lerpOffset === void 0 ? 1 : _ref$lerpOffset,
       children = _ref.children,
       _ref$zIndex = _ref.zIndex,
       zIndex = _ref$zIndex === void 0 ? 0 : _ref$zIndex,
@@ -1323,7 +1322,7 @@ var ScrollDomPortal = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
     } // Lerp the distance
 
 
-    var lerpScroll = three.MathUtils.lerp(prevBounds.top, scrollTop, lerp + lerpOffset);
+    var lerpScroll = three.MathUtils.lerp(prevBounds.top, scrollTop, (lerp || config.scrollLerp) * lerpOffset);
     var lerpX = three.MathUtils.lerp(prevBounds.x, offsetX, layoutLerp);
     var lerpY = three.MathUtils.lerp(prevBounds.y, offsetY, layoutLerp); // Abort if element not in screen
 
@@ -1380,7 +1379,7 @@ ScrollDomPortal.propTypes = {
   lerp: PropTypes.number,
   // Base lerp ratio
   lerpOffset: PropTypes.number,
-  // Offset applied to `lerp`
+  // Offset factor applied to `lerp`
   zIndex: PropTypes.number,
   // z-index to apply to the cloned element
   getOffset: PropTypes.func,
@@ -1582,7 +1581,7 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
   var el = _ref.el,
       lerp = _ref.lerp,
       _ref$lerpOffset = _ref.lerpOffset,
-      lerpOffset = _ref$lerpOffset === void 0 ? 0 : _ref$lerpOffset,
+      lerpOffset = _ref$lerpOffset === void 0 ? 1 : _ref$lerpOffset,
       children = _ref.children,
       _ref$margin = _ref.margin,
       margin = _ref$margin === void 0 ? 0 : _ref$margin,
@@ -1752,7 +1751,7 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
 
     var delta = Math.abs(prevBounds.top - topY); // Lerp the distance to simulate easing
 
-    var lerpTop = three.MathUtils.lerp(prevBounds.top, topY, (lerp || config.scrollLerp) + lerpOffset);
+    var lerpTop = three.MathUtils.lerp(prevBounds.top, topY, (lerp || config.scrollLerp) * lerpOffset);
     var newTop = config.subpixelScrolling ? lerpTop : Math.floor(lerpTop); // Abort if element not in screen
 
     var isOffscreen = newTop + bounds.height < -100 || newTop > size.height + 100; // store top value for next frame

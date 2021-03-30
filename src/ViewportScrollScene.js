@@ -19,8 +19,8 @@ import DebugMesh from './DebugMesh'
  */
 let ViewportScrollScene = ({
   el,
-  lerp,
-  lerpOffset = 0,
+  lerp, // override global lerp. don't change if you want to stay synched with the virtual scrollbar
+  lerpOffset = 1, // change current lerp by a factor - use this instead of `lerp`
   children,
   margin = 0, // Margin outside viewport to avoid clipping vertex displacement (px)
   visible = true,
@@ -162,7 +162,7 @@ let ViewportScrollScene = ({
     const delta = Math.abs(prevBounds.top - topY)
 
     // Lerp the distance to simulate easing
-    const lerpTop = MathUtils.lerp(prevBounds.top, topY, (lerp || config.scrollLerp) + lerpOffset)
+    const lerpTop = MathUtils.lerp(prevBounds.top, topY, (lerp || config.scrollLerp) * lerpOffset)
     const newTop = config.subpixelScrolling ? lerpTop : Math.floor(lerpTop)
 
     // Abort if element not in screen
@@ -270,7 +270,7 @@ ViewportScrollScene = React.memo(ViewportScrollScene)
 ViewportScrollScene.propTypes = {
   el: PropTypes.object, // DOM element to track,
   lerp: PropTypes.number, // Base lerp ratio
-  lerpOffset: PropTypes.number, // Offset applied to `lerp`
+  lerpOffset: PropTypes.number, // Offset factor applied to `lerp`
   visible: PropTypes.bool,
   margin: PropTypes.number, // custom margin around scissor to impact clipping
   renderOrder: PropTypes.number,

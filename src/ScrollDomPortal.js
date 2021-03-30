@@ -23,8 +23,8 @@ const ScrollDomPortal = forwardRef(
     {
       el,
       portalEl,
-      lerp = config.scrollLerp,
-      lerpOffset = 0,
+      lerp, // override global lerp. don't change if you want to stay synched with the virtual scrollbar
+      lerpOffset = 1, // change current lerp by a factor - use this instead of `lerp`
       children,
       zIndex = 0,
       getOffset = () => {},
@@ -142,7 +142,7 @@ const ScrollDomPortal = forwardRef(
       }
 
       // Lerp the distance
-      const lerpScroll = MathUtils.lerp(prevBounds.top, scrollTop, lerp + lerpOffset)
+      const lerpScroll = MathUtils.lerp(prevBounds.top, scrollTop, (lerp || config.scrollLerp) * lerpOffset)
       const lerpX = MathUtils.lerp(prevBounds.x, offsetX, layoutLerp)
       const lerpY = MathUtils.lerp(prevBounds.y, offsetY, layoutLerp)
 
@@ -197,7 +197,7 @@ ScrollDomPortal.propTypes = {
   el: PropTypes.object, // DOM element to track,
   portalEl: PropTypes.object, // DOM element to portal into,
   lerp: PropTypes.number, // Base lerp ratio
-  lerpOffset: PropTypes.number, // Offset applied to `lerp`
+  lerpOffset: PropTypes.number, // Offset factor applied to `lerp`
   zIndex: PropTypes.number, // z-index to apply to the cloned element
   getOffset: PropTypes.func, // called for every frame to get {x,y} translation offset
   live: PropTypes.bool,

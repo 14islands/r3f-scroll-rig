@@ -781,7 +781,9 @@ let ScrollScene = (_ref) => {
   let {
     el,
     lerp,
-    lerpOffset = 0,
+    // override global lerp. don't change if you want to stay synched with the virtual scrollbar
+    lerpOffset = 1,
+    // change current lerp by a factor - use this instead of `lerp`
     children,
     renderOrder = 1,
     priority = config.PRIORITY_SCISSORS,
@@ -934,7 +936,7 @@ let ScrollScene = (_ref) => {
 
     const delta = Math.abs(prevBounds.y - y); // Lerp the distance to simulate easing
 
-    const lerpY = MathUtils.lerp(prevBounds.y, y, (lerp || config.scrollLerp) + lerpOffset);
+    const lerpY = MathUtils.lerp(prevBounds.y, y, (lerp || config.scrollLerp) * lerpOffset);
     const newY = config.subpixelScrolling ? lerpY : Math.floor(lerpY); // Abort if element not in screen
 
     const scrollMargin = inViewportMargin || size.height * 0.33;
@@ -1049,8 +1051,10 @@ const LAYOUT_LERP = 0.1;
 const ScrollDomPortal = /*#__PURE__*/forwardRef(({
   el,
   portalEl,
-  lerp = config.scrollLerp,
-  lerpOffset = 0,
+  lerp,
+  // override global lerp. don't change if you want to stay synched with the virtual scrollbar
+  lerpOffset = 1,
+  // change current lerp by a factor - use this instead of `lerp`
   children,
   zIndex = 0,
   getOffset = () => {},
@@ -1181,7 +1185,7 @@ const ScrollDomPortal = /*#__PURE__*/forwardRef(({
     } // Lerp the distance
 
 
-    const lerpScroll = MathUtils.lerp(prevBounds.top, scrollTop, lerp + lerpOffset);
+    const lerpScroll = MathUtils.lerp(prevBounds.top, scrollTop, (lerp || config.scrollLerp) * lerpOffset);
     const lerpX = MathUtils.lerp(prevBounds.x, offsetX, layoutLerp);
     const lerpY = MathUtils.lerp(prevBounds.y, offsetY, layoutLerp); // Abort if element not in screen
 
@@ -1238,7 +1242,7 @@ ScrollDomPortal.propTypes = {
   lerp: PropTypes.number,
   // Base lerp ratio
   lerpOffset: PropTypes.number,
-  // Offset applied to `lerp`
+  // Offset factor applied to `lerp`
   zIndex: PropTypes.number,
   // z-index to apply to the cloned element
   getOffset: PropTypes.func,
@@ -1401,7 +1405,9 @@ let ViewportScrollScene = (_ref) => {
   let {
     el,
     lerp,
-    lerpOffset = 0,
+    // override global lerp. don't change if you want to stay synched with the virtual scrollbar
+    lerpOffset = 1,
+    // change current lerp by a factor - use this instead of `lerp`
     children,
     margin = 0,
     // Margin outside viewport to avoid clipping vertex displacement (px)
@@ -1546,7 +1552,7 @@ let ViewportScrollScene = (_ref) => {
 
     const delta = Math.abs(prevBounds.top - topY); // Lerp the distance to simulate easing
 
-    const lerpTop = MathUtils.lerp(prevBounds.top, topY, (lerp || config.scrollLerp) + lerpOffset);
+    const lerpTop = MathUtils.lerp(prevBounds.top, topY, (lerp || config.scrollLerp) * lerpOffset);
     const newTop = config.subpixelScrolling ? lerpTop : Math.floor(lerpTop); // Abort if element not in screen
 
     const isOffscreen = newTop + bounds.height < -100 || newTop > size.height + 100; // store top value for next frame
