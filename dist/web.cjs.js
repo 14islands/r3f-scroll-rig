@@ -1923,7 +1923,7 @@ var useDelayedCanvas = function useDelayedCanvas(object, ms, deps, key) {
 
 // if r3f frameloop should be used, pass these props:
 // const R3F_HijackedScrollbar = props => {
-//   return <HijackedScrollbar {...props} useFrameLoop={addEffect} invalidate={invalidate} />
+//   return <HijackedScrollbar {...props} useUpdateLoop={addEffect} useRenderLoop={addEffect}  invalidate={invalidate} />
 // }
 
 function map_range(value, low1, high1, low2, high2) {
@@ -1945,6 +1945,8 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
       lerp = _ref.lerp,
       restDelta = _ref.restDelta,
       location = _ref.location,
+      useUpdateLoop = _ref.useUpdateLoop,
+      useRenderLoop = _ref.useRenderLoop,
       invalidate = _ref.invalidate,
       _ref$subpixelScrollin = _ref.subpixelScrolling,
       subpixelScrolling = _ref$subpixelScrollin === void 0 ? false : _ref$subpixelScrollin;
@@ -1978,7 +1980,7 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
     window.__origScrollTo(0, roundedY.current); // Trigger optional callback here
 
 
-    onUpdate && onUpdate(y); // TODO set scrolling.current = false here instead to avoid trailing scroll event
+    onUpdate && onUpdate(y);
 
     if (delta.current <= (restDelta || config.scrollRestDelta)) {
       scrolling.current = false;
@@ -1996,9 +1998,11 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
     delta.current = Math.abs(y.current - newTarget);
     y.current = newTarget; // round for scrollbar
 
-    roundedY.current = config.subpixelScrolling ? y.current : Math.floor(y.current); // if (!useFrameLoop) {
+    roundedY.current = config.subpixelScrolling ? y.current : Math.floor(y.current);
 
-    setScrollPosition(); // }
+    if (!useRenderLoop) {
+      setScrollPosition();
+    }
   };
 
   var scrollTo = function scrollTo(newY, lerp) {
@@ -2061,13 +2065,7 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
       window.scrollTo = window.__origScrollTo;
       window.scroll = window.__origScroll;
     };
-  }, [pageReflowRequested, location]); // update scroll position last
-  // useEffect(() => {
-  //   if (useFrameLoop) {
-  //     return addAfterEffect(setScrollPosition)
-  //   }
-  // }, [])
-  // disable subpixelScrolling for better visual sync with canvas
+  }, [pageReflowRequested, location]); // disable subpixelScrolling for better visual sync with canvas
 
   React.useEffect(function () {
     var ssBefore = config.subpixelScrolling;
@@ -2082,13 +2080,21 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
     return function () {
       setScrollY(window.pageYOffset);
     };
-  }, []); // Check if we are using an external frame loop
-  // useEffect(() => {
-  //   if (useFrameLoop) {
-  //     // update scroll target before everything else
-  //     return useFrameLoop(animate)
-  //   }
-  // }, [useFrameLoop])
+  }, []); // Check if we are using an external update loop (like r3f)
+  // update scroll target before everything else
+
+  React.useEffect(function () {
+    if (useUpdateLoop) {
+      return useUpdateLoop(animate);
+    }
+  }, [useUpdateLoop]); // Check if we are using an external render loop (like r3f)
+  // update scroll position last
+
+  React.useEffect(function () {
+    if (useRenderLoop) {
+      return useRenderLoop(setScrollPosition);
+    }
+  }, [useRenderLoop]);
 
   var onScrollEvent = function onScrollEvent(e) {
     e.preventDefault(); // Scroll manually using keys or drag scrollbars

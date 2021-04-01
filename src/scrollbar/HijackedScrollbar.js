@@ -10,7 +10,7 @@ import ResizeManager from '../ResizeManager'
 
 // if r3f frameloop should be used, pass these props:
 // const R3F_HijackedScrollbar = props => {
-//   return <HijackedScrollbar {...props} useFrameLoop={addEffect} invalidate={invalidate} />
+//   return <HijackedScrollbar {...props} useUpdateLoop={addEffect} useRenderLoop={addEffect}  invalidate={invalidate} />
 // }
 
 function map_range(value, low1, high1, low2, high2) {
@@ -32,8 +32,9 @@ export const HijackedScrollbar = ({
   lerp,
   restDelta,
   location,
-  // useFrameLoop,
-  invalidate,
+  useUpdateLoop, // external loop for updating positions
+  useRenderLoop, // external loop for rendering the new scroll position
+  invalidate, // invalidate external update/render loop
   subpixelScrolling = false,
 }) => {
   const setVirtualScrollbar = useCanvasStore((state) => state.setVirtualScrollbar)
@@ -58,7 +59,6 @@ export const HijackedScrollbar = ({
     // Trigger optional callback here
     onUpdate && onUpdate(y)
 
-    // TODO set scrolling.current = false here instead to avoid trailing scroll event
     if (delta.current <= (restDelta || config.scrollRestDelta)) {
       scrolling.current = false
       preventPointerEvents(false)
@@ -80,9 +80,9 @@ export const HijackedScrollbar = ({
     // round for scrollbar
     roundedY.current = config.subpixelScrolling ? y.current : Math.floor(y.current)
 
-    // if (!useFrameLoop) {
-    setScrollPosition()
-    // }
+    if (!useRenderLoop) {
+      setScrollPosition()
+    }
   }
 
   const scrollTo = (newY, lerp = originalLerp) => {
@@ -135,13 +135,6 @@ export const HijackedScrollbar = ({
     }
   }, [pageReflowRequested, location])
 
-  // update scroll position last
-  // useEffect(() => {
-  //   if (useFrameLoop) {
-  //     return addAfterEffect(setScrollPosition)
-  //   }
-  // }, [])
-
   // disable subpixelScrolling for better visual sync with canvas
   useEffect(() => {
     const ssBefore = config.subpixelScrolling
@@ -159,13 +152,21 @@ export const HijackedScrollbar = ({
     }
   }, [])
 
-  // Check if we are using an external frame loop
-  // useEffect(() => {
-  //   if (useFrameLoop) {
-  //     // update scroll target before everything else
-  //     return useFrameLoop(animate)
-  //   }
-  // }, [useFrameLoop])
+  // Check if we are using an external update loop (like r3f)
+  // update scroll target before everything else
+  useEffect(() => {
+    if (useUpdateLoop) {
+      return useUpdateLoop(animate)
+    }
+  }, [useUpdateLoop])
+
+  // Check if we are using an external render loop (like r3f)
+  // update scroll position last
+  useEffect(() => {
+    if (useRenderLoop) {
+      return useRenderLoop(setScrollPosition)
+    }
+  }, [useRenderLoop])
 
   const onScrollEvent = (e) => {
     e.preventDefault()
@@ -288,7 +289,8 @@ HijackedScrollbar.propTypes = {
   lerp: PropTypes.number,
   restDelta: PropTypes.number,
   location: PropTypes.any,
-  // useFrameLoop: PropTypes.func,
+  useUpdateLoop: PropTypes.func,
+  useRenderLoop: PropTypes.func,
   invalidate: PropTypes.func,
   subpixelScrolling: PropTypes.bool,
 }
