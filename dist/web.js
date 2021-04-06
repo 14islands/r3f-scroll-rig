@@ -912,12 +912,11 @@ let ScrollScene = (_ref) => {
 
 
   useLayoutEffect(() => {
-    const timer = setTimeout(() => {
-      updateSizeAndPosition();
-    }, resizeDelay);
-    return () => {
-      clearTimeout(timer);
-    };
+    // const timer = setTimeout(() => {
+    updateSizeAndPosition(); // }, resizeDelay)
+    // return () => {
+    //   clearTimeout(timer)
+    // }
   }, [pageReflowCompleted, updateLayout, scene]); // RENDER FRAME
 
   useFrame(({
