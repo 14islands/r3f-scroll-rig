@@ -798,9 +798,10 @@ let ScrollScene = (_ref) => {
     positionFixed = false,
     hiddenStyle = {
       opacity: 0
-    }
+    },
+    resizeDelay
   } = _ref,
-      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "priority", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed", "hiddenStyle"]);
+      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "priority", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed", "hiddenStyle", "resizeDelay"]);
 
   const inlineSceneRef = useCallback(node => {
     if (node !== null) {
@@ -911,8 +912,12 @@ let ScrollScene = (_ref) => {
 
 
   useLayoutEffect(() => {
-    config.debug && console.log('ScrollScene', 'trigger updateSizeAndPosition()', scene);
-    updateSizeAndPosition();
+    const timer = setTimeout(() => {
+      updateSizeAndPosition();
+    }, resizeDelay);
+    return () => {
+      clearTimeout(timer);
+    };
   }, [pageReflowCompleted, updateLayout, scene]); // RENDER FRAME
 
   useFrame(({
@@ -927,17 +932,18 @@ let ScrollScene = (_ref) => {
     } = transient; // Find new Y based on cached position and scroll
 
     const initialPos = config.subpixelScrolling ? bounds.top - bounds.centerOffset : Math.floor(bounds.top - bounds.centerOffset);
-    const y = initialPos - scrollY.current; // if previously hidden and now visible, update previous position to not get ghost easing when made visible
-
-    if (scene.visible && !bounds.inViewport) {
-      prevBounds.y = y;
-    } // frame delta
-
+    const y = initialPos - scrollY.current; // FIXME - do we need to find a proper way to do this?
+    // if previously hidden and now visible, update previous position to not get ghost easing when made visible
+    // if (scene.visible && !bounds.inViewport) {
+    //   prevBounds.y = y
+    // }
+    // frame delta
 
     const delta = Math.abs(prevBounds.y - y); // Lerp the distance to simulate easing
 
     const lerpY = MathUtils.lerp(prevBounds.y, y, (lerp || config.scrollLerp) * lerpOffset);
     const newY = config.subpixelScrolling ? lerpY : Math.floor(lerpY); // Abort if element not in screen
+    // FIXME - should we use scale.pixelHeight here or scale.height?
 
     const scrollMargin = inViewportMargin || size.height * 0.33;
     const isOffscreen = newY + size.height * 0.5 + scale.pixelHeight * 0.5 < -scrollMargin || newY + size.height * 0.5 - scale.pixelHeight * 0.5 > size.height + scrollMargin; // store top value for next frame
@@ -946,14 +952,10 @@ let ScrollScene = (_ref) => {
     setInViewportProp && requestIdleCallback(() => transient.mounted && setInViewport(!isOffscreen));
     prevBounds.y = lerpY; // hide/show scene
 
-    if (isOffscreen && scene.visible) {
-      scene.visible = false;
-    } else if (!isOffscreen && !scene.visible) {
-      scene.visible = visible;
-    }
+    scene.visible = !isOffscreen && visible;
 
     if (scene.visible) {
-      // move scene
+      // move and render scene if not fixed
       if (!positionFixed) {
         scene.position.y = -newY * config.scaleMultiplier;
       }
@@ -981,11 +983,11 @@ let ScrollScene = (_ref) => {
       bounds.visibility = MathUtils.mapLinear(pxInside, 0, scale.pixelHeight, 0, 1); // percent of item height in view
 
       bounds.viewport = MathUtils.mapLinear(pxInside, 0, size.height, 0, 1); // percent of window height scrolled since visible
-    } // render another frame if delta is large enough
+      // render another frame if delta is large enough
 
-
-    if (!isOffscreen && delta > config.scrollRestDelta) {
-      invalidate();
+      if (delta > config.scrollRestDelta) {
+        invalidate();
+      }
     }
   }, priority);
   const content = /*#__PURE__*/React.createElement("group", {
@@ -998,7 +1000,7 @@ let ScrollScene = (_ref) => {
     lerp: lerp || config.scrollLerp,
     lerpOffset,
     margin,
-    visible,
+    visible: scene.visible,
     renderOrder,
     // new props
     scale,
@@ -1122,44 +1124,49 @@ const ScrollDomPortal = /*#__PURE__*/forwardRef(({
     local.needUpdate = true;
     invalidate();
   }, [el]); // TODO: decide if react to size.height to avoid mobile viewport scroll bugs
-  // Update position on window resize or if `live` flag changes
+
+  const updateSizeAndPosition = () => {
+    if (!el || !el.current) return;
+    const {
+      top,
+      left
+    } = bounds;
+    const {
+      top: newTop,
+      left: newLeft,
+      height: newHeight,
+      width: newWidth
+    } = el.current.getBoundingClientRect();
+
+    if (bounds.height !== newHeight) {
+      copyEl.current.style.height = newHeight + 'px';
+    }
+
+    if (bounds.width !== newWidth) {
+      copyEl.current.style.width = newWidth + 'px'; // TODO adjust left position if floating from right. possible to detect?
+    }
+
+    local.offsetY = newTop - top + window.pageYOffset;
+    local.offsetX = newLeft - left;
+    bounds.height = newHeight;
+    bounds.width = newWidth;
+    prevBounds.top = -window.pageYOffset; // trigger render
+
+    local.needUpdate = true;
+    invalidate();
+  }; // Update position on window resize
+
 
   useEffect(() => {
-    if (!el || !el.current) return;
-    const id = requestIdleCallback(() => {
-      if (!el || !el.current) return;
-      const {
-        top,
-        left
-      } = bounds;
-      const {
-        top: newTop,
-        left: newLeft,
-        height: newHeight,
-        width: newWidth
-      } = el.current.getBoundingClientRect();
+    updateSizeAndPosition();
+  }, [pageReflowCompleted]); // Update position if `live` flag changes
 
-      if (bounds.height !== newHeight) {
-        copyEl.current.style.height = newHeight + 'px';
-      }
-
-      if (bounds.width !== newWidth) {
-        copyEl.current.style.width = newWidth + 'px'; // TODO adjust left position if floating from right. possible to detect?
-      }
-
-      local.offsetY = newTop - top + window.pageYOffset;
-      local.offsetX = newLeft - left;
-      bounds.height = newHeight;
-      bounds.width = newWidth;
-      prevBounds.top = -window.pageYOffset; // trigger render
-
-      local.needUpdate = true;
-      invalidate();
-    }, {
+  useEffect(() => {
+    const id = requestIdleCallback(updateSizeAndPosition, {
       timeout: 100
     });
     return () => cancelIdleCallback(id);
-  }, [live, pageReflowCompleted]); // RENDER FRAME
+  }, [live]); // RENDER FRAME
 
   const frame = ({
     gl
@@ -1422,9 +1429,10 @@ let ViewportScrollScene = (_ref) => {
     orthographic = false,
     hiddenStyle = {
       opacity: 0
-    }
+    },
+    resizeDelay = 0
   } = _ref,
-      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "margin", "visible", "renderOrder", "priority", "debug", "setInViewportProp", "renderOnTop", "scaleMultiplier", "orthographic", "hiddenStyle"]);
+      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "margin", "visible", "renderOrder", "priority", "debug", "setInViewportProp", "renderOnTop", "scaleMultiplier", "orthographic", "hiddenStyle", "resizeDelay"]);
 
   const camera = useRef();
   const [scene] = useState(() => new Scene());
@@ -1535,7 +1543,12 @@ let ViewportScrollScene = (_ref) => {
 
 
   useLayoutEffect(() => {
-    updateSizeAndPosition();
+    const timer = setTimeout(() => {
+      updateSizeAndPosition();
+    }, resizeDelay);
+    return () => {
+      clearTimeout(timer);
+    };
   }, [pageReflowCompleted]); // RENDER FRAME
 
   useFrame(({
@@ -1561,13 +1574,8 @@ let ViewportScrollScene = (_ref) => {
     setInViewportProp && requestIdleCallback(() => transient.mounted && setInViewport(!isOffscreen));
     prevBounds.top = lerpTop; // hide/show scene
 
-    if (isOffscreen && scene.visible) {
-      scene.visible = false;
-    } else if (!isOffscreen && !scene.visible) {
-      scene.visible = visible;
-    } // Render scene to viewport using local camera and limit updates using scissor test
+    scene.visible = !isOffscreen && visible; // Render scene to viewport using local camera and limit updates using scissor test
     // Performance improvement - faster than always rendering full canvas
-
 
     if (scene.visible) {
       const positiveYUpBottom = size.height - (newTop + bounds.height); // inverse Y
@@ -1620,7 +1628,7 @@ let ViewportScrollScene = (_ref) => {
     lerp: lerp || config.scrollLerp,
     lerpOffset,
     margin,
-    visible,
+    visible: scene.visible,
     renderOrder,
     // new props
     scale,

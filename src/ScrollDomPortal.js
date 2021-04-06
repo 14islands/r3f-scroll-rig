@@ -87,39 +87,41 @@ const ScrollDomPortal = forwardRef(
       invalidate()
     }, [el]) // TODO: decide if react to size.height to avoid mobile viewport scroll bugs
 
-    // Update position on window resize or if `live` flag changes
-    useEffect(() => {
+    const updateSizeAndPosition = () => {
       if (!el || !el.current) return
 
-      const id = requestIdleCallback(
-        () => {
-          if (!el || !el.current) return
+      const { top, left } = bounds
+      const { top: newTop, left: newLeft, height: newHeight, width: newWidth } = el.current.getBoundingClientRect()
 
-          const { top, left } = bounds
-          const { top: newTop, left: newLeft, height: newHeight, width: newWidth } = el.current.getBoundingClientRect()
+      if (bounds.height !== newHeight) {
+        copyEl.current.style.height = newHeight + 'px'
+      }
+      if (bounds.width !== newWidth) {
+        copyEl.current.style.width = newWidth + 'px'
+        // TODO adjust left position if floating from right. possible to detect?
+      }
 
-          if (bounds.height !== newHeight) {
-            copyEl.current.style.height = newHeight + 'px'
-          }
-          if (bounds.width !== newWidth) {
-            copyEl.current.style.width = newWidth + 'px'
-            // TODO adjust left position if floating from right. possible to detect?
-          }
+      local.offsetY = newTop - top + window.pageYOffset
+      local.offsetX = newLeft - left
+      bounds.height = newHeight
+      bounds.width = newWidth
+      prevBounds.top = -window.pageYOffset
 
-          local.offsetY = newTop - top + window.pageYOffset
-          local.offsetX = newLeft - left
-          bounds.height = newHeight
-          bounds.width = newWidth
-          prevBounds.top = -window.pageYOffset
+      // trigger render
+      local.needUpdate = true
+      invalidate()
+    }
 
-          // trigger render
-          local.needUpdate = true
-          invalidate()
-        },
-        { timeout: 100 },
-      )
+    // Update position on window resize
+    useEffect(() => {
+      updateSizeAndPosition()
+    }, [pageReflowCompleted])
+
+    // Update position if `live` flag changes
+    useEffect(() => {
+      const id = requestIdleCallback(updateSizeAndPosition, { timeout: 100 })
       return () => cancelIdleCallback(id)
-    }, [live, pageReflowCompleted])
+    }, [live])
 
     // RENDER FRAME
     const frame = ({ gl }) => {

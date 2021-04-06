@@ -1,7 +1,7 @@
 import React, { useRef, Suspense, useEffect, useState } from 'react'
 import './App.css'
 import { MathUtils } from 'three'
-import { useFrame, addEffect, addAfterEffect, invalidate } from 'react-three-fiber'
+import { useFrame } from 'react-three-fiber'
 
 import { GlobalCanvas, HijackedScrollbar } from '@14islands/r3f-scroll-rig'
 import { Loader } from '@react-three/drei/web/Loader'

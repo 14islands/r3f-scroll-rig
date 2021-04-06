@@ -32,6 +32,7 @@ let ViewportScrollScene = ({
   scaleMultiplier = config.scaleMultiplier, // use global setting as default
   orthographic = false,
   hiddenStyle = { opacity: 0 },
+  resizeDelay = 0,
   ...props
 }) => {
   const camera = useRef()
@@ -146,7 +147,12 @@ let ViewportScrollScene = ({
 
   // Find bounding box & scale mesh on resize
   useLayoutEffect(() => {
-    updateSizeAndPosition()
+    const timer = setTimeout(() => {
+      updateSizeAndPosition()
+    }, resizeDelay)
+    return () => {
+      clearTimeout(timer)
+    }
   }, [pageReflowCompleted])
 
   // RENDER FRAME
@@ -174,11 +180,7 @@ let ViewportScrollScene = ({
     prevBounds.top = lerpTop
 
     // hide/show scene
-    if (isOffscreen && scene.visible) {
-      scene.visible = false
-    } else if (!isOffscreen && !scene.visible) {
-      scene.visible = visible
-    }
+    scene.visible = !isOffscreen && visible
 
     // Render scene to viewport using local camera and limit updates using scissor test
     // Performance improvement - faster than always rendering full canvas
@@ -244,7 +246,7 @@ let ViewportScrollScene = ({
             lerp: lerp || config.scrollLerp,
             lerpOffset,
             margin,
-            visible,
+            visible: scene.visible,
             renderOrder,
             // new props
             scale,
