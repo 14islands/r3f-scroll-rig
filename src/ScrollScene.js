@@ -166,11 +166,6 @@ let ScrollScene = ({
       : Math.floor(bounds.top - bounds.centerOffset)
     const y = initialPos - scrollY.current
 
-    // if previously hidden and now visible, update previous position to not get ghost easing when made visible
-    // if (scene.visible && !bounds.inViewport) {
-    //   prevBounds.y = y
-    // }
-
     // frame delta
     const delta = Math.abs(prevBounds.y - y)
 
@@ -190,7 +185,7 @@ let ScrollScene = ({
     prevBounds.y = lerpY
 
     // hide/show scene
-    scene.visible = !isOffscreen
+    scene.visible = !isOffscreen && visible
 
     if (scene.visible) {
       // move scene

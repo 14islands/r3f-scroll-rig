@@ -932,11 +932,7 @@ let ScrollScene = (_ref) => {
     } = transient; // Find new Y based on cached position and scroll
 
     const initialPos = config.subpixelScrolling ? bounds.top - bounds.centerOffset : Math.floor(bounds.top - bounds.centerOffset);
-    const y = initialPos - scrollY.current; // if previously hidden and now visible, update previous position to not get ghost easing when made visible
-    // if (scene.visible && !bounds.inViewport) {
-    //   prevBounds.y = y
-    // }
-    // frame delta
+    const y = initialPos - scrollY.current; // frame delta
 
     const delta = Math.abs(prevBounds.y - y); // Lerp the distance to simulate easing
 
@@ -950,7 +946,7 @@ let ScrollScene = (_ref) => {
     setInViewportProp && requestIdleCallback(() => transient.mounted && setInViewport(!isOffscreen));
     prevBounds.y = lerpY; // hide/show scene
 
-    scene.visible = !isOffscreen;
+    scene.visible = !isOffscreen && visible;
 
     if (scene.visible) {
       // move scene
