@@ -1115,11 +1115,11 @@ exports.ScrollScene = function ScrollScene(_ref) {
       bounds.visibility = three.MathUtils.mapLinear(pxInside, 0, scale.pixelHeight, 0, 1); // percent of item height in view
 
       bounds.viewport = three.MathUtils.mapLinear(pxInside, 0, size.height, 0, 1); // percent of window height scrolled since visible
-      // render another frame if delta is large enough
+    } // render another frame if delta is large enough
 
-      if (delta > config.scrollRestDelta) {
-        invalidate();
-      }
+
+    if (delta > config.scrollRestDelta) {
+      invalidate();
     }
   }, priority);
   var content = /*#__PURE__*/React__default.createElement("group", {

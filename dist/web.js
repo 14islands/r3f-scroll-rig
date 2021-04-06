@@ -982,11 +982,11 @@ let ScrollScene = (_ref) => {
       bounds.visibility = MathUtils.mapLinear(pxInside, 0, scale.pixelHeight, 0, 1); // percent of item height in view
 
       bounds.viewport = MathUtils.mapLinear(pxInside, 0, size.height, 0, 1); // percent of window height scrolled since visible
-      // render another frame if delta is large enough
+    } // render another frame if delta is large enough
 
-      if (delta > config.scrollRestDelta) {
-        invalidate();
-      }
+
+    if (delta > config.scrollRestDelta) {
+      invalidate();
     }
   }, priority);
   const content = /*#__PURE__*/React.createElement("group", {
