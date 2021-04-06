@@ -798,9 +798,10 @@ let ScrollScene = (_ref) => {
     positionFixed = false,
     hiddenStyle = {
       opacity: 0
-    }
+    },
+    resizeDelay = 0
   } = _ref,
-      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "priority", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed", "hiddenStyle"]);
+      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "priority", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed", "hiddenStyle", "resizeDelay"]);
 
   const inlineSceneRef = useCallback(node => {
     if (node !== null) {
@@ -911,8 +912,12 @@ let ScrollScene = (_ref) => {
 
 
   useLayoutEffect(() => {
-    config.debug && console.log('ScrollScene', 'trigger updateSizeAndPosition()', scene);
-    updateSizeAndPosition();
+    const timer = setTimeout(() => {
+      updateSizeAndPosition();
+    }, resizeDelay);
+    return () => {
+      clearTimeout(timer);
+    };
   }, [pageReflowCompleted, updateLayout, scene]); // RENDER FRAME
 
   useFrame(({

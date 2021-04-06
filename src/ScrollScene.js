@@ -32,6 +32,7 @@ let ScrollScene = ({
   updateLayout = 0,
   positionFixed = false,
   hiddenStyle = { opacity: 0 },
+  resizeDelay = 0,
   ...props
 }) => {
   const inlineSceneRef = useCallback((node) => {
@@ -146,8 +147,12 @@ let ScrollScene = ({
 
   // Find bounding box & scale mesh on resize
   useLayoutEffect(() => {
-    config.debug && console.log('ScrollScene', 'trigger updateSizeAndPosition()', scene)
-    updateSizeAndPosition()
+    const timer = setTimeout(() => {
+      updateSizeAndPosition()
+    }, resizeDelay)
+    return () => {
+      clearTimeout(timer)
+    }
   }, [pageReflowCompleted, updateLayout, scene])
 
   // RENDER FRAME

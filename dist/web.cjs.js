@@ -915,7 +915,9 @@ exports.ScrollScene = function ScrollScene(_ref) {
       hiddenStyle = _ref$hiddenStyle === void 0 ? {
     opacity: 0
   } : _ref$hiddenStyle,
-      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "priority", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed", "hiddenStyle"]);
+      _ref$resizeDelay = _ref.resizeDelay,
+      resizeDelay = _ref$resizeDelay === void 0 ? 0 : _ref$resizeDelay,
+      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "priority", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed", "hiddenStyle", "resizeDelay"]);
 
   var inlineSceneRef = React.useCallback(function (node) {
     if (node !== null) {
@@ -1045,8 +1047,12 @@ exports.ScrollScene = function ScrollScene(_ref) {
 
 
   React.useLayoutEffect(function () {
-    config.debug && console.log('ScrollScene', 'trigger updateSizeAndPosition()', scene);
-    updateSizeAndPosition();
+    var timer = setTimeout(function () {
+      updateSizeAndPosition();
+    }, resizeDelay);
+    return function () {
+      clearTimeout(timer);
+    };
   }, [pageReflowCompleted, updateLayout, scene]); // RENDER FRAME
 
   reactThreeFiber.useFrame(function (_ref2) {
