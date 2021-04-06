@@ -1059,11 +1059,10 @@ exports.ScrollScene = function ScrollScene(_ref) {
 
     var initialPos = config.subpixelScrolling ? bounds.top - bounds.centerOffset : Math.floor(bounds.top - bounds.centerOffset);
     var y = initialPos - scrollY.current; // if previously hidden and now visible, update previous position to not get ghost easing when made visible
-
-    if (scene.visible && !bounds.inViewport) {
-      prevBounds.y = y;
-    } // frame delta
-
+    // if (scene.visible && !bounds.inViewport) {
+    //   prevBounds.y = y
+    // }
+    // frame delta
 
     var delta = Math.abs(prevBounds.y - y); // Lerp the distance to simulate easing
 
@@ -1078,11 +1077,6 @@ exports.ScrollScene = function ScrollScene(_ref) {
       return _transient.mounted && setInViewport(!isOffscreen);
     });
     prevBounds.y = lerpY; // hide/show scene
-    // if (isOffscreen && scene.visible) {
-    //   scene.visible = false
-    // } else if (!isOffscreen && !scene.visible) {
-    //   scene.visible = visible
-    // }
 
     scene.visible = !isOffscreen;
 
