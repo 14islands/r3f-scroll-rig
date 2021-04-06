@@ -915,7 +915,8 @@ exports.ScrollScene = function ScrollScene(_ref) {
       hiddenStyle = _ref$hiddenStyle === void 0 ? {
     opacity: 0
   } : _ref$hiddenStyle,
-      resizeDelay = _ref.resizeDelay,
+      _ref$resizeDelay = _ref.resizeDelay,
+      resizeDelay = _ref$resizeDelay === void 0 ? 0 : _ref$resizeDelay,
       props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "priority", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed", "hiddenStyle", "resizeDelay"]);
 
   var inlineSceneRef = React.useCallback(function (node) {

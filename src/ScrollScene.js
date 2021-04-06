@@ -32,7 +32,7 @@ let ScrollScene = ({
   updateLayout = 0,
   positionFixed = false,
   hiddenStyle = { opacity: 0 },
-  resizeDelay,
+  resizeDelay = 0,
   ...props
 }) => {
   const inlineSceneRef = useCallback((node) => {

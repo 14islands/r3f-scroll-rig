@@ -799,7 +799,7 @@ let ScrollScene = (_ref) => {
     hiddenStyle = {
       opacity: 0
     },
-    resizeDelay
+    resizeDelay = 0
   } = _ref,
       props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "priority", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed", "hiddenStyle", "resizeDelay"]);
 
