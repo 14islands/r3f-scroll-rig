@@ -915,8 +915,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
       hiddenStyle = _ref$hiddenStyle === void 0 ? {
     opacity: 0
   } : _ref$hiddenStyle,
-      _ref$resizeDelay = _ref.resizeDelay,
-      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "priority", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed", "hiddenStyle", "resizeDelay"]);
+      props = _objectWithoutPropertiesLoose(_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "priority", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed", "hiddenStyle"]);
 
   var inlineSceneRef = React.useCallback(function (node) {
     if (node !== null) {
@@ -1046,11 +1045,8 @@ exports.ScrollScene = function ScrollScene(_ref) {
 
 
   React.useLayoutEffect(function () {
-    // const timer = setTimeout(() => {
-    updateSizeAndPosition(); // }, resizeDelay)
-    // return () => {
-    //   clearTimeout(timer)
-    // }
+    config.debug && console.log('ScrollScene', 'trigger updateSizeAndPosition()', scene);
+    updateSizeAndPosition();
   }, [pageReflowCompleted, updateLayout, scene]); // RENDER FRAME
 
   reactThreeFiber.useFrame(function (_ref2) {
@@ -1062,18 +1058,17 @@ exports.ScrollScene = function ScrollScene(_ref) {
         prevBounds = _transient.prevBounds; // Find new Y based on cached position and scroll
 
     var initialPos = config.subpixelScrolling ? bounds.top - bounds.centerOffset : Math.floor(bounds.top - bounds.centerOffset);
-    var y = initialPos - scrollY.current; // FIXME - do we need to find a proper way to do this?
-    // if previously hidden and now visible, update previous position to not get ghost easing when made visible
-    // if (scene.visible && !bounds.inViewport) {
-    //   prevBounds.y = y
-    // }
-    // frame delta
+    var y = initialPos - scrollY.current; // if previously hidden and now visible, update previous position to not get ghost easing when made visible
+
+    if (scene.visible && !bounds.inViewport) {
+      prevBounds.y = y;
+    } // frame delta
+
 
     var delta = Math.abs(prevBounds.y - y); // Lerp the distance to simulate easing
 
     var lerpY = three.MathUtils.lerp(prevBounds.y, y, (lerp || config.scrollLerp) * lerpOffset);
     var newY = config.subpixelScrolling ? lerpY : Math.floor(lerpY); // Abort if element not in screen
-    // FIXME - should we use scale.pixelHeight here or scale.height?
 
     var scrollMargin = inViewportMargin || size.height * 0.33;
     var isOffscreen = newY + size.height * 0.5 + scale.pixelHeight * 0.5 < -scrollMargin || newY + size.height * 0.5 - scale.pixelHeight * 0.5 > size.height + scrollMargin; // store top value for next frame
@@ -1083,11 +1078,16 @@ exports.ScrollScene = function ScrollScene(_ref) {
       return _transient.mounted && setInViewport(!isOffscreen);
     });
     prevBounds.y = lerpY; // hide/show scene
+    // if (isOffscreen && scene.visible) {
+    //   scene.visible = false
+    // } else if (!isOffscreen && !scene.visible) {
+    //   scene.visible = visible
+    // }
 
-    scene.visible = !isOffscreen && visible;
+    scene.visible = !isOffscreen;
 
     if (scene.visible) {
-      // move and render scene if not fixed
+      // move scene
       if (!positionFixed) {
         scene.position.y = -newY * config.scaleMultiplier;
       }
@@ -1118,7 +1118,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
     } // render another frame if delta is large enough
 
 
-    if (delta > config.scrollRestDelta) {
+    if (!isOffscreen && delta > config.scrollRestDelta) {
       invalidate();
     }
   }, priority);
@@ -1132,7 +1132,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
     lerp: lerp || config.scrollLerp,
     lerpOffset: lerpOffset,
     margin: margin,
-    visible: scene.visible,
+    visible: visible,
     renderOrder: renderOrder,
     // new props
     scale: scale,

@@ -32,7 +32,6 @@ let ScrollScene = ({
   updateLayout = 0,
   positionFixed = false,
   hiddenStyle = { opacity: 0 },
-  resizeDelay = 0,
   ...props
 }) => {
   const inlineSceneRef = useCallback((node) => {
@@ -147,12 +146,8 @@ let ScrollScene = ({
 
   // Find bounding box & scale mesh on resize
   useLayoutEffect(() => {
-    // const timer = setTimeout(() => {
+    config.debug && console.log('ScrollScene', 'trigger updateSizeAndPosition()', scene)
     updateSizeAndPosition()
-    // }, resizeDelay)
-    // return () => {
-    //   clearTimeout(timer)
-    // }
   }, [pageReflowCompleted, updateLayout, scene])
 
   // RENDER FRAME
@@ -166,11 +161,10 @@ let ScrollScene = ({
       : Math.floor(bounds.top - bounds.centerOffset)
     const y = initialPos - scrollY.current
 
-    // FIXME - do we need to find a proper way to do this?
     // if previously hidden and now visible, update previous position to not get ghost easing when made visible
-    // if (scene.visible && !bounds.inViewport) {
-    //   prevBounds.y = y
-    // }
+    if (scene.visible && !bounds.inViewport) {
+      prevBounds.y = y
+    }
 
     // frame delta
     const delta = Math.abs(prevBounds.y - y)
@@ -180,7 +174,6 @@ let ScrollScene = ({
     const newY = config.subpixelScrolling ? lerpY : Math.floor(lerpY)
 
     // Abort if element not in screen
-    // FIXME - should we use scale.pixelHeight here or scale.height?
     const scrollMargin = inViewportMargin || size.height * 0.33
     const isOffscreen =
       newY + size.height * 0.5 + scale.pixelHeight * 0.5 < -scrollMargin ||
@@ -192,10 +185,15 @@ let ScrollScene = ({
     prevBounds.y = lerpY
 
     // hide/show scene
-    scene.visible = !isOffscreen && visible
+    // if (isOffscreen && scene.visible) {
+    //   scene.visible = false
+    // } else if (!isOffscreen && !scene.visible) {
+    //   scene.visible = visible
+    // }
+    scene.visible = !isOffscreen
 
     if (scene.visible) {
-      // move and render scene if not fixed
+      // move scene
       if (!positionFixed) {
         scene.position.y = -newY * config.scaleMultiplier
       }
@@ -223,7 +221,7 @@ let ScrollScene = ({
     }
 
     // render another frame if delta is large enough
-    if (delta > config.scrollRestDelta) {
+    if (!isOffscreen && delta > config.scrollRestDelta) {
       invalidate()
     }
   }, priority)
@@ -240,7 +238,7 @@ let ScrollScene = ({
           lerp: lerp || config.scrollLerp,
           lerpOffset,
           margin,
-          visible: scene.visible,
+          visible,
           renderOrder,
           // new props
           scale,
