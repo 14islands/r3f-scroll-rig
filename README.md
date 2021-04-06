@@ -1,5 +1,5 @@
 # @14islands/r3f-scroll-rig
-Progressively enhance a React website with WebGL using `react-three-fiber` and a virtual/hijacked scrollbar.
+Progressively enhance a React website with WebGL using `@react-three/fiber` and a virtual/hijacked scrollbar.
 
 > 💡 This lib has been tested with `create-react-app` and `gatsby.js`.
 
@@ -76,7 +76,7 @@ TBC:
 * Use CSS animations whenever possible instead of JS for maximum smoothness
 * `Intersection Observer` with a custom **rootMargin** is not working well with `VirtualScrollbar`
 * Consider disabling VirtualScrollbar and all scrolling WebGL elements on mobile - it is usually laggy.
-* Read, make sure you understand and follow all performance pitfalls associated with `React` and `three` https://github.com/pmndrs/react-three-fiber/blob/master/markdown/pitfalls.md
+* Read, make sure you understand and follow all performance pitfalls associated with `React` and `three` https://github.com/pmndrs/@react-three/fiber/blob/master/markdown/pitfalls.md
 
 
 # API
@@ -138,7 +138,7 @@ Each child elements inside the DOM wrapper will be translated individuallly. Whe
 ```
 
 #### Use without GlobalCanvas
-You can import and use `VirtualScrollbar` in isolation from a separate npm target. This excludes all `react-three-fiber`, `three` related imports and allows you to slim down the bundle size.
+You can import and use `VirtualScrollbar` in isolation from a separate npm target. This excludes all `@react-three/fiber`, `three` related imports and allows you to slim down the bundle size.
 
 ```jsx
 import { VirtualScrollbar } from '@14islands/r3f-scroll-rig/scrollbar'

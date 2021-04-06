@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react'
 
-import { useThree, useFrame } from 'react-three-fiber'
+import { useThree, useFrame } from '@react-three/fiber'
 import { Hover, useXR, Select, RayGrab } from '@react-three/xr'
-import { RoundedBox, MeshWobbleMaterial } from '@react-three/drei'
 import { a, useSpring, interpolate } from 'react-spring/three'
+import { RoundedBox } from '@react-three/drei/core/RoundedBox'
+import { MeshWobbleMaterial } from '@react-three/drei/core/MeshWobbleMaterial'
 
 const AnimatedWobbleMaterial = a(MeshWobbleMaterial)
 const AnimatedRoundedBox = a(RoundedBox)
@@ -32,25 +33,25 @@ function VRBox() {
   const [selected, setSelected] = useState(false)
   const [onClick, scale, selectFactor] = useActive(0.1, 0.2, 2)
   const [onHover, hoverScale, hoverFactor, hoverColor] = useActive(1, 1.1, .3)
-  
+
 //   useEffect(() => {
 //     console.log('isVR?', gl.xr.isPresenting)
 //     if (!isVR || gl.xr.isPresenting) setIsVR(gl.xr.isPresenting)
 //   }, [controllers])
-  
+
   useFrame(() => {
     // console.log('draw calls:', gl.info.render.calls)
     // console.log('draw triangles:', gl.info.render.triangles)
   })
-  
-  
+
+
   return (
       <RayGrab>
     <group position={isVR ? [0, .7, -0.5] : [0, 0, 0]}>
     <Select onSelect={onClick}>
       <Hover onChange={onHover}>
 
-          {/* <primitive object={model.scene} position={[0, 0, 0]} scale={[1, 1, 1]} 
+          {/* <primitive object={model.scene} position={[0, 0, 0]} scale={[1, 1, 1]}
             onPointerEnter={() => setIsHovered(true)}
             onPointerLeave={() => setIsHovered(false)}
           /> */}

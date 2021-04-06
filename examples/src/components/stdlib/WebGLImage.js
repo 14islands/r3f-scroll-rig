@@ -1,7 +1,7 @@
 import React, { useRef, useMemo, useEffect } from 'react'
 import { useScrollRig, useImgTagAsTexture } from '@14islands/r3f-scroll-rig'
 import { Color, Vector2 } from 'three'
-import { useFrame, useThree } from 'react-three-fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 
 
 const WebGLImage = ({ image, scale, scrollState, scene, vertexShader, fragmentShader, invalidateFrameLoop = false, widthSegments = 128, heightSegments = 128 }) => {

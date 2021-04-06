@@ -1,6 +1,6 @@
 import React, { useRef } from 'react'
 import { useCanvas } from '@14islands/r3f-scroll-rig'
-import { useFrame } from 'react-three-fiber'
+import { useFrame } from '@react-three/fiber'
 
 /* eslint import/no-webpack-loader-syntax: off */
 import vertexShader from '!raw-loader!./shader.vert'

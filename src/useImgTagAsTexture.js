@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { useThree } from 'react-three-fiber'
+import { useThree } from '@react-three/fiber'
 import {
   sRGBEncoding,
   LinearFilter,

@@ -1,7 +1,8 @@
 import React, { useRef, useEffect } from 'react'
 import { useScrollRig, useCanvas, ScrollScene } from '@14islands/r3f-scroll-rig'
-import { useFrame } from 'react-three-fiber'
-import { useGLTF, Shadow, softShadows } from '@react-three/drei'
+import { useFrame } from '@react-three/fiber'
+import { useGLTF } from '@react-three/drei/core/useGLTF'
+import { Shadow } from '@react-three/drei/core/Shadow'
 
 import StickyScrollScene from './stdlib/StickyScrollScene'
 import tileModel from '../assets/rounded-tile_3_1.draco.glb'

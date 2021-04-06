@@ -1,5 +1,5 @@
 import React, { useRef } from 'react'
-import { useFrame } from 'react-three-fiber'
+import { useFrame } from '@react-three/fiber'
 import { ScrollScene } from '@14islands/r3f-scroll-rig'
 
 // Parallax mesh inside ScrollScene

@@ -1,4 +1,4 @@
-import { invalidate } from 'react-three-fiber'
+import { invalidate } from '@react-three/fiber'
 
 import { useCanvasStore } from './store'
 

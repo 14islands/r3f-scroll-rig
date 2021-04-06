@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect, useLayoutEffect, useCallback } from 'react'
 import PropTypes from 'prop-types'
 import { MathUtils, Scene } from 'three'
-import { useFrame, useThree, createPortal } from 'react-three-fiber'
+import { useFrame, useThree, createPortal } from '@react-three/fiber'
 
 import requestIdleCallback from './hooks/requestIdleCallback'
 

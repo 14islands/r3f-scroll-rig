@@ -1,8 +1,7 @@
 import _extends from '@babel/runtime/helpers/esm/extends';
-import _objectWithoutPropertiesLoose from '@babel/runtime/helpers/esm/objectWithoutPropertiesLoose';
 import React, { useMemo, useEffect, useRef } from 'react';
 import { Color, Vector2 } from 'three';
-import { useThree, useFrame } from 'react-three-fiber';
+import { useThree, useFrame } from '@react-three/fiber';
 import { Text } from '@react-three/drei/core/Text';
 import { useScrollRig, useImgTagAsTexture, ScrollScene } from '@14islands/r3f-scroll-rig';
 
@@ -10,20 +9,18 @@ import { useScrollRig, useImgTagAsTexture, ScrollScene } from '@14islands/r3f-sc
  * Returns a WebGL Troika text mesh styled as the source DOM element
  */
 
-const WebGLText = (_ref) => {
-  let {
-    el,
-    children,
-    material,
-    scale,
-    font,
-    fontOffsetY = 0,
-    fontOffsetX = 0,
-    overrideEmissive = false,
-    color
-  } = _ref,
-      props = _objectWithoutPropertiesLoose(_ref, ["el", "children", "material", "scale", "font", "fontOffsetY", "fontOffsetX", "overrideEmissive", "color"]);
-
+const WebGLText = ({
+  el,
+  children,
+  material,
+  scale,
+  font,
+  fontOffsetY = 0,
+  fontOffsetX = 0,
+  overrideEmissive = false,
+  color,
+  ...props
+}) => {
   const {
     size
   } = useThree();
@@ -40,12 +37,12 @@ const WebGLText = (_ref) => {
     const letterSpacing = (parseFloat(cs.letterSpacing) || 0) / parseFloat(cs.fontSize);
     const lineHeight = (parseFloat(cs.lineHeight) || 0) / parseFloat(cs.fontSize);
     const textColor = new Color(color || cs.color).convertSRGBToLinear();
-    return _extends({}, cs, {
+    return { ...cs,
       letterSpacing,
       lineHeight,
       textColor,
       fontSize: parseFloat(cs.fontSize) * scale.multiplier
-    }); // eslint-disable-next-line react-hooks/exhaustive-deps
+    }; // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [el, size, scale, color]); // recalc on resize
 
   useEffect(() => {
@@ -190,13 +187,12 @@ const ParallaxMesh = ({
     ref: mesh
   }, children);
 };
-const ParallaxScrollScene = (_ref) => {
-  let {
-    children,
-    parallax
-  } = _ref,
-      props = _objectWithoutPropertiesLoose(_ref, ["children", "parallax", "stickyLerp"]);
-
+const ParallaxScrollScene = ({
+  children,
+  parallax,
+  stickyLerp,
+  ...props
+}) => {
   return /*#__PURE__*/React.createElement(ScrollScene, _extends({
     scissor: false
   }, props, {

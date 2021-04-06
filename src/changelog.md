@@ -118,7 +118,7 @@ E.g. `import { StickyScrollScene } from '@14islands/r3f-scroll-rig/stdlib`
 
 ### GlobalCanvas
 
-- Uses custom cameras for global `scaleMultiplier` to work properly. Bypasses all built-in react-three-fiber camera logic. Property `orthogonal` is used to select which camera.
+- Uses custom cameras for global `scaleMultiplier` to work properly. Bypasses all built-in @react-three/fiber camera logic. Property `orthogonal` is used to select which camera.
 - added `fps` setting to the `config` propery which overrides scroll-rig config Querystring value for `fps` and `debug` override this config.
 - Default pixelRatio scaling can now be turned off with `config={{autoPixelRatio: false}}`
 - turned stencil buffer on by default (not sure disabling did anything good for perf anyway)

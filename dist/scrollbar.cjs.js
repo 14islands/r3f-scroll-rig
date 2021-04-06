@@ -2,14 +2,18 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
-
-var _objectWithoutPropertiesLoose = _interopDefault(require('@babel/runtime/helpers/objectWithoutPropertiesLoose'));
-var _extends = _interopDefault(require('@babel/runtime/helpers/extends'));
-var create = _interopDefault(require('zustand'));
+var _objectWithoutPropertiesLoose = require('@babel/runtime/helpers/objectWithoutPropertiesLoose');
+var _extends = require('@babel/runtime/helpers/extends');
+var create = require('zustand');
 var React = require('react');
-var React__default = _interopDefault(React);
 var windowSize = require('@react-hook/window-size');
+
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+
+var _objectWithoutPropertiesLoose__default = /*#__PURE__*/_interopDefaultLegacy(_objectWithoutPropertiesLoose);
+var _extends__default = /*#__PURE__*/_interopDefaultLegacy(_extends);
+var create__default = /*#__PURE__*/_interopDefaultLegacy(create);
+var React__default = /*#__PURE__*/_interopDefaultLegacy(React);
 
 /**
  * runtime check for requestIdleCallback
@@ -60,7 +64,7 @@ function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return typ
 
 function _toPrimitive(input, hint) { if (typeof input !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (typeof res !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 
-var _create = create(function (set) {
+var _create = create__default['default'](function (set) {
   return {
     // //////////////////////////////////////////////////////////////////////////
     // GLOBAL ScrollRig STATE
@@ -96,7 +100,7 @@ var _create = create(function (set) {
 
         var canvasChildren = _ref.canvasChildren;
 
-        var obj = _extends({}, canvasChildren, (_extends2 = {}, _extends2[key] = {
+        var obj = _extends__default['default']({}, canvasChildren, (_extends2 = {}, _extends2[key] = {
           mesh: mesh,
           props: props
         }, _extends2));
@@ -117,9 +121,9 @@ var _create = create(function (set) {
             mesh = _canvasChildren$key.mesh,
             props = _canvasChildren$key.props;
 
-        var obj = _extends({}, canvasChildren, (_extends3 = {}, _extends3[key] = {
+        var obj = _extends__default['default']({}, canvasChildren, (_extends3 = {}, _extends3[key] = {
           mesh: mesh,
-          props: _extends({}, props, newProps)
+          props: _extends__default['default']({}, props, newProps)
         }, _extends3));
 
         return {
@@ -132,8 +136,8 @@ var _create = create(function (set) {
       return set(function (_ref3) {
         var canvasChildren = _ref3.canvasChildren;
 
-        var omit = canvasChildren[key],
-            obj = _objectWithoutPropertiesLoose(canvasChildren, [key].map(_toPropertyKey)); // make a separate copy of the obj and omit
+        canvasChildren[key];
+            var obj = _objectWithoutPropertiesLoose__default['default'](canvasChildren, [key].map(_toPropertyKey)); // make a separate copy of the obj and omit
 
 
         return {
@@ -185,8 +189,8 @@ var _create = create(function (set) {
     }
   };
 }),
-    useCanvasStore = _create[0],
-    canvasStoreApi = _create[1];
+    useCanvasStore = _create[0];
+    _create[1];
 
 /**
  * Public interface for ScrollRig
@@ -453,8 +457,8 @@ var FakeScroller = function FakeScroller(_ref) {
 
       if (sections) {
         sections.forEach(function (_ref2) {
-          var el = _ref2.el,
-              bounds = _ref2.bounds;
+          var el = _ref2.el;
+              _ref2.bounds;
           el.style.transform = '';
         });
         state.sections = null;
@@ -506,7 +510,7 @@ var FakeScroller = function FakeScroller(_ref) {
   React.useEffect(function () {
     handleResize();
   }, [pageReflowRequested]);
-  return /*#__PURE__*/React__default.createElement("div", {
+  return /*#__PURE__*/React__default['default'].createElement("div", {
     className: "js-fake-scroll",
     ref: heightEl,
     style: {
@@ -525,7 +529,7 @@ var VirtualScrollbar = function VirtualScrollbar(_ref4) {
       children = _ref4.children,
       _ref4$scrollToTop = _ref4.scrollToTop,
       scrollToTop = _ref4$scrollToTop === void 0 ? false : _ref4$scrollToTop,
-      rest = _objectWithoutPropertiesLoose(_ref4, ["disabled", "resizeOnHeight", "children", "scrollToTop"]);
+      rest = _objectWithoutPropertiesLoose__default['default'](_ref4, ["disabled", "resizeOnHeight", "children", "scrollToTop"]);
 
   var ref = React.useRef();
 
@@ -573,12 +577,12 @@ var VirtualScrollbar = function VirtualScrollbar(_ref4) {
 
   };
   var style = active ? activeStyle : {};
-  return /*#__PURE__*/React__default.createElement(React__default.Fragment, null, children({
+  return /*#__PURE__*/React__default['default'].createElement(React__default['default'].Fragment, null, children({
     ref: ref,
     style: style
-  }), active && /*#__PURE__*/React__default.createElement(FakeScroller, _extends({
+  }), active && /*#__PURE__*/React__default['default'].createElement(FakeScroller, _extends__default['default']({
     el: ref
-  }, rest)),  /*#__PURE__*/React__default.createElement(ResizeManager, {
+  }, rest)), /*#__PURE__*/React__default['default'].createElement(ResizeManager, {
     reflow: requestReflow,
     resizeOnHeight: resizeOnHeight
   }));

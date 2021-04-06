@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { addEffect, addAfterEffect } from 'react-three-fiber'
+import { addEffect, addAfterEffect } from '@react-three/fiber'
 import StatsImpl from 'three/examples/js/libs/stats.min'
 
 /* Copied from drei - no need to import just for this */

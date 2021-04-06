@@ -1,6 +1,6 @@
 import React, { useMemo, useEffect } from 'react'
 import { Color } from 'three'
-import { useThree } from 'react-three-fiber'
+import { useThree } from '@react-three/fiber'
 import { Text } from '@react-three/drei/core/Text'
 
 /**

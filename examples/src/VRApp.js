@@ -2,7 +2,8 @@ import React, { useRef, Suspense, useEffect, useState } from 'react'
 import './App.css'
 
 import { GlobalCanvas, VirtualScrollbar } from '@14islands/r3f-scroll-rig'
-import { Loader } from '@react-three/drei'
+import { Loader } from '@react-three/drei/web/Loader'
+
 import { VRCanvas, DefaultXRControllers } from '@react-three/xr'
 
 import Text from './components/text/Text'
@@ -27,7 +28,7 @@ import hutModel from './assets/hut.glb'
 import RotatingImage from './components/image/RotatingImage'
 
 import VRBox from './components/VRBox'
-import { useThree } from 'react-three-fiber'
+import { useThree } from '@react-three/fiber'
 import { useXR, useXREvent } from '@react-three/xr'
 
 const XRCam = () => {

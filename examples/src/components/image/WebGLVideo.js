@@ -1,6 +1,6 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react'
 import { useScrollRig, useImgTagAsTexture, invalidate } from '@14islands/r3f-scroll-rig'
-import { useFrame, useThree } from 'react-three-fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 
 import { LinearFilter, VideoTexture, sRGBEncoding, MathUtils } from 'three'
 

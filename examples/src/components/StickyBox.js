@@ -1,6 +1,6 @@
 import React, { useRef } from 'react'
 import { useScrollRig, useCanvas } from '@14islands/r3f-scroll-rig'
-import { useFrame } from 'react-three-fiber'
+import { useFrame } from '@react-three/fiber'
 import { useSpring, animated } from 'react-spring/three'
 
 import StickyScrollScene from './stdlib/StickyScrollScene'

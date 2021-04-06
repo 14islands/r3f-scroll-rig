@@ -2,16 +2,19 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
-
-var _extends = _interopDefault(require('@babel/runtime/helpers/extends'));
-var _objectWithoutPropertiesLoose = _interopDefault(require('@babel/runtime/helpers/objectWithoutPropertiesLoose'));
+var _extends = require('@babel/runtime/helpers/extends');
+var _objectWithoutPropertiesLoose = require('@babel/runtime/helpers/objectWithoutPropertiesLoose');
 var React = require('react');
-var React__default = _interopDefault(React);
 var three = require('three');
-var reactThreeFiber = require('react-three-fiber');
+var fiber = require('@react-three/fiber');
 var Text = require('@react-three/drei/core/Text');
 var r3fScrollRig = require('@14islands/r3f-scroll-rig');
+
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+
+var _extends__default = /*#__PURE__*/_interopDefaultLegacy(_extends);
+var _objectWithoutPropertiesLoose__default = /*#__PURE__*/_interopDefaultLegacy(_objectWithoutPropertiesLoose);
+var React__default = /*#__PURE__*/_interopDefaultLegacy(React);
 
 /**
  * Returns a WebGL Troika text mesh styled as the source DOM element
@@ -30,9 +33,9 @@ var WebGLText = function WebGLText(_ref) {
       _ref$overrideEmissive = _ref.overrideEmissive,
       overrideEmissive = _ref$overrideEmissive === void 0 ? false : _ref$overrideEmissive,
       color = _ref.color,
-      props = _objectWithoutPropertiesLoose(_ref, ["el", "children", "material", "scale", "font", "fontOffsetY", "fontOffsetX", "overrideEmissive", "color"]);
+      props = _objectWithoutPropertiesLoose__default['default'](_ref, ["el", "children", "material", "scale", "font", "fontOffsetY", "fontOffsetX", "overrideEmissive", "color"]);
 
-  var _useThree = reactThreeFiber.useThree(),
+  var _useThree = fiber.useThree(),
       size = _useThree.size;
 
   var _useMemo = React.useMemo(function () {
@@ -42,7 +45,7 @@ var WebGLText = function WebGLText(_ref) {
     var letterSpacing = (parseFloat(cs.letterSpacing) || 0) / parseFloat(cs.fontSize);
     var lineHeight = (parseFloat(cs.lineHeight) || 0) / parseFloat(cs.fontSize);
     var textColor = new three.Color(color || cs.color).convertSRGBToLinear();
-    return _extends({}, cs, {
+    return _extends__default['default']({}, cs, {
       letterSpacing: letterSpacing,
       lineHeight: lineHeight,
       textColor: textColor,
@@ -70,7 +73,7 @@ var WebGLText = function WebGLText(_ref) {
   }
 
   var yOffset = scale ? scale.height * 0.5 : size.height * 0.5;
-  return /*#__PURE__*/React__default.createElement(Text.Text, _extends({
+  return /*#__PURE__*/React__default['default'].createElement(Text.Text, _extends__default['default']({
     fontSize: fontSize,
     maxWidth: scale ? scale.width : size.width,
     lineHeight: lineHeight,
@@ -108,7 +111,7 @@ var WebGLImage = function WebGLImage(_ref) {
       pixelRatio = _useScrollRig.pixelRatio,
       preloadScene = _useScrollRig.preloadScene;
 
-  var _useThree = reactThreeFiber.useThree(),
+  var _useThree = fiber.useThree(),
       camera = _useThree.camera,
       size = _useThree.size;
 
@@ -157,7 +160,7 @@ var WebGLImage = function WebGLImage(_ref) {
   React.useEffect(function () {
     material.current.uniforms.u_res.value.set(size.width, size.height);
   }, [size]);
-  reactThreeFiber.useFrame(function () {
+  fiber.useFrame(function () {
     if (!scrollState.inViewport) return;
     material.current.uniforms.u_time.value += 0.01; // px velocity
     // material.current.uniforms.u_velocity.value = scrollState.velocity
@@ -170,12 +173,12 @@ var WebGLImage = function WebGLImage(_ref) {
     material.current.uniforms.u_viewport.value = scrollState.viewport;
     if (invalidateFrameLoop) invalidate();
   });
-  return /*#__PURE__*/React__default.createElement("mesh", {
+  return /*#__PURE__*/React__default['default'].createElement("mesh", {
     ref: mesh
-  }, /*#__PURE__*/React__default.createElement("planeBufferGeometry", {
+  }, /*#__PURE__*/React__default['default'].createElement("planeBufferGeometry", {
     attach: "geometry",
     args: [scale.width, scale.height, widthSegments, heightSegments]
-  }), /*#__PURE__*/React__default.createElement("shaderMaterial", {
+  }), /*#__PURE__*/React__default['default'].createElement("shaderMaterial", {
     ref: material,
     attach: "material",
     args: [{
@@ -193,27 +196,27 @@ var ParallaxMesh = function ParallaxMesh(_ref) {
       scale = _ref.scale,
       parallax = _ref.parallax;
   var mesh = React.useRef();
-  reactThreeFiber.useFrame(function () {
+  fiber.useFrame(function () {
     if (!scrollState.inViewport) return;
     var parallaxProgress = scrollState.progress * 2 - 1;
     mesh.current.position.y = parallax * parallaxProgress * scale.multiplier;
   });
-  return /*#__PURE__*/React__default.createElement("mesh", {
+  return /*#__PURE__*/React__default['default'].createElement("mesh", {
     ref: mesh
   }, children);
 };
 var ParallaxScrollScene = function ParallaxScrollScene(_ref2) {
   var children = _ref2.children,
-      parallax = _ref2.parallax,
-      stickyLerp = _ref2.stickyLerp,
-      props = _objectWithoutPropertiesLoose(_ref2, ["children", "parallax", "stickyLerp"]);
+      parallax = _ref2.parallax;
+      _ref2.stickyLerp;
+      var props = _objectWithoutPropertiesLoose__default['default'](_ref2, ["children", "parallax", "stickyLerp"]);
 
-  return /*#__PURE__*/React__default.createElement(r3fScrollRig.ScrollScene, _extends({
+  return /*#__PURE__*/React__default['default'].createElement(r3fScrollRig.ScrollScene, _extends__default['default']({
     scissor: false
   }, props, {
     inViewportMargin: Math.abs(parallax * 3)
   }), function (props) {
-    return /*#__PURE__*/React__default.createElement(ParallaxMesh, _extends({
+    return /*#__PURE__*/React__default['default'].createElement(ParallaxMesh, _extends__default['default']({
       parallax: parallax
     }, props), children(props));
   });

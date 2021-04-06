@@ -1,6 +1,6 @@
 import React, { useEffect, useLayoutEffect, useMemo } from 'react'
 import PropTypes from 'prop-types'
-import { Canvas } from 'react-three-fiber'
+import { Canvas } from '@react-three/fiber'
 import { NoToneMapping } from 'three'
 import { ResizeObserver } from '@juggle/resize-observer'
 import queryString from 'query-string'
@@ -62,7 +62,7 @@ const GlobalCanvas = ({
   return (
     <CanvasElement
       className="ScrollRigCanvas"
-      invalidateFrameloop={true}
+      frameloop="demand"
       gl={{
         antialias: true,
         alpha: true,
@@ -72,11 +72,11 @@ const GlobalCanvas = ({
         failIfMajorPerformanceCaveat: true, // skip webgl if slow device
         ...gl,
       }}
-      colorManagement={true} // ACESFilmic seems incorrect for non-HDR settings - images get weird color
-      noEvents={noEvents}
+      linear={false} // use sRGB
+      raycaster={{ enabled: !noEvents }}
       resize={{ scroll: false, debounce: 0, polyfill: ResizeObserver }}
       // concurrent // zustand (state mngr) is not compatible with concurrent mode yet
-      pixelRatio={pixelRatio}
+      dpr={pixelRatio}
       style={{
         position: 'fixed',
         top: 0,
@@ -89,8 +89,8 @@ const GlobalCanvas = ({
       }}
       // use our own default camera
       camera={null}
-      updateDefaultCamera={false}
       onCreated={({ gl }) => {
+        // ACESFilmic seems incorrect for non-HDR settings - images get weird color and hex won't match DOM
         gl.toneMapping = NoToneMapping // turn off tonemapping by default to provide better hex matching
       }}
       // allow to override anything of the above
@@ -114,7 +114,7 @@ GlobalCanvas.propTypes = {
   orthographic: PropTypes.bool,
   noEvents: PropTypes.bool,
   config: PropTypes.bool, // scrollrig config overrides
-  as: PropTypes.any, // renders as react-three-fiber Canvas by default
+  as: PropTypes.any, // renders as @react-three/fiber Canvas by default
 }
 
 const GlobalCanvasIfSupported = ({ onError, ...props }) => {

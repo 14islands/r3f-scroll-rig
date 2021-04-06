@@ -1,12 +1,14 @@
-import React, { forwardRef, useLayoutEffect, useMemo } from 'react'
+import React, { useRef, forwardRef, useLayoutEffect, useMemo } from 'react'
 import PropTypes from 'prop-types'
-import { useThree, useUpdate } from 'react-three-fiber'
+import { useThree } from '@react-three/fiber'
 import mergeRefs from 'react-merge-refs'
 import { useScrollRig, config } from '@14islands/r3f-scroll-rig'
 
 export const OrthographicCamera = forwardRef(
   ({ makeDefault = false, scaleMultiplier = config.scaleMultiplier, ...props }, ref) => {
-    const { setDefaultCamera, camera, size } = useThree()
+    const set = useThree((state) => state.set)
+    const camera = useThree((state) => state.camera)
+    const size = useThree((state) => state.size)
     const { reflowCompleted } = useScrollRig()
 
     const distance = useMemo(() => {
@@ -15,24 +17,22 @@ export const OrthographicCamera = forwardRef(
       return Math.max(width, height)
     }, [size, reflowCompleted, scaleMultiplier])
 
-    const cameraRef = useUpdate(
-      (cam) => {
-        cam.lookAt(0, 0, 0)
-        cam.updateProjectionMatrix()
-        // https://github.com/react-spring/react-three-fiber/issues/178
-        // Update matrix world since the renderer is a frame late
-        cam.updateMatrixWorld()
-      },
-      [distance, size],
-    )
+    const cameraRef = useRef()
+    useLayoutEffect(() => {
+      cameraRef.current.lookAt(0, 0, 0)
+      cameraRef.current.updateProjectionMatrix()
+      // https://github.com/react-spring/@react-three/fiber/issues/178
+      // Update matrix world since the renderer is a frame late
+      cameraRef.current.updateMatrixWorld()
+    }, [distance, size])
 
     useLayoutEffect(() => {
       if (makeDefault && cameraRef.current) {
         const oldCam = camera
-        setDefaultCamera(cameraRef.current)
-        return () => setDefaultCamera(oldCam)
+        set({ camera: cameraRef.current })
+        return () => set({ camera: oldCam })
       }
-    }, [camera, cameraRef, makeDefault, setDefaultCamera])
+    }, [camera, cameraRef, makeDefault, set])
 
     return (
       <orthographicCamera

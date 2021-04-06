@@ -1,6 +1,6 @@
 import React, { Suspense, Fragment, useLayoutEffect, useRef } from 'react'
 import PropTypes from 'prop-types'
-import { useThree, useFrame } from 'react-three-fiber'
+import { useThree, useFrame } from '@react-three/fiber'
 
 import config from './config'
 import { useCanvasStore } from './store'

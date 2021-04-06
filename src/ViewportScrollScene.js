@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect, useLayoutEffect } from 'react'
 import PropTypes from 'prop-types'
 import { MathUtils, Scene } from 'three'
-import { useFrame, useThree, createPortal } from 'react-three-fiber'
+import { useFrame, useThree, createPortal } from '@react-three/fiber'
 
 import requestIdleCallback from './hooks/requestIdleCallback'
 
@@ -14,7 +14,7 @@ import DebugMesh from './DebugMesh'
  * Generic THREE.js Scene that tracks the dimensions and position of a DOM element while scrolling
  * Scene is rendered into a GL viewport matching the DOM position for better performance
  *
- * Adapted to react-three-fiber from https://threejsfundamentals.org/threejs/lessons/threejs-multiple-scenes.html
+ * Adapted to @react-three/fiber from https://threejsfundamentals.org/threejs/lessons/threejs-multiple-scenes.html
  * @author david@14islands.com
  */
 let ViewportScrollScene = ({
@@ -137,7 +137,7 @@ let ViewportScrollScene = ({
       camera.current.aspect = (viewportWidth + margin * 2) / (viewportHeight + margin * 2)
       camera.current.fov = 2 * (180 / Math.PI) * Math.atan((viewportHeight + margin * 2) / (2 * cameraDistance))
       camera.current.updateProjectionMatrix()
-      // https://github.com/react-spring/react-three-fiber/issues/178
+      // https://github.com/react-spring/@react-three/fiber/issues/178
       // Update matrix world since the renderer is a frame late
       camera.current.updateMatrixWorld()
     }

@@ -1,6 +1,5 @@
-import _objectWithoutPropertiesLoose from '@babel/runtime/helpers/esm/objectWithoutPropertiesLoose';
-import _extends from '@babel/runtime/helpers/esm/extends';
 import create from 'zustand';
+import _extends from '@babel/runtime/helpers/esm/extends';
 import React, { useRef, useEffect, useState, useLayoutEffect } from 'react';
 import { useWindowSize } from '@react-hook/window-size';
 
@@ -47,9 +46,6 @@ const config = {
   hasGlobalCanvas: false
 };
 
-function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return typeof key === "symbol" ? key : String(key); }
-
-function _toPrimitive(input, hint) { if (typeof input !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (typeof res !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 const [useCanvasStore, canvasStoreApi] = create(set => ({
   // //////////////////////////////////////////////////////////////////////////
   // GLOBAL ScrollRig STATE
@@ -70,13 +66,12 @@ const [useCanvasStore, canvasStoreApi] = create(set => ({
   renderToCanvas: (key, mesh, props = {}) => set(({
     canvasChildren
   }) => {
-    const obj = _extends({}, canvasChildren, {
+    const obj = { ...canvasChildren,
       [key]: {
         mesh,
         props
       }
-    });
-
+    };
     return {
       canvasChildren: obj
     };
@@ -92,14 +87,14 @@ const [useCanvasStore, canvasStoreApi] = create(set => ({
         props
       }
     } = canvasChildren;
-
-    const obj = _extends({}, canvasChildren, {
+    const obj = { ...canvasChildren,
       [key]: {
         mesh,
-        props: _extends({}, props, newProps)
+        props: { ...props,
+          ...newProps
+        }
       }
-    });
-
+    };
     return {
       canvasChildren: obj
     };
@@ -108,8 +103,10 @@ const [useCanvasStore, canvasStoreApi] = create(set => ({
   removeFromCanvas: key => set(({
     canvasChildren
   }) => {
-    const obj = _objectWithoutPropertiesLoose(canvasChildren, [key].map(_toPropertyKey)); // make a separate copy of the obj and omit
-
+    const {
+      [key]: omit,
+      ...obj
+    } = canvasChildren; // make a separate copy of the obj and omit
 
     return {
       canvasChildren: obj
@@ -279,7 +276,7 @@ const FakeScroller = ({
       scroll,
       sections
     } = state;
-    const translate = "translate3d(0, " + -scroll.current + "px, 0)";
+    const translate = `translate3d(0, ${-scroll.current}px, 0)`;
     if (!sections) return;
 
     for (let i = 0; i < total; i++) {
@@ -443,7 +440,7 @@ const FakeScroller = ({
     } = state.sectionEls[total - 1].getBoundingClientRect();
     bounds.scrollHeight = bottom; // update fake height
 
-    setFakeHeight(bounds.scrollHeight + "px");
+    setFakeHeight(`${bounds.scrollHeight}px`);
     setTimeout(() => {
       // get new scroll position (changes if window height became smaller)
       scroll.current = window.pageYOffset; // move all items into place
@@ -471,15 +468,13 @@ const FakeScroller = ({
  * Wrapper for virtual scrollbar
  * @param {*} param0
  */
-const VirtualScrollbar = (_ref) => {
-  let {
-    disabled,
-    resizeOnHeight,
-    children,
-    scrollToTop = false
-  } = _ref,
-      rest = _objectWithoutPropertiesLoose(_ref, ["disabled", "resizeOnHeight", "children", "scrollToTop"]);
-
+const VirtualScrollbar = ({
+  disabled,
+  resizeOnHeight,
+  children,
+  scrollToTop = false,
+  ...rest
+}) => {
   const ref = useRef();
   const [active, setActive] = useState(false); // FakeScroller wont trigger resize without touching the store here..
   // due to code splitting maybe? two instances of the store?
@@ -523,7 +518,7 @@ const VirtualScrollbar = (_ref) => {
     style
   }), active && /*#__PURE__*/React.createElement(FakeScroller, _extends({
     el: ref
-  }, rest)),  /*#__PURE__*/React.createElement(ResizeManager, {
+  }, rest)), /*#__PURE__*/React.createElement(ResizeManager, {
     reflow: requestReflow,
     resizeOnHeight: resizeOnHeight
   }));

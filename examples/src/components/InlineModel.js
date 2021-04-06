@@ -1,8 +1,9 @@
 import React, { useRef, useEffect } from 'react'
 import { useScrollRig, useCanvas, ScrollScene } from '@14islands/r3f-scroll-rig'
 // import { MathUtils, CameraHelper, FrontSide, BackSide, DoubleSide } from 'three'
-import { useFrame } from 'react-three-fiber'
-import { useGLTF, Shadow, softShadows } from '@react-three/drei'
+import { useFrame } from '@react-three/fiber'
+import { useGLTF } from '@react-three/drei/core/useGLTF'
+import { Shadow } from '@react-three/drei/core/Shadow'
 // import { StandardEffects } from './StandardEffects'
 
 // softShadows()

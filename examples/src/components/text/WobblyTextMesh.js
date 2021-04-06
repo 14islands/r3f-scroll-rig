@@ -1,27 +1,27 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useScrollRig } from '@14islands/r3f-scroll-rig'
-import { useFrame, useResource } from 'react-three-fiber'
-import { MeshWobbleMaterial } from '@react-three/drei'
+import { useFrame } from '@react-three/fiber'
+import { MeshWobbleMaterial } from '@react-three/drei/core/MeshWobbleMaterial'
 
 import WebGLText from '../stdlib/WebGLText'
 
 const WobblyTextMesh = ({ children, scrollState, scale, el, font }) => {
-  const material = useResource()
+  const [material, set] = useState()
   const { invalidate } = useScrollRig()
 
   useFrame(() => {
-    if (material.current && scrollState.inViewport) {
+    if (material && scrollState.inViewport) {
       invalidate()
-      material.current.factor = scrollState.progress * 0.5 //Math.max(0, scrollState.progress - 0.5) * 2
+      material.factor = scrollState.progress * 0.5 //Math.max(0, scrollState.progress - 0.5) * 2
     }
   })
 
   return (
     <>
-      <MeshWobbleMaterial ref={material} factor={0} depthTest={false} />
-      <WebGLText el={el} font={font} material={material.current} scale={scale} overrideEmissive>
+      <MeshWobbleMaterial ref={set} factor={0} depthTest={false} />
+      { material && <WebGLText el={el} font={font} material={material} scale={scale} overrideEmissive>
         {children}
-      </WebGLText>
+      </WebGLText>}
     </>
   )
 }
