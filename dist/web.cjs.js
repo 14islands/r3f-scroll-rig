@@ -1128,7 +1128,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
     lerp: lerp || config.scrollLerp,
     lerpOffset: lerpOffset,
     margin: margin,
-    visible: visible,
+    visible: scene.visible,
     renderOrder: renderOrder,
     // new props
     scale: scale,

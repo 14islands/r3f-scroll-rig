@@ -994,7 +994,7 @@ let ScrollScene = (_ref) => {
     lerp: lerp || config.scrollLerp,
     lerpOffset,
     margin,
-    visible,
+    visible: scene.visible,
     renderOrder,
     // new props
     scale,
