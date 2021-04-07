@@ -27,20 +27,23 @@ const GlobalRenderer = ({ children }) => {
     if (config.preloadQueue.length) gl.clear()
     // cleanup
     config.preloadQueue = []
+    gl.autoClear = true
   }, config.PRIORITY_PRELOAD)
 
   // GLOBAL RENDER LOOP
   useFrame(({ camera, scene }) => {
     // Global render pass
     if (config.globalRender) {
-      gl.autoClear = false // will fail in VR
+      if (config.disableAutoClear) {
+        gl.autoClear = false // will fail in VR
+      }
 
       // render default layer, scene, camera
       camera.layers.disableAll()
       config.globalRender.forEach((layer) => {
         camera.layers.enable(layer)
       })
-      gl.clearDepth() // render as HUD over any other renders
+      config.clearDepth && gl.clearDepth() // render as HUD over any other renders
       gl.render(scene, camera)
 
       // cleanup for next frame

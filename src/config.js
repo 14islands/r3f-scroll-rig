@@ -25,6 +25,9 @@ export const config = {
   preloadQueue: [],
   hasVirtualScrollbar: false,
   hasGlobalCanvas: false,
+
+  disableAutoClear: true,
+  clearDepth: true,
 }
 
 export default config

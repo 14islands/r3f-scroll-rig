@@ -1,5 +1,9 @@
 # Changelog
 
+## v6.0.0
+
+- Updated to R3F v6 api.
+
 ## v2.1.0
 
 ### ViewportScrollScene, ScrollScene, ScrollDomPortal
