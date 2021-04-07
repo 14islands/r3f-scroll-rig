@@ -43,7 +43,9 @@ const config = {
   globalRender: false,
   preloadQueue: [],
   hasVirtualScrollbar: false,
-  hasGlobalCanvas: false
+  hasGlobalCanvas: false,
+  disableAutoClear: true,
+  clearDepth: true
 };
 
 const [useCanvasStore, canvasStoreApi] = create(set => ({

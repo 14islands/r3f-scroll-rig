@@ -1,5 +1,5 @@
 import _extends from '@babel/runtime/helpers/esm/extends';
-import React, { useState, useEffect, useRef, useLayoutEffect, Suspense, Fragment, forwardRef, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useLayoutEffect, Suspense, Fragment, useRef, forwardRef, useMemo, useCallback } from 'react';
 import { addEffect, addAfterEffect, invalidate, useThree, useFrame, Canvas, extend, createPortal } from '@react-three/fiber';
 import { Vector2, NoToneMapping, Color, Scene, MathUtils, ImageBitmapLoader, TextureLoader, CanvasTexture, sRGBEncoding, LinearFilter, RGBFormat, RGBAFormat } from 'three';
 import { ResizeObserver } from '@juggle/resize-observer';
@@ -60,7 +60,9 @@ const config = {
   globalRender: false,
   preloadQueue: [],
   hasVirtualScrollbar: false,
-  hasGlobalCanvas: false
+  hasGlobalCanvas: false,
+  disableAutoClear: true,
+  clearDepth: true
 };
 
 /* Copied from drei - no need to import just for this */
@@ -305,7 +307,6 @@ const useScrollRig = () => {
 const GlobalRenderer = ({
   children
 }) => {
-  const scene = useRef();
   const {
     gl
   } = useThree();
@@ -319,12 +320,14 @@ const GlobalRenderer = ({
     camera,
     scene
   }) => {
+    if (!config.preloadQueue.length) return;
     gl.autoClear = false; // Render preload frames first and clear directly
 
-    config.preloadQueue.forEach(render => render(gl));
-    if (config.preloadQueue.length) gl.clear(); // cleanup
+    config.preloadQueue.forEach(render => render(gl)); // cleanup
 
+    gl.clear();
     config.preloadQueue = [];
+    gl.autoClear = true;
   }, config.PRIORITY_PRELOAD); // GLOBAL RENDER LOOP
 
   useFrame(({
@@ -333,14 +336,16 @@ const GlobalRenderer = ({
   }) => {
     // Global render pass
     if (config.globalRender) {
-      gl.autoClear = false; // will fail in VR
-      // render default layer, scene, camera
+      if (config.disableAutoClear) {
+        gl.autoClear = false; // will fail in VR
+      } // render default layer, scene, camera
+
 
       camera.layers.disableAll();
       config.globalRender.forEach(layer => {
         camera.layers.enable(layer);
       });
-      gl.clearDepth(); // render as HUD over any other renders
+      config.clearDepth && gl.clearDepth(); // render as HUD over any other renders
 
       gl.render(scene, camera); // cleanup for next frame
 
@@ -350,9 +355,7 @@ const GlobalRenderer = ({
   }, config.PRIORITY_GLOBAL); // Take over rendering
 
   config.debug && console.log('GlobalRenderer', Object.keys(canvasChildren).length);
-  return /*#__PURE__*/React.createElement("scene", {
-    ref: scene
-  }, /*#__PURE__*/React.createElement(Suspense, {
+  return /*#__PURE__*/React.createElement(Suspense, {
     fallback: null
   }, Object.keys(canvasChildren).map((key, i) => {
     const {
@@ -374,7 +377,7 @@ const GlobalRenderer = ({
       key,
       ...props
     });
-  }), children));
+  }), children);
 };
 
 const PerformanceMonitor = () => {

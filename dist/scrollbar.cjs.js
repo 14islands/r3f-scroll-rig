@@ -57,7 +57,9 @@ var config = {
   globalRender: false,
   preloadQueue: [],
   hasVirtualScrollbar: false,
-  hasGlobalCanvas: false
+  hasGlobalCanvas: false,
+  disableAutoClear: true,
+  clearDepth: true
 };
 
 function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return typeof key === "symbol" ? key : String(key); }

@@ -81,7 +81,9 @@ var config = {
   globalRender: false,
   preloadQueue: [],
   hasVirtualScrollbar: false,
-  hasGlobalCanvas: false
+  hasGlobalCanvas: false,
+  disableAutoClear: true,
+  clearDepth: true
 };
 
 /* Copied from drei - no need to import just for this */
@@ -388,7 +390,6 @@ var useScrollRig = function useScrollRig() {
 
 var GlobalRenderer = function GlobalRenderer(_ref) {
   var children = _ref.children;
-  var scene = React.useRef();
 
   var _useThree = fiber.useThree(),
       gl = _useThree.gl;
@@ -404,14 +405,16 @@ var GlobalRenderer = function GlobalRenderer(_ref) {
   fiber.useFrame(function (_ref2) {
     _ref2.camera;
         _ref2.scene;
+    if (!config.preloadQueue.length) return;
     gl.autoClear = false; // Render preload frames first and clear directly
 
     config.preloadQueue.forEach(function (render) {
       return render(gl);
-    });
-    if (config.preloadQueue.length) gl.clear(); // cleanup
+    }); // cleanup
 
+    gl.clear();
     config.preloadQueue = [];
+    gl.autoClear = true;
   }, config.PRIORITY_PRELOAD); // GLOBAL RENDER LOOP
 
   fiber.useFrame(function (_ref3) {
@@ -420,14 +423,16 @@ var GlobalRenderer = function GlobalRenderer(_ref) {
 
     // Global render pass
     if (config.globalRender) {
-      gl.autoClear = false; // will fail in VR
-      // render default layer, scene, camera
+      if (config.disableAutoClear) {
+        gl.autoClear = false; // will fail in VR
+      } // render default layer, scene, camera
+
 
       camera.layers.disableAll();
       config.globalRender.forEach(function (layer) {
         camera.layers.enable(layer);
       });
-      gl.clearDepth(); // render as HUD over any other renders
+      config.clearDepth && gl.clearDepth(); // render as HUD over any other renders
 
       gl.render(scene, camera); // cleanup for next frame
 
@@ -437,9 +442,7 @@ var GlobalRenderer = function GlobalRenderer(_ref) {
   }, config.PRIORITY_GLOBAL); // Take over rendering
 
   config.debug && console.log('GlobalRenderer', Object.keys(canvasChildren).length);
-  return /*#__PURE__*/React__default['default'].createElement("scene", {
-    ref: scene
-  }, /*#__PURE__*/React__default['default'].createElement(React.Suspense, {
+  return /*#__PURE__*/React__default['default'].createElement(React.Suspense, {
     fallback: null
   }, Object.keys(canvasChildren).map(function (key, i) {
     var _canvasChildren$key = canvasChildren[key],
@@ -457,7 +460,7 @@ var GlobalRenderer = function GlobalRenderer(_ref) {
     return /*#__PURE__*/React__default['default'].cloneElement(mesh, _extends__default['default']({
       key: key
     }, props));
-  }), children));
+  }), children);
 };
 
 var PerformanceMonitor = function PerformanceMonitor() {

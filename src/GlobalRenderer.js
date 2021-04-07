@@ -1,4 +1,4 @@
-import React, { Suspense, Fragment, useLayoutEffect, useRef } from 'react'
+import React, { Suspense, Fragment, useLayoutEffect } from 'react'
 import PropTypes from 'prop-types'
 import { useThree, useFrame } from '@react-three/fiber'
 
@@ -10,7 +10,6 @@ import { useScrollRig } from './useScrollRig'
  * Global render loop to avoid double renders on the same frame
  */
 const GlobalRenderer = ({ children }) => {
-  const scene = useRef()
   const { gl } = useThree()
   const canvasChildren = useCanvasStore((state) => state.canvasChildren)
   const scrollRig = useScrollRig()
@@ -21,11 +20,12 @@ const GlobalRenderer = ({ children }) => {
 
   // PRELOAD RENDER LOOP
   useFrame(({ camera, scene }) => {
+    if (!config.preloadQueue.length) return
     gl.autoClear = false
     // Render preload frames first and clear directly
     config.preloadQueue.forEach((render) => render(gl))
-    if (config.preloadQueue.length) gl.clear()
     // cleanup
+    gl.clear()
     config.preloadQueue = []
     gl.autoClear = true
   }, config.PRIORITY_PRELOAD)
@@ -55,23 +55,21 @@ const GlobalRenderer = ({ children }) => {
 
   config.debug && console.log('GlobalRenderer', Object.keys(canvasChildren).length)
   return (
-    <scene ref={scene}>
-      <Suspense fallback={null}>
-        {Object.keys(canvasChildren).map((key, i) => {
-          const { mesh, props } = canvasChildren[key]
+    <Suspense fallback={null}>
+      {Object.keys(canvasChildren).map((key, i) => {
+        const { mesh, props } = canvasChildren[key]
 
-          if (typeof mesh === 'function') {
-            return <Fragment key={key}>{mesh({ key, ...scrollRig, ...props })}</Fragment>
-          }
+        if (typeof mesh === 'function') {
+          return <Fragment key={key}>{mesh({ key, ...scrollRig, ...props })}</Fragment>
+        }
 
-          return React.cloneElement(mesh, {
-            key,
-            ...props,
-          })
-        })}
-        {children}
-      </Suspense>
-    </scene>
+        return React.cloneElement(mesh, {
+          key,
+          ...props,
+        })
+      })}
+      {children}
+    </Suspense>
   )
 }
 
