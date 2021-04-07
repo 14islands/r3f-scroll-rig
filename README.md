@@ -76,7 +76,7 @@ TBC:
 * Use CSS animations whenever possible instead of JS for maximum smoothness
 * `Intersection Observer` with a custom **rootMargin** is not working well with `VirtualScrollbar`
 * Consider disabling VirtualScrollbar and all scrolling WebGL elements on mobile - it is usually laggy.
-* Read, make sure you understand and follow all performance pitfalls associated with `React` and `three` https://github.com/pmndrs/@react-three/fiber/blob/master/markdown/pitfalls.md
+* Read, make sure you understand and follow all performance pitfalls associated with `React` and `three` https://github.com/pmndrs/react-three-fiber/blob/master/markdown/pitfalls.md
 
 
 # API
