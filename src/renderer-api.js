@@ -1,6 +1,7 @@
 import config from './config'
 import * as utils from './utils'
 import { Vector2 } from 'three'
+import { invalidate } from '@react-three/fiber'
 
 const viewportSize = new Vector2()
 
@@ -67,4 +68,6 @@ export const preloadScene = (scene, camera, layer = 0, callback) => {
     utils.setAllCulled(scene, true)
     callback && callback()
   })
+  // auto trigger a new frame for the preload
+  invalidate()
 }

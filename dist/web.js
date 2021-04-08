@@ -273,7 +273,9 @@ const preloadScene = (scene, camera, layer = 0, callback) => {
     gl.render(scene, camera);
     setAllCulled(scene, true);
     callback && callback();
-  });
+  }); // auto trigger a new frame for the preload
+
+  invalidate();
 };
 
 /**

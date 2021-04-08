@@ -347,7 +347,9 @@ var preloadScene = function preloadScene(scene, camera, layer, callback) {
     gl.render(scene, camera);
     setAllCulled(scene, true);
     callback && callback();
-  });
+  }); // auto trigger a new frame for the preload
+
+  fiber.invalidate();
 };
 
 /**
