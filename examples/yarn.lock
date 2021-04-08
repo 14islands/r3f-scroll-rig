@@ -2,13 +2,14 @@
 # yarn lockfile v1
 
 
-"@14islands/r3f-scroll-rig@^1.11.0":
-  version "1.11.5"
-  resolved "https://registry.yarnpkg.com/@14islands/r3f-scroll-rig/-/r3f-scroll-rig-1.11.5.tgz#b58ec90d8068a688a8dc3198bec5b54930808035"
-  integrity sha512-S6J23Jb1kqr9M6YViaX9jg5/sZaSFCtB27FDso6q0Q/iJqPbZVPEAMe25dn3AjiajZthn8qGpBeHR5/ABU/8Sg==
+"@14islands/r3f-scroll-rig@^6.0.5":
+  version "6.0.5"
+  resolved "https://registry.yarnpkg.com/@14islands/r3f-scroll-rig/-/r3f-scroll-rig-6.0.5.tgz#b081b9c9dcb491bdda974544605a250675574765"
+  integrity sha512-f/bWohyXqQfp1XD9BwXA1xi2wBXzQeJ7Cl9R9sDrplf8xcIPH1x1k3YDCLh+UnWOSXCyqHO+krVPLUmkRl/YYA==
   dependencies:
     "@juggle/resize-observer" "^3.2.0"
     "@react-hook/window-size" "^3.0.6"
+    "@react-three/fiber" "^6.0.8"
     query-string "^6.14.1"
     zustand "^3.1.4"
 
@@ -12192,7 +12193,12 @@ zstddec@^0.0.2:
   resolved "https://registry.yarnpkg.com/zstddec/-/zstddec-0.0.2.tgz#57e2f28dd1ff56b750e07d158a43f0611ad9eeb4"
   integrity sha512-DCo0oxvcvOTGP/f5FA6tz2Z6wF+FIcEApSTu0zV5sQgn9hoT5lZ9YRAKUraxt9oP7l4e8TnNdi8IZTCX6WCkwA==
 
-zustand@^3.0.3, zustand@^3.1.4, zustand@^3.3.3:
+zustand@^3.0.3, zustand@^3.3.3:
   version "3.4.0"
   resolved "https://registry.yarnpkg.com/zustand/-/zustand-3.4.0.tgz#c41287822d310a185a1047159f488175f9338875"
   integrity sha512-rEO5ivKPOUcyHXjdLtE9J7rkyVXmm7D61MMwYF40b2Vv0pj8lkgtt5WFxdL6gKVQgNJSubqNbB+b4p9F6nrwxA==
+
+zustand@^3.1.4:
+  version "3.4.1"
+  resolved "https://registry.yarnpkg.com/zustand/-/zustand-3.4.1.tgz#ff1bc8480facda3a4329510b8164aa5b821be133"
+  integrity sha512-Kb91vSjy5vwBQ/PQ1a5GE6naS3gCxCgpkujT9zqZSO85+gnvmzgqraMW3ao1I0jR4PwHBXtLTf26r9j7EXoUiQ==

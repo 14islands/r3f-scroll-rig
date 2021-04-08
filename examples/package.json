@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@14islands/r3f-scroll-rig": "^1.11.0",
+    "@14islands/r3f-scroll-rig": "^6.0.5",
     "@react-three/drei": "^4.0.3",
     "@react-three/fiber": "^6.0.8",
     "@react-three/xr": "^1.1.0",
