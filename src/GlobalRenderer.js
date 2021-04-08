@@ -1,4 +1,4 @@
-import React, { Suspense, Fragment, useLayoutEffect } from 'react'
+import React, { Suspense, Fragment, useEffect, useLayoutEffect } from 'react'
 import PropTypes from 'prop-types'
 import { useThree, useFrame } from '@react-three/fiber'
 
@@ -18,6 +18,14 @@ const GlobalRenderer = ({ children }) => {
     gl.debug.checkShaderErrors = config.debug
   }, [])
 
+  useEffect(() => {
+    // clear canvas automatically if all children were removed
+    if (!children && !Object.keys(canvasChildren).length) {
+      config.debug && console.log('GlobalRenderer', 'auto clear empty canvas')
+      gl.clear()
+    }
+  }, [children, canvasChildren])
+
   // PRELOAD RENDER LOOP
   useFrame(({ camera, scene }) => {
     if (!config.preloadQueue.length) return
@@ -28,6 +36,8 @@ const GlobalRenderer = ({ children }) => {
     gl.clear()
     config.preloadQueue = []
     gl.autoClear = true
+    // trigger new frame to get correct visual state after all preloads
+    scrollRig.requestRender()
   }, config.PRIORITY_PRELOAD)
 
   // GLOBAL RENDER LOOP

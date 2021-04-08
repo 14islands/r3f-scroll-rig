@@ -75,7 +75,7 @@ const GlobalCanvas = ({
       linear={false} // use sRGB
       raycaster={{ enabled: !noEvents }}
       resize={{ scroll: false, debounce: 0, polyfill: ResizeObserver }}
-      // concurrent // zustand (state mngr) is not compatible with concurrent mode yet
+      mode="blocking" // concurrent // zustand (state mngr) is not compatible with concurrent mode yet
       dpr={pixelRatio}
       style={{
         position: 'fixed',

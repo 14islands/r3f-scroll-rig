@@ -400,7 +400,14 @@ var GlobalRenderer = function GlobalRenderer(_ref) {
   var scrollRig = useScrollRig();
   React.useLayoutEffect(function () {
     gl.debug.checkShaderErrors = config.debug;
-  }, []); // PRELOAD RENDER LOOP
+  }, []);
+  React.useEffect(function () {
+    // clear canvas automatically if all children were removed
+    if (!children && !Object.keys(canvasChildren).length) {
+      config.debug && console.log('GlobalRenderer', 'auto clear empty canvas');
+      gl.clear();
+    }
+  }, [children, canvasChildren]); // PRELOAD RENDER LOOP
 
   fiber.useFrame(function (_ref2) {
     _ref2.camera;
@@ -414,7 +421,9 @@ var GlobalRenderer = function GlobalRenderer(_ref) {
 
     gl.clear();
     config.preloadQueue = [];
-    gl.autoClear = true;
+    gl.autoClear = true; // trigger new frame to get correct visual state after all preloads
+
+    scrollRig.requestRender();
   }, config.PRIORITY_PRELOAD); // GLOBAL RENDER LOOP
 
   fiber.useFrame(function (_ref3) {
@@ -837,7 +846,8 @@ var GlobalCanvas = function GlobalCanvas(_ref) {
       scroll: false,
       debounce: 0,
       polyfill: resizeObserver.ResizeObserver
-    } // concurrent // zustand (state mngr) is not compatible with concurrent mode yet
+    },
+    mode: "blocking" // concurrent // zustand (state mngr) is not compatible with concurrent mode yet
     ,
     dpr: pixelRatio,
     style: {

@@ -314,7 +314,14 @@ const GlobalRenderer = ({
   const scrollRig = useScrollRig();
   useLayoutEffect(() => {
     gl.debug.checkShaderErrors = config.debug;
-  }, []); // PRELOAD RENDER LOOP
+  }, []);
+  useEffect(() => {
+    // clear canvas automatically if all children were removed
+    if (!children && !Object.keys(canvasChildren).length) {
+      config.debug && console.log('GlobalRenderer', 'auto clear empty canvas');
+      gl.clear();
+    }
+  }, [children, canvasChildren]); // PRELOAD RENDER LOOP
 
   useFrame(({
     camera,
@@ -327,7 +334,9 @@ const GlobalRenderer = ({
 
     gl.clear();
     config.preloadQueue = [];
-    gl.autoClear = true;
+    gl.autoClear = true; // trigger new frame to get correct visual state after all preloads
+
+    scrollRig.requestRender();
   }, config.PRIORITY_PRELOAD); // GLOBAL RENDER LOOP
 
   useFrame(({
@@ -700,7 +709,8 @@ const GlobalCanvas = ({
       scroll: false,
       debounce: 0,
       polyfill: ResizeObserver
-    } // concurrent // zustand (state mngr) is not compatible with concurrent mode yet
+    },
+    mode: "blocking" // concurrent // zustand (state mngr) is not compatible with concurrent mode yet
     ,
     dpr: pixelRatio,
     style: {
