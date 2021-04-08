@@ -1,6 +1,6 @@
 import React, { Suspense, Fragment, useEffect, useLayoutEffect } from 'react'
 import PropTypes from 'prop-types'
-import { useThree, useFrame } from '@react-three/fiber'
+import { useThree, useFrame, invalidate } from '@react-three/fiber'
 
 import config from './config'
 import { useCanvasStore } from './store'
@@ -37,7 +37,9 @@ const GlobalRenderer = ({ children }) => {
     config.preloadQueue = []
     gl.autoClear = true
     // trigger new frame to get correct visual state after all preloads
+    config.debug && console.log('GlobalRenderer', 'preload complete. trigger global render')
     scrollRig.requestRender()
+    invalidate()
   }, config.PRIORITY_PRELOAD)
 
   // GLOBAL RENDER LOOP

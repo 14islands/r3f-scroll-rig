@@ -336,7 +336,9 @@ const GlobalRenderer = ({
     config.preloadQueue = [];
     gl.autoClear = true; // trigger new frame to get correct visual state after all preloads
 
+    config.debug && console.log('GlobalRenderer', 'preload complete. trigger global render');
     scrollRig.requestRender();
+    invalidate();
   }, config.PRIORITY_PRELOAD); // GLOBAL RENDER LOOP
 
   useFrame(({
