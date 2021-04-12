@@ -376,7 +376,6 @@ var useScrollRig = function useScrollRig() {
     isCanvasAvailable: isCanvasAvailable,
     hasVirtualScrollbar: hasVirtualScrollbar,
     pixelRatio: pixelRatio,
-    invalidate: fiber.invalidate,
     preloadScene: preloadScene,
     requestRender: requestRender,
     renderScissor: renderScissor,

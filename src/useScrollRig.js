@@ -1,5 +1,3 @@
-import { invalidate } from '@react-three/fiber'
-
 import { useCanvasStore } from './store'
 
 import { preloadScene, requestRender, renderScissor, renderViewport } from './renderer-api'
@@ -18,7 +16,6 @@ export const useScrollRig = () => {
     isCanvasAvailable,
     hasVirtualScrollbar,
     pixelRatio,
-    invalidate,
     preloadScene,
     requestRender,
     renderScissor,

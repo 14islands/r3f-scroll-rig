@@ -292,7 +292,6 @@ const useScrollRig = () => {
     isCanvasAvailable,
     hasVirtualScrollbar,
     pixelRatio,
-    invalidate,
     preloadScene,
     requestRender,
     renderScissor,
