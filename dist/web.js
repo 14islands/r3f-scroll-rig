@@ -833,6 +833,7 @@ let ScrollScene = ({
   },
   resizeDelay = 0,
   as = 'scene',
+  autoRender = true,
   ...props
 }) => {
   const inlineSceneRef = useCallback(node => {
@@ -990,7 +991,7 @@ let ScrollScene = ({
       const positiveYUpBottom = size.height * 0.5 - (newY + scale.pixelHeight * 0.5); // inverse Y
 
       if (scissor) {
-        renderScissor({
+        autoRender && renderScissor({
           gl,
           scene,
           camera,
@@ -1000,7 +1001,7 @@ let ScrollScene = ({
           height: bounds.height + margin * 2
         });
       } else {
-        requestRender();
+        autoRender && requestRender();
       } // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
 
 

@@ -972,7 +972,9 @@ exports.ScrollScene = function ScrollScene(_ref) {
       resizeDelay = _ref$resizeDelay === void 0 ? 0 : _ref$resizeDelay,
       _ref$as = _ref.as,
       as = _ref$as === void 0 ? 'scene' : _ref$as,
-      props = _objectWithoutPropertiesLoose__default['default'](_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "priority", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed", "hiddenStyle", "resizeDelay", "as"]);
+      _ref$autoRender = _ref.autoRender,
+      autoRender = _ref$autoRender === void 0 ? true : _ref$autoRender,
+      props = _objectWithoutPropertiesLoose__default['default'](_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "priority", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed", "hiddenStyle", "resizeDelay", "as", "autoRender"]);
 
   var inlineSceneRef = React.useCallback(function (node) {
     if (node !== null) {
@@ -1146,7 +1148,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
       var positiveYUpBottom = size.height * 0.5 - (newY + scale.pixelHeight * 0.5); // inverse Y
 
       if (scissor) {
-        renderScissor({
+        autoRender && renderScissor({
           gl: gl,
           scene: scene,
           camera: camera,
@@ -1156,7 +1158,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
           height: bounds.height + margin * 2
         });
       } else {
-        requestRender();
+        autoRender && requestRender();
       } // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
 
 
