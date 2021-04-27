@@ -96,7 +96,8 @@ const GlobalCanvas = ({
       // allow to override anything of the above
       {...props}
     >
-      <GlobalRenderer>{children}</GlobalRenderer>
+      {children}
+      <GlobalRenderer />
       {!orthographic && <PerspectiveCamera makeDefault={true} />}
       {orthographic && <OrthographicCamera makeDefault={true} />}
       {config.debug && <StatsDebug />}

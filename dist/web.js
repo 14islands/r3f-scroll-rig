@@ -741,7 +741,7 @@ const GlobalCanvas = ({
       gl.toneMapping = NoToneMapping; // turn off tonemapping by default to provide better hex matching
     } // allow to override anything of the above
 
-  }, props), /*#__PURE__*/React.createElement(GlobalRenderer, null, children), !orthographic && /*#__PURE__*/React.createElement(PerspectiveCamera, {
+  }, props), children, /*#__PURE__*/React.createElement(GlobalRenderer, null), !orthographic && /*#__PURE__*/React.createElement(PerspectiveCamera, {
     makeDefault: true
   }), orthographic && /*#__PURE__*/React.createElement(OrthographicCamera, {
     makeDefault: true
