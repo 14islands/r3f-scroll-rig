@@ -43,27 +43,30 @@ const GlobalRenderer = ({ children }) => {
   }, config.PRIORITY_PRELOAD)
 
   // GLOBAL RENDER LOOP
-  useFrame(({ camera, scene }) => {
-    // Global render pass
-    if (config.globalRender) {
-      if (config.disableAutoClear) {
-        gl.autoClear = false // will fail in VR
+  useFrame(
+    ({ camera, scene }) => {
+      // Global render pass
+      if (config.globalRender && useCanvasStore.getState().globalRenderQueue) {
+        if (config.disableAutoClear) {
+          gl.autoClear = false // will fail in VR
+        }
+
+        // render default layer, scene, camera
+        camera.layers.disableAll()
+        useCanvasStore.getState().globalRenderQueue.forEach((layer) => {
+          camera.layers.enable(layer)
+        })
+        config.clearDepth && gl.clearDepth() // render as HUD over any other renders
+        gl.render(scene, camera)
+
+        // cleanup for next frame
+        useCanvasStore.getState().clearGlobalRenderQueue()
+
+        gl.autoClear = true
       }
-
-      // render default layer, scene, camera
-      camera.layers.disableAll()
-      config.globalRender.forEach((layer) => {
-        camera.layers.enable(layer)
-      })
-      config.clearDepth && gl.clearDepth() // render as HUD over any other renders
-      gl.render(scene, camera)
-
-      // cleanup for next frame
-      config.globalRender = false
-
-      gl.autoClear = true
-    }
-  }, config.PRIORITY_GLOBAL) // Take over rendering
+    },
+    config.globalRender ? config.PRIORITY_GLOBAL : undefined,
+  ) // Take over rendering
 
   config.debug && console.log('GlobalRenderer', Object.keys(canvasChildren).length)
   return (

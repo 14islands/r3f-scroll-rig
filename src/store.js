@@ -2,10 +2,12 @@ import create from 'zustand'
 import { requestIdleCallback } from './hooks/requestIdleCallback'
 import config from './config'
 
-const [useCanvasStore, canvasStoreApi] = create((set) => ({
+const useCanvasStore = create((set) => ({
   // //////////////////////////////////////////////////////////////////////////
   // GLOBAL ScrollRig STATE
   // //////////////////////////////////////////////////////////////////////////
+  globalRenderQueue: false,
+  clearGlobalRenderQueue: () => set((state) => ({ globalRenderQueue: false })),
 
   // true if WebGL initialized without errors
   isCanvasAvailable: true,
@@ -68,6 +70,6 @@ const [useCanvasStore, canvasStoreApi] = create((set) => ({
   setScrollY: (scrollY) => set((state) => ({ scrollY })),
 }))
 
-export { useCanvasStore, canvasStoreApi }
+export { useCanvasStore }
 
 export default useCanvasStore

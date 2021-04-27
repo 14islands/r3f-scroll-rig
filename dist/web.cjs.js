@@ -78,7 +78,7 @@ var config = {
   scaleMultiplier: 1,
   // scale pixels vs viewport units (1:1 by default)
   // Global rendering props
-  globalRender: false,
+  globalRender: true,
   preloadQueue: [],
   hasVirtualScrollbar: false,
   hasGlobalCanvas: false,
@@ -146,12 +146,19 @@ var cancelIdleCallback = function cancelIdleCallback(id) {
 function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return typeof key === "symbol" ? key : String(key); }
 
 function _toPrimitive(input, hint) { if (typeof input !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (typeof res !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
-
-var _create = create__default['default'](function (set) {
+var useCanvasStore = create__default['default'](function (set) {
   return {
     // //////////////////////////////////////////////////////////////////////////
     // GLOBAL ScrollRig STATE
     // //////////////////////////////////////////////////////////////////////////
+    globalRenderQueue: false,
+    clearGlobalRenderQueue: function clearGlobalRenderQueue() {
+      return set(function (state) {
+        return {
+          globalRenderQueue: false
+        };
+      });
+    },
     // true if WebGL initialized without errors
     isCanvasAvailable: true,
     setCanvasAvailable: function setCanvasAvailable(isCanvasAvailable) {
@@ -271,9 +278,7 @@ var _create = create__default['default'](function (set) {
       });
     }
   };
-}),
-    useCanvasStore = _create[0],
-    canvasStoreApi = _create[1];
+});
 
 var viewportSize = new three.Vector2(); // Flag that we need global rendering (full screen)
 
@@ -282,8 +287,8 @@ var requestRender = function requestRender(layers) {
     layers = [0];
   }
 
-  config.globalRender = config.globalRender || [0];
-  config.globalRender = [].concat(config.globalRender, layers);
+  useCanvasStore.getState().globalRenderQueue = useCanvasStore.getState().globalRenderQueue || [0];
+  useCanvasStore.getState().globalRenderQueue = [].concat(useCanvasStore.getState().globalRenderQueue, layers);
 };
 var renderScissor = function renderScissor(_ref) {
   var gl = _ref.gl,
@@ -434,24 +439,24 @@ var GlobalRenderer = function GlobalRenderer(_ref) {
         scene = _ref3.scene;
 
     // Global render pass
-    if (config.globalRender) {
+    if (config.globalRender && useCanvasStore.getState().globalRenderQueue) {
       if (config.disableAutoClear) {
         gl.autoClear = false; // will fail in VR
       } // render default layer, scene, camera
 
 
       camera.layers.disableAll();
-      config.globalRender.forEach(function (layer) {
+      useCanvasStore.getState().globalRenderQueue.forEach(function (layer) {
         camera.layers.enable(layer);
       });
       config.clearDepth && gl.clearDepth(); // render as HUD over any other renders
 
       gl.render(scene, camera); // cleanup for next frame
 
-      config.globalRender = false;
+      useCanvasStore.getState().clearGlobalRenderQueue();
       gl.autoClear = true;
     }
-  }, config.PRIORITY_GLOBAL); // Take over rendering
+  }, config.globalRender ? config.PRIORITY_GLOBAL : undefined); // Take over rendering
 
   config.debug && console.log('GlobalRenderer', Object.keys(canvasChildren).length);
   return /*#__PURE__*/React__default['default'].createElement(React.Suspense, {
@@ -965,7 +970,9 @@ exports.ScrollScene = function ScrollScene(_ref) {
   } : _ref$hiddenStyle,
       _ref$resizeDelay = _ref.resizeDelay,
       resizeDelay = _ref$resizeDelay === void 0 ? 0 : _ref$resizeDelay,
-      props = _objectWithoutPropertiesLoose__default['default'](_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "priority", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed", "hiddenStyle", "resizeDelay"]);
+      _ref$as = _ref.as,
+      as = _ref$as === void 0 ? 'scene' : _ref$as,
+      props = _objectWithoutPropertiesLoose__default['default'](_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "priority", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed", "hiddenStyle", "resizeDelay", "as"]);
 
   var inlineSceneRef = React.useCallback(function (node) {
     if (node !== null) {
@@ -1188,7 +1195,8 @@ exports.ScrollScene = function ScrollScene(_ref) {
     priority: config.PRIORITY_SCISSORS + renderOrder
   }, props))); // portal if scissor or inline nested scene
 
-  return scissor ? fiber.createPortal(content, scene) : /*#__PURE__*/React__default['default'].createElement("scene", {
+  var InlineElement = as;
+  return scissor ? fiber.createPortal(content, scene) : /*#__PURE__*/React__default['default'].createElement(InlineElement, {
     ref: inlineSceneRef
   }, content);
 };
@@ -2619,7 +2627,6 @@ exports.HijackedScrollbar = HijackedScrollbar;
 exports.PerspectiveCameraScene = exports.ViewportScrollScene;
 exports.ScrollDomPortal = ScrollDomPortal;
 exports.VirtualScrollbar = VirtualScrollbar;
-exports.canvasStoreApi = canvasStoreApi;
 exports.config = config;
 exports.useCanvas = useCanvas;
 exports.useCanvasStore = useCanvasStore;

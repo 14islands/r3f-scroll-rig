@@ -54,7 +54,7 @@ var config = {
   scaleMultiplier: 1,
   // scale pixels vs viewport units (1:1 by default)
   // Global rendering props
-  globalRender: false,
+  globalRender: true,
   preloadQueue: [],
   hasVirtualScrollbar: false,
   hasGlobalCanvas: false,
@@ -65,12 +65,19 @@ var config = {
 function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return typeof key === "symbol" ? key : String(key); }
 
 function _toPrimitive(input, hint) { if (typeof input !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (typeof res !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
-
-var _create = create__default['default'](function (set) {
+var useCanvasStore = create__default['default'](function (set) {
   return {
     // //////////////////////////////////////////////////////////////////////////
     // GLOBAL ScrollRig STATE
     // //////////////////////////////////////////////////////////////////////////
+    globalRenderQueue: false,
+    clearGlobalRenderQueue: function clearGlobalRenderQueue() {
+      return set(function (state) {
+        return {
+          globalRenderQueue: false
+        };
+      });
+    },
     // true if WebGL initialized without errors
     isCanvasAvailable: true,
     setCanvasAvailable: function setCanvasAvailable(isCanvasAvailable) {
@@ -190,9 +197,7 @@ var _create = create__default['default'](function (set) {
       });
     }
   };
-}),
-    useCanvasStore = _create[0];
-    _create[1];
+});
 
 /**
  * Public interface for ScrollRig

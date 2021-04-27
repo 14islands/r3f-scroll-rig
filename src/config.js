@@ -21,7 +21,7 @@ export const config = {
   scaleMultiplier: 1, // scale pixels vs viewport units (1:1 by default)
 
   // Global rendering props
-  globalRender: false,
+  globalRender: true,
   preloadQueue: [],
   hasVirtualScrollbar: false,
   hasGlobalCanvas: false,

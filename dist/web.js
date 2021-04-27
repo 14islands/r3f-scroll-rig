@@ -57,7 +57,7 @@ const config = {
   scaleMultiplier: 1,
   // scale pixels vs viewport units (1:1 by default)
   // Global rendering props
-  globalRender: false,
+  globalRender: true,
   preloadQueue: [],
   hasVirtualScrollbar: false,
   hasGlobalCanvas: false,
@@ -113,10 +113,14 @@ const cancelIdleCallback = id => {
   }
 };
 
-const [useCanvasStore, canvasStoreApi] = create(set => ({
+const useCanvasStore = create(set => ({
   // //////////////////////////////////////////////////////////////////////////
   // GLOBAL ScrollRig STATE
   // //////////////////////////////////////////////////////////////////////////
+  globalRenderQueue: false,
+  clearGlobalRenderQueue: () => set(state => ({
+    globalRenderQueue: false
+  })),
   // true if WebGL initialized without errors
   isCanvasAvailable: true,
   setCanvasAvailable: isCanvasAvailable => set(state => ({
@@ -216,8 +220,8 @@ const [useCanvasStore, canvasStoreApi] = create(set => ({
 const viewportSize = new Vector2(); // Flag that we need global rendering (full screen)
 
 const requestRender = (layers = [0]) => {
-  config.globalRender = config.globalRender || [0];
-  config.globalRender = [...config.globalRender, ...layers];
+  useCanvasStore.getState().globalRenderQueue = useCanvasStore.getState().globalRenderQueue || [0];
+  useCanvasStore.getState().globalRenderQueue = [...useCanvasStore.getState().globalRenderQueue, ...layers];
 };
 const renderScissor = ({
   gl,
@@ -347,24 +351,24 @@ const GlobalRenderer = ({
     scene
   }) => {
     // Global render pass
-    if (config.globalRender) {
+    if (config.globalRender && useCanvasStore.getState().globalRenderQueue) {
       if (config.disableAutoClear) {
         gl.autoClear = false; // will fail in VR
       } // render default layer, scene, camera
 
 
       camera.layers.disableAll();
-      config.globalRender.forEach(layer => {
+      useCanvasStore.getState().globalRenderQueue.forEach(layer => {
         camera.layers.enable(layer);
       });
       config.clearDepth && gl.clearDepth(); // render as HUD over any other renders
 
       gl.render(scene, camera); // cleanup for next frame
 
-      config.globalRender = false;
+      useCanvasStore.getState().clearGlobalRenderQueue();
       gl.autoClear = true;
     }
-  }, config.PRIORITY_GLOBAL); // Take over rendering
+  }, config.globalRender ? config.PRIORITY_GLOBAL : undefined); // Take over rendering
 
   config.debug && console.log('GlobalRenderer', Object.keys(canvasChildren).length);
   return /*#__PURE__*/React.createElement(Suspense, {
@@ -828,6 +832,7 @@ let ScrollScene = ({
     opacity: 0
   },
   resizeDelay = 0,
+  as = 'scene',
   ...props
 }) => {
   const inlineSceneRef = useCallback(node => {
@@ -1036,7 +1041,8 @@ let ScrollScene = ({
     ...props
   })); // portal if scissor or inline nested scene
 
-  return scissor ? createPortal(content, scene) : /*#__PURE__*/React.createElement("scene", {
+  const InlineElement = as;
+  return scissor ? createPortal(content, scene) : /*#__PURE__*/React.createElement(InlineElement, {
     ref: inlineSceneRef
   }, content);
 };
@@ -2338,4 +2344,4 @@ const useScrollbar = () => {
   };
 };
 
-export { GlobalCanvasIfSupported as GlobalCanvas, HijackedScrollbar, ViewportScrollScene as PerspectiveCameraScene, ScrollDomPortal, ScrollScene, ViewportScrollScene, VirtualScrollbar, canvasStoreApi, config, useCanvas, useCanvasStore, useDelayedCanvas, useImgTagAsTexture, useScrollRig, useScrollbar, useTextureLoader, utils };
+export { GlobalCanvasIfSupported as GlobalCanvas, HijackedScrollbar, ViewportScrollScene as PerspectiveCameraScene, ScrollDomPortal, ScrollScene, ViewportScrollScene, VirtualScrollbar, config, useCanvas, useCanvasStore, useDelayedCanvas, useImgTagAsTexture, useScrollRig, useScrollbar, useTextureLoader, utils };

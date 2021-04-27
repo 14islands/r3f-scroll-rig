@@ -24,6 +24,6 @@ export { useScrollbar } from './scrollbar/useScrollbar'
 
 // Private-ish
 // ----------------------------------
-export { useCanvasStore, canvasStoreApi } from './store'
+export { useCanvasStore } from './store'
 export { config } from './config'
 export { utils }

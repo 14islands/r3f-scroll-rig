@@ -40,7 +40,7 @@ const config = {
   scaleMultiplier: 1,
   // scale pixels vs viewport units (1:1 by default)
   // Global rendering props
-  globalRender: false,
+  globalRender: true,
   preloadQueue: [],
   hasVirtualScrollbar: false,
   hasGlobalCanvas: false,
@@ -48,10 +48,14 @@ const config = {
   clearDepth: true
 };
 
-const [useCanvasStore, canvasStoreApi] = create(set => ({
+const useCanvasStore = create(set => ({
   // //////////////////////////////////////////////////////////////////////////
   // GLOBAL ScrollRig STATE
   // //////////////////////////////////////////////////////////////////////////
+  globalRenderQueue: false,
+  clearGlobalRenderQueue: () => set(state => ({
+    globalRenderQueue: false
+  })),
   // true if WebGL initialized without errors
   isCanvasAvailable: true,
   setCanvasAvailable: isCanvasAvailable => set(state => ({

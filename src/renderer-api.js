@@ -3,12 +3,14 @@ import * as utils from './utils'
 import { Vector2 } from 'three'
 import { invalidate } from '@react-three/fiber'
 
+import { useCanvasStore } from './store'
+
 const viewportSize = new Vector2()
 
 // Flag that we need global rendering (full screen)
 export const requestRender = (layers = [0]) => {
-  config.globalRender = config.globalRender || [0]
-  config.globalRender = [...config.globalRender, ...layers]
+  useCanvasStore.getState().globalRenderQueue = useCanvasStore.getState().globalRenderQueue || [0]
+  useCanvasStore.getState().globalRenderQueue = [...useCanvasStore.getState().globalRenderQueue, ...layers]
 }
 
 export const renderScissor = ({

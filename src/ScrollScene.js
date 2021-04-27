@@ -33,6 +33,7 @@ let ScrollScene = ({
   positionFixed = false,
   hiddenStyle = { opacity: 0 },
   resizeDelay = 0,
+  as = 'scene',
   ...props
 }) => {
   const inlineSceneRef = useCallback((node) => {
@@ -249,7 +250,8 @@ let ScrollScene = ({
   )
 
   // portal if scissor or inline nested scene
-  return scissor ? createPortal(content, scene) : <scene ref={inlineSceneRef}>{content}</scene>
+  const InlineElement = as
+  return scissor ? createPortal(content, scene) : <InlineElement ref={inlineSceneRef}>{content}</InlineElement>
 }
 
 ScrollScene = React.memo(ScrollScene)

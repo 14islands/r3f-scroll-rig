@@ -41,7 +41,7 @@
     "@react-three/fiber": "^6.0.8",
     "prop-types": "^15.7.2",
     "query-string": "^6.14.1",
-    "zustand": "^3.1.4"
+    "zustand": "^3.4.2"
   },
   "devDependencies": {
     "@babel/core": "^7.10.3",
