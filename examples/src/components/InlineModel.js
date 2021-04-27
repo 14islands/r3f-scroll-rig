@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react'
 import { useScrollRig, useCanvas, ScrollScene } from '@14islands/r3f-scroll-rig'
 // import { MathUtils, CameraHelper, FrontSide, BackSide, DoubleSide } from 'three'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei/core/useGLTF'
 import { Shadow } from '@react-three/drei/core/Shadow'
 // import { StandardEffects } from './StandardEffects'
@@ -11,7 +11,8 @@ import { Shadow } from '@react-three/drei/core/Shadow'
 const ModelMesh = ({ url, scale, camera, scene, scrollState, parallax = 0, size = 1, position = [0, 0, 0], shadow, shadowPosition }) => {
   const mesh = useRef()
   const light = useRef()
-  const { invalidate, preloadScene } = useScrollRig()
+  const { invalidate } = useThree()
+  const { preloadScene } = useScrollRig()
 
   const gltf = useGLTF(url)
 

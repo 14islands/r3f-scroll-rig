@@ -40,8 +40,8 @@ let ViewportScrollScene = ({
 
   const [inViewport, setInViewport] = useState(false)
   const [scale, setScale] = useState(null)
-  const { size } = useThree()
-  const { invalidate, renderViewport } = useScrollRig()
+  const { size, invalidate } = useThree()
+  const { renderViewport } = useScrollRig()
 
   const pageReflowCompleted = useCanvasStore((state) => state.pageReflowCompleted)
 

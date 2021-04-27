@@ -987,10 +987,10 @@ exports.ScrollScene = function ScrollScene(_ref) {
       setScale = _useState3[1];
 
   var _useThree = fiber.useThree(),
-      size = _useThree.size;
+      size = _useThree.size,
+      invalidate = _useThree.invalidate;
 
   var _useScrollRig = useScrollRig(),
-      invalidate = _useScrollRig.invalidate,
       requestRender = _useScrollRig.requestRender,
       renderScissor = _useScrollRig.renderScissor;
 
@@ -1673,10 +1673,10 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
       setScale = _useState3[1];
 
   var _useThree = fiber.useThree(),
-      size = _useThree.size;
+      size = _useThree.size,
+      invalidate = _useThree.invalidate;
 
   var _useScrollRig = useScrollRig(),
-      invalidate = _useScrollRig.invalidate,
       renderViewport = _useScrollRig.renderViewport;
 
   var pageReflowCompleted = useCanvasStore(function (state) {

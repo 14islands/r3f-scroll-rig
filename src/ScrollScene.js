@@ -46,8 +46,8 @@ let ScrollScene = ({
 
   const [inViewport, setInViewport] = useState(false)
   const [scale, setScale] = useState(null)
-  const { size } = useThree()
-  const { invalidate, requestRender, renderScissor } = useScrollRig()
+  const { size, invalidate } = useThree()
+  const { requestRender, renderScissor } = useScrollRig()
   const pageReflowCompleted = useCanvasStore((state) => state.pageReflowCompleted)
 
   // get initial scrollY and listen for transient updates

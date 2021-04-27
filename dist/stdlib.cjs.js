@@ -107,11 +107,11 @@ var WebGLImage = function WebGLImage(_ref) {
   var mesh = React.useRef();
 
   var _useScrollRig = r3fScrollRig.useScrollRig(),
-      invalidate = _useScrollRig.invalidate,
       pixelRatio = _useScrollRig.pixelRatio,
       preloadScene = _useScrollRig.preloadScene;
 
   var _useThree = fiber.useThree(),
+      invalidate = _useThree.invalidate,
       camera = _useThree.camera,
       size = _useThree.size;
 

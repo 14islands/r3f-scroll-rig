@@ -90,11 +90,11 @@ const WebGLImage = ({
   const material = useRef();
   const mesh = useRef();
   const {
-    invalidate,
     pixelRatio,
     preloadScene
   } = useScrollRig();
   const {
+    invalidate,
     camera,
     size
   } = useThree();

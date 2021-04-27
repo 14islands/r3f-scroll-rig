@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react'
 import { useScrollRig, useCanvas, ViewportScrollScene } from '@14islands/r3f-scroll-rig'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { BackSide } from 'three'
 import { RayGrab, Hover } from '@react-three/xr'
 
@@ -10,7 +10,8 @@ const BoxMesh = ({scale, scene, camera, scrollState, parallax = 0 }) => {
   const light2 = useRef()
   const icosahedron = useRef()
   const icosahedronWrap = useRef()
-  const { invalidate, preloadScene } = useScrollRig()
+  const { invalidate } = useThree()
+  const { preloadScene } = useScrollRig()
 
   const size = Math.min(scale.width, scale.height) * 1.5
 

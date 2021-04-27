@@ -1,6 +1,6 @@
 import React, { useRef } from 'react'
 import { useScrollRig, useCanvas } from '@14islands/r3f-scroll-rig'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { useSpring, animated } from 'react-spring/three'
 
 import StickyScrollScene from './stdlib/StickyScrollScene'
@@ -8,7 +8,7 @@ import StickyScrollScene from './stdlib/StickyScrollScene'
 
 const BoxMesh = ({scale, scrollState, lerp }) => {
   const mesh = useRef()
-  const { invalidate } = useScrollRig()
+  const { invalidate } = useThree()
 
   const size = scale.width * 0.25
 

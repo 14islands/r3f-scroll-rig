@@ -1,11 +1,11 @@
 import React, { useRef } from 'react'
 import { useScrollRig, useCanvas, ScrollScene } from '@14islands/r3f-scroll-rig'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { RayGrab, Hover } from '@react-three/xr'
 
 const BoxMesh = ({scale, scrollState, parallax = 0 }) => {
   const mesh = useRef()
-  const { invalidate } = useScrollRig()
+  const { invalidate } = useThree()
 
   useFrame(() => {
     mesh.current.rotation.y = Math.PI / 8 + scrollState.progress * Math.PI * 1
