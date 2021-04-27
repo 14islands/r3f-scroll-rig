@@ -34,6 +34,7 @@ let ScrollScene = ({
   hiddenStyle = { opacity: 0 },
   resizeDelay = 0,
   as = 'scene',
+  autoRender = true,
   ...props
 }) => {
   const inlineSceneRef = useCallback((node) => {
@@ -196,17 +197,18 @@ let ScrollScene = ({
 
       const positiveYUpBottom = size.height * 0.5 - (newY + scale.pixelHeight * 0.5) // inverse Y
       if (scissor) {
-        renderScissor({
-          gl,
-          scene,
-          camera,
-          left: bounds.left - margin,
-          top: positiveYUpBottom - margin,
-          width: bounds.width + margin * 2,
-          height: bounds.height + margin * 2,
-        })
+        autoRender &&
+          renderScissor({
+            gl,
+            scene,
+            camera,
+            left: bounds.left - margin,
+            top: positiveYUpBottom - margin,
+            width: bounds.width + margin * 2,
+            height: bounds.height + margin * 2,
+          })
       } else {
-        requestRender()
+        autoRender && requestRender()
       }
 
       // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
