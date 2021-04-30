@@ -24,8 +24,6 @@ export const PerspectiveCamera = forwardRef(
       const height = size.height * scaleMultiplier
 
       cameraRef.current.aspect = width / height
-      cameraRef.current.near = 0.1
-      cameraRef.current.far = distance * 2
       cameraRef.current.fov = 2 * (180 / Math.PI) * Math.atan(height / (2 * distance))
       cameraRef.current.lookAt(0, 0, 0)
       cameraRef.current.updateProjectionMatrix()
@@ -47,6 +45,8 @@ export const PerspectiveCamera = forwardRef(
         ref={mergeRefs([cameraRef, ref])}
         position={[0, 0, distance]}
         onUpdate={(self) => self.updateProjectionMatrix()}
+        near={0.1}
+        far={distance * 2}
         {...props}
       />
     )

@@ -534,8 +534,6 @@ const PerspectiveCamera = /*#__PURE__*/forwardRef(({
     const width = size.width * scaleMultiplier;
     const height = size.height * scaleMultiplier;
     cameraRef.current.aspect = width / height;
-    cameraRef.current.near = 0.1;
-    cameraRef.current.far = distance * 2;
     cameraRef.current.fov = 2 * (180 / Math.PI) * Math.atan(height / (2 * distance));
     cameraRef.current.lookAt(0, 0, 0);
     cameraRef.current.updateProjectionMatrix(); // https://github.com/react-spring/@react-three/fiber/issues/178
@@ -557,7 +555,9 @@ const PerspectiveCamera = /*#__PURE__*/forwardRef(({
   return /*#__PURE__*/React.createElement("perspectiveCamera", _extends({
     ref: mergeRefs([cameraRef, ref]),
     position: [0, 0, distance],
-    onUpdate: self => self.updateProjectionMatrix()
+    onUpdate: self => self.updateProjectionMatrix(),
+    near: 0.1,
+    far: distance * 2
   }, props));
 });
 PerspectiveCamera.displayName = 'PerspectiveCamera';
@@ -666,6 +666,7 @@ const GlobalCanvas = ({
   orthographic,
   noEvents = true,
   config: confOverrides,
+  camera,
   ...props
 }) => {
   const pixelRatio = useCanvasStore(state => state.pixelRatio);
@@ -741,11 +742,11 @@ const GlobalCanvas = ({
       gl.toneMapping = NoToneMapping; // turn off tonemapping by default to provide better hex matching
     } // allow to override anything of the above
 
-  }, props), children, /*#__PURE__*/React.createElement(GlobalRenderer, null), !orthographic && /*#__PURE__*/React.createElement(PerspectiveCamera, {
+  }, props), children, /*#__PURE__*/React.createElement(GlobalRenderer, null), !orthographic && /*#__PURE__*/React.createElement(PerspectiveCamera, _extends({
     makeDefault: true
-  }), orthographic && /*#__PURE__*/React.createElement(OrthographicCamera, {
+  }, camera)), orthographic && /*#__PURE__*/React.createElement(OrthographicCamera, _extends({
     makeDefault: true
-  }), config.debug && /*#__PURE__*/React.createElement(StatsDebug, null), config.fps && /*#__PURE__*/React.createElement(Stats, null), config.autoPixelRatio && /*#__PURE__*/React.createElement(PerformanceMonitor, null), /*#__PURE__*/React.createElement(ResizeManager, {
+  }, camera)), config.debug && /*#__PURE__*/React.createElement(StatsDebug, null), config.fps && /*#__PURE__*/React.createElement(Stats, null), config.autoPixelRatio && /*#__PURE__*/React.createElement(PerformanceMonitor, null), /*#__PURE__*/React.createElement(ResizeManager, {
     reflow: requestReflow,
     resizeOnHeight: resizeOnHeight
   }), /*#__PURE__*/React.createElement(DefaultScrollTracker, null));

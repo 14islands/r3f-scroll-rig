@@ -25,6 +25,7 @@ const GlobalCanvas = ({
   orthographic,
   noEvents = true,
   config: confOverrides,
+  camera,
   ...props
 }) => {
   const pixelRatio = useCanvasStore((state) => state.pixelRatio)
@@ -98,8 +99,8 @@ const GlobalCanvas = ({
     >
       {children}
       <GlobalRenderer />
-      {!orthographic && <PerspectiveCamera makeDefault={true} />}
-      {orthographic && <OrthographicCamera makeDefault={true} />}
+      {!orthographic && <PerspectiveCamera makeDefault={true} {...camera} />}
+      {orthographic && <OrthographicCamera makeDefault={true} {...camera} />}
       {config.debug && <StatsDebug />}
       {config.fps && <Stats />}
       {config.autoPixelRatio && <PerformanceMonitor />}
@@ -116,6 +117,7 @@ GlobalCanvas.propTypes = {
   noEvents: PropTypes.bool,
   config: PropTypes.bool, // scrollrig config overrides
   as: PropTypes.any, // renders as @react-three/fiber Canvas by default
+  camera: PropTypes.object,
 }
 
 const GlobalCanvasIfSupported = ({ onError, ...props }) => {

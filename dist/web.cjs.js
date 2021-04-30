@@ -637,8 +637,6 @@ var PerspectiveCamera = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
     var width = size.width * scaleMultiplier;
     var height = size.height * scaleMultiplier;
     cameraRef.current.aspect = width / height;
-    cameraRef.current.near = 0.1;
-    cameraRef.current.far = distance * 2;
     cameraRef.current.fov = 2 * (180 / Math.PI) * Math.atan(height / (2 * distance));
     cameraRef.current.lookAt(0, 0, 0);
     cameraRef.current.updateProjectionMatrix(); // https://github.com/react-spring/@react-three/fiber/issues/178
@@ -664,7 +662,9 @@ var PerspectiveCamera = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
     position: [0, 0, distance],
     onUpdate: function onUpdate(self) {
       return self.updateProjectionMatrix();
-    }
+    },
+    near: 0.1,
+    far: distance * 2
   }, props));
 });
 PerspectiveCamera.displayName = 'PerspectiveCamera';
@@ -802,7 +802,8 @@ var GlobalCanvas = function GlobalCanvas(_ref) {
       _ref$noEvents = _ref.noEvents,
       noEvents = _ref$noEvents === void 0 ? true : _ref$noEvents,
       confOverrides = _ref.config,
-      props = _objectWithoutPropertiesLoose__default['default'](_ref, ["as", "children", "gl", "resizeOnHeight", "orthographic", "noEvents", "config"]);
+      camera = _ref.camera,
+      props = _objectWithoutPropertiesLoose__default['default'](_ref, ["as", "children", "gl", "resizeOnHeight", "orthographic", "noEvents", "config", "camera"]);
 
   var pixelRatio = useCanvasStore(function (state) {
     return state.pixelRatio;
@@ -878,11 +879,11 @@ var GlobalCanvas = function GlobalCanvas(_ref) {
       gl.toneMapping = three.NoToneMapping; // turn off tonemapping by default to provide better hex matching
     } // allow to override anything of the above
 
-  }, props), children, /*#__PURE__*/React__default['default'].createElement(GlobalRenderer, null), !orthographic && /*#__PURE__*/React__default['default'].createElement(PerspectiveCamera, {
+  }, props), children, /*#__PURE__*/React__default['default'].createElement(GlobalRenderer, null), !orthographic && /*#__PURE__*/React__default['default'].createElement(PerspectiveCamera, _extends__default['default']({
     makeDefault: true
-  }), orthographic && /*#__PURE__*/React__default['default'].createElement(OrthographicCamera, {
+  }, camera)), orthographic && /*#__PURE__*/React__default['default'].createElement(OrthographicCamera, _extends__default['default']({
     makeDefault: true
-  }), config.debug && /*#__PURE__*/React__default['default'].createElement(StatsDebug, null), config.fps && /*#__PURE__*/React__default['default'].createElement(Stats, null), config.autoPixelRatio && /*#__PURE__*/React__default['default'].createElement(PerformanceMonitor, null), /*#__PURE__*/React__default['default'].createElement(ResizeManager, {
+  }, camera)), config.debug && /*#__PURE__*/React__default['default'].createElement(StatsDebug, null), config.fps && /*#__PURE__*/React__default['default'].createElement(Stats, null), config.autoPixelRatio && /*#__PURE__*/React__default['default'].createElement(PerformanceMonitor, null), /*#__PURE__*/React__default['default'].createElement(ResizeManager, {
     reflow: requestReflow,
     resizeOnHeight: resizeOnHeight
   }), /*#__PURE__*/React__default['default'].createElement(DefaultScrollTracker, null));
