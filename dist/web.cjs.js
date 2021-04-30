@@ -974,7 +974,9 @@ exports.ScrollScene = function ScrollScene(_ref) {
       as = _ref$as === void 0 ? 'scene' : _ref$as,
       _ref$autoRender = _ref.autoRender,
       autoRender = _ref$autoRender === void 0 ? true : _ref$autoRender,
-      props = _objectWithoutPropertiesLoose__default['default'](_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "priority", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed", "hiddenStyle", "resizeDelay", "as", "autoRender"]);
+      _ref$hideOffscreen = _ref.hideOffscreen,
+      hideOffscreen = _ref$hideOffscreen === void 0 ? true : _ref$hideOffscreen,
+      props = _objectWithoutPropertiesLoose__default['default'](_ref, ["el", "lerp", "lerpOffset", "children", "renderOrder", "priority", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed", "hiddenStyle", "resizeDelay", "as", "autoRender", "hideOffscreen"]);
 
   var inlineSceneRef = React.useCallback(function (node) {
     if (node !== null) {
@@ -1129,7 +1131,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
     var newY = config.subpixelScrolling ? lerpY : Math.floor(lerpY); // Abort if element not in screen
 
     var scrollMargin = inViewportMargin || size.height * 0.33;
-    var isOffscreen = newY + size.height * 0.5 + scale.pixelHeight * 0.5 < -scrollMargin || newY + size.height * 0.5 - scale.pixelHeight * 0.5 > size.height + scrollMargin; // store top value for next frame
+    var isOffscreen = hideOffscreen && (newY + size.height * 0.5 + scale.pixelHeight * 0.5 < -scrollMargin || newY + size.height * 0.5 - scale.pixelHeight * 0.5 > size.height + scrollMargin); // store top value for next frame
 
     bounds.inViewport = !isOffscreen;
     setInViewportProp && requestIdleCallback(function () {

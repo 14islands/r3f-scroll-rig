@@ -834,6 +834,7 @@ let ScrollScene = ({
   resizeDelay = 0,
   as = 'scene',
   autoRender = true,
+  hideOffscreen = true,
   ...props
 }) => {
   const inlineSceneRef = useCallback(node => {
@@ -974,7 +975,7 @@ let ScrollScene = ({
     const newY = config.subpixelScrolling ? lerpY : Math.floor(lerpY); // Abort if element not in screen
 
     const scrollMargin = inViewportMargin || size.height * 0.33;
-    const isOffscreen = newY + size.height * 0.5 + scale.pixelHeight * 0.5 < -scrollMargin || newY + size.height * 0.5 - scale.pixelHeight * 0.5 > size.height + scrollMargin; // store top value for next frame
+    const isOffscreen = hideOffscreen && (newY + size.height * 0.5 + scale.pixelHeight * 0.5 < -scrollMargin || newY + size.height * 0.5 - scale.pixelHeight * 0.5 > size.height + scrollMargin); // store top value for next frame
 
     bounds.inViewport = !isOffscreen;
     setInViewportProp && requestIdleCallback(() => transient.mounted && setInViewport(!isOffscreen));
