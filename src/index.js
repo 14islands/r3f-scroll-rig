@@ -14,7 +14,6 @@ export { useImgTagAsTexture, useTextureLoader } from './useImgTagAsTexture'
 export { ViewportScrollScene } from './ViewportScrollScene'
 export { ViewportScrollScene as PerspectiveCameraScene } from './ViewportScrollScene'
 export { useDelayedCanvas } from './useDelayedCanvas'
-
 export { HijackedScrollbar } from './scrollbar/HijackedScrollbar'
 
 // Public & battle-tested
