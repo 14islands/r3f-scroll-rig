@@ -35,7 +35,7 @@ export const wrapRootElement = ({ element }) => (
 
 2. Add smooth scrolling to the DOM content
 
-In order to perfectly match the WebGL and DOM content while scrolling some sort of Javascript smooth scrolling needs to be applied.
+In order to perfectly match the WebGL and DOM content while scrolling the page, some sort of Javascript "smooth scrolling" needs to be applied.
 
 We have two approaches:
 
@@ -63,7 +63,7 @@ export const HomePage = () => (
 }
 ```
 
-💡**Note:** \_You can use either `GlobalCanvas` or `VirtualScrollbar` independently based on the project needs. If the project doesn't need WebGL you can still use the scrollbars to implement smooth scrolling.
+💡**Note:** _You can use either `GlobalCanvas` or `VirtualScrollbar` independently based on the project needs. If the project doesn't need WebGL you can still use the scrollbars to implement smooth scrolling._
 
 # Getting Started
 
@@ -93,7 +93,7 @@ Sandbox Demo:
 
 ## Hooks
 
-### useCanvas
+### `useCanvas`
 
 Hook used in regular DOM components to render something onto the webGl canvas.
 
@@ -125,7 +125,7 @@ function MyComponent() {
 
 ```
 
-### useScrollRig
+### `useScrollRig`
 
 Hook to access current scroll rig state and functions related to rendering.
 
@@ -135,13 +135,13 @@ import { useScrollRig } from '@14islands/r3f-scroll-rig'
 const {
   isCanvasAvailable, // True if webgl is enabled and GlobalCanvas has been added to the page
   hasVirtualScrollbar, // True if a smooth scrollbar is currently enabled onm the DOM content
-  pixelRatio, // current pixelratio using on the canvas
+  pixelRatio, // current pixelratio used by the canvas
   preloadScene, // request scene to do a preload render before next frame, (scene, camera, layer, callback) => void
   requestRender, // request the global render loop to render next frame
   renderScissor, // renders scene with a scissor to the canvas, ({ gl, scene, camera, left, top, width, height, layer, autoClear, clearDepth}) => void
   renderViewport, // renders a scene inside a viewport to the canvas, ({ gl, scene, camera, left, top, width, height, layer, autoClear, clearDepth}) => void
   reflow, // tigger re-calculation of elements position (called automatically on resize), () => void
-  reflowCompleted, // number, trigger after positions have been recalculated
+  reflowCompleted, // prop updating after positions have been recalculated, number
 } = useScrollRig
 ```
 
@@ -191,17 +191,17 @@ export const HomePage = () => (
 }
 ```
 
-Each child elements inside the DOM wrapper will be translated individuallly. When an element leaves the viewport it's is no longer animated.
+Each child elements inside the DOM wrapper will be translated individuallly. When an element leaves the viewport it is no longer animated.
 
 💡**Note:** _Make sure you break your page into sections that can be traslated indivually for better scroll performance._
 
 Cons:
 
-- Moving all these composite layers consumer a lot of GPU memory and CPU cycles. Known to cause jank when combining it with lots of viewport / scroll animations such as the letter-by-letter animation on 14islands.com
+- Moving all these composite layers consumes a lot of GPU memory and CPU cycles. Known to cause jank when combining with lots of viewport / scroll animations such as the letter-by-letter animation on 14islands.com
 
 Pros:
 
-- The native scrollbar controlled by the user (we scroll a fake height div).
+- The native scrollbar is preserved and is controlled by the user (we let the user scroll a fake body with height matching the real page).
 
 #### Props
 
@@ -209,11 +209,10 @@ Pros:
 <VirtualScrollbar
   children                // a function child which recieves props and should return a single DOM child with the scroll content
   disabled = false        // Disable the virtual scroll and uses native scroll
-  resizeOnHeight = true   // Reflow all components when height changes
   onUpdate                // Callback on each scroll frame `({ current, target, velocity, direction }) => {}`
   lerp                    // Easing (lerp) for the scroll. (syncs with GlobalCanvas by default)
   restDelta               // Delta when scroll animation stops. (syncs with GlobalCanvas by default)
-  threshold = 100         // ()
+  threshold = 100         // Extra margin outside the viewport limits for when layers are considered "visible" and start animating
 />
 ```
 
@@ -229,7 +228,7 @@ import { VirtualScrollbar } from '@14islands/r3f-scroll-rig/scrollbar'
 
 ### `<HijackedScrollbar>`
 
-The hijacked scrollbar takes over the browser scrollbar and animates in with Javascript and linear interpolation. This allows us to match the speed of objects moving on the fixed GlobalCanvas.
+The hijacked scrollbar takes over the browser scrollbar and animates it with Javascript and linear interpolation. This allows us to match the speed of objects moving on the fixed GlobalCanvas.
 
 Pros:
 
@@ -239,8 +238,9 @@ Pros:
 
 Cons:
 
-- Scrollbar is hijacked and might be worse for accessibility
+- Scrollbar is hijacked and might be worse for accessibility - it listens to the mouse wheel event and prevents default.
 - Mobile scroll is simulated using touch events - not same feel as native scroll.
+- Not visually as smooth as the VirtualScrollbar as it only scrolls by even pixels.
 
 ```jsx
 import { HijackedScrollbar } from '@14islands/r3f-scroll-rig'
@@ -341,7 +341,7 @@ Note: even though `colorManagement` is turned on, `ACESFilmic` toneMapping is tu
   renderOrder = 1             // Three.js renderOrder for this Group
   inViewportMargin = size.height/3  // margin for when it's considered out of screen and will stop animating
   visible = true              // Scene visibility
-  debug = false               // Rendturquoise" /er debug plane and show 50% opacity of DOM element
+  debug = false               // Render a debug plane and show 50% opacity of DOM element
   setInViewportProp = false   // Set `inViewport` prop on child node when entering viewport (may cause jank)
   positionFixed = false       // Make scene fixed in the viewport instead of moving with scrollbar. Usefull to s
 >
