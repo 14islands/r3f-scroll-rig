@@ -1,6 +1,6 @@
 import _extends from '@babel/runtime/helpers/esm/extends';
 import React, { useMemo, useEffect, useRef } from 'react';
-import { Color, Vector2 } from 'three';
+import { Color, Vector2, MathUtils } from 'three';
 import { useThree, useFrame } from '@react-three/fiber';
 import { Text } from '@react-three/drei/core/Text';
 import { useScrollRig, useImgTagAsTexture, ScrollScene } from '@14islands/r3f-scroll-rig';
@@ -202,4 +202,91 @@ const ParallaxScrollScene = ({
   }, props), children(props)));
 };
 
-export { ParallaxScrollScene, ParallaxScrollScene as StickyScrollScene, WebGLImage, WebGLText };
+const StickyMesh = ({
+  children,
+  scrollState,
+  lerp,
+  scale,
+  priority,
+  stickyLerp = 1.0
+}) => {
+  const mesh = useRef();
+  const local = useRef({
+    lerp: 1
+  }).current;
+  useFrame(() => {
+    if (!scrollState.inViewport) return; //  move to top of sticky area
+
+    let yTop = scale.height / 2 - scale.viewportHeight * 0.5;
+    let yBottom = -scale.height / 2 + scale.viewportHeight * 0.5;
+    let ySticky = yTop - (scrollState.viewport - 1) * scale.viewportHeight;
+    let y = mesh.current.position.y;
+    let targetLerp; // enter
+
+    if (scrollState.viewport < 1) {
+      y = yTop;
+      targetLerp = 1;
+    } // sticky
+    else if (scrollState.viewport > 1 && scrollState.visibility < 1) {
+        y = ySticky;
+        targetLerp = stickyLerp;
+      } // exit
+      else {
+          y = yBottom; // TODO figure out soft limits
+          // const f = Math.max(1, scrollState.visibility - 1)
+          // y =  MathUtils.lerp(ySticky, yBottom, f)
+
+          targetLerp = 1;
+        }
+
+    local.lerp = MathUtils.lerp(local.lerp, targetLerp, stickyLerp < 1 ? lerp : 1);
+    mesh.current.position.y = MathUtils.lerp(mesh.current.position.y, y, local.lerp);
+  }, priority + 1); // must happen after ScrollScene's useFrame to be buttery
+
+  return /*#__PURE__*/React.createElement("mesh", {
+    ref: mesh
+  }, children);
+};
+const renderAsSticky = (children, {
+  stickyLerp,
+  scaleToViewport
+}) => {
+  return ({
+    scale,
+    ...props
+  }) => {
+    // set child's scale to 100vh/100vw instead of the full DOM el
+    // the DOM el should be taller to indicate how far the scene stays sticky
+    let childScale = scale;
+
+    if (scaleToViewport) {
+      childScale = { ...scale,
+        width: scale.viewportWidth,
+        height: scale.viewportHeight
+      };
+    }
+
+    return /*#__PURE__*/React.createElement(StickyMesh, _extends({
+      scale: scale,
+      stickyLerp: stickyLerp
+    }, props), children({
+      scale: childScale,
+      ...props
+    }));
+  };
+};
+const StickyScrollScene = ({
+  children,
+  stickyLerp,
+  scaleToViewport = true,
+  ...props
+}) => {
+  return /*#__PURE__*/React.createElement(ScrollScene, _extends({
+    scissor: false
+  }, props), renderAsSticky(children, {
+    stickyLerp,
+    scaleToViewport
+  }));
+};
+
+export { ParallaxScrollScene, StickyScrollScene, WebGLImage, WebGLText };

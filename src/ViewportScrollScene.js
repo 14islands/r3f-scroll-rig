@@ -251,7 +251,6 @@ let ViewportScrollScene = ({
             scale,
             state: transient, // @deprecated
             scrollState: transient.bounds,
-            transient,
             scene,
             camera: camera.current,
             inViewport,

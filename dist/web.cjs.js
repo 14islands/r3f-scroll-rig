@@ -1895,7 +1895,6 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
     state: _transient,
     // @deprecated
     scrollState: _transient.bounds,
-    "transient": _transient,
     scene: scene,
     camera: camera.current,
     inViewport: inViewport,
