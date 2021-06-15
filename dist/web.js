@@ -255,20 +255,23 @@ const renderViewport = ({
   width,
   height,
   layer = 0,
+  scissor = true,
   autoClear = false,
   clearDepth = true
 }) => {
   if (!scene || !camera) return;
+  const _autoClear = gl.autoClear;
   gl.getSize(viewportSize);
   gl.autoClear = autoClear;
   gl.setViewport(left, top, width, height);
   gl.setScissor(left, top, width, height);
-  gl.setScissorTest(true);
+  gl.setScissorTest(scissor);
   camera.layers.set(layer);
   clearDepth && gl.clearDepth();
   gl.render(scene, camera);
   gl.setScissorTest(false);
   gl.setViewport(0, 0, viewportSize.x, viewportSize.y);
+  gl.autoClear = _autoClear;
 };
 const preloadScene = (scene, camera, layer = 0, callback) => {
   if (!scene || !camera) return;

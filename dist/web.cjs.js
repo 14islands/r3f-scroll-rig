@@ -325,21 +325,25 @@ var renderViewport = function renderViewport(_ref2) {
       height = _ref2.height,
       _ref2$layer = _ref2.layer,
       layer = _ref2$layer === void 0 ? 0 : _ref2$layer,
+      _ref2$scissor = _ref2.scissor,
+      scissor = _ref2$scissor === void 0 ? true : _ref2$scissor,
       _ref2$autoClear = _ref2.autoClear,
       autoClear = _ref2$autoClear === void 0 ? false : _ref2$autoClear,
       _ref2$clearDepth = _ref2.clearDepth,
       clearDepth = _ref2$clearDepth === void 0 ? true : _ref2$clearDepth;
   if (!scene || !camera) return;
+  var _autoClear = gl.autoClear;
   gl.getSize(viewportSize);
   gl.autoClear = autoClear;
   gl.setViewport(left, top, width, height);
   gl.setScissor(left, top, width, height);
-  gl.setScissorTest(true);
+  gl.setScissorTest(scissor);
   camera.layers.set(layer);
   clearDepth && gl.clearDepth();
   gl.render(scene, camera);
   gl.setScissorTest(false);
   gl.setViewport(0, 0, viewportSize.x, viewportSize.y);
+  gl.autoClear = _autoClear;
 };
 var preloadScene = function preloadScene(scene, camera, layer, callback) {
   if (layer === void 0) {
