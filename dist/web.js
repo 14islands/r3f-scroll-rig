@@ -236,6 +236,7 @@ const renderScissor = ({
   clearDepth = true
 }) => {
   if (!scene || !camera) return;
+  const _autoClear = gl.autoClear;
   gl.autoClear = autoClear;
   gl.setScissor(left, top, width, height);
   gl.setScissorTest(true);
@@ -243,6 +244,7 @@ const renderScissor = ({
   clearDepth && gl.clearDepth();
   gl.render(scene, camera);
   gl.setScissorTest(false);
+  gl.autoClear = _autoClear;
 };
 const renderViewport = ({
   gl,

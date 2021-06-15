@@ -26,6 +26,7 @@ export const renderScissor = ({
   clearDepth = true,
 }) => {
   if (!scene || !camera) return
+  const _autoClear = gl.autoClear
   gl.autoClear = autoClear
   gl.setScissor(left, top, width, height)
   gl.setScissorTest(true)
@@ -33,6 +34,7 @@ export const renderScissor = ({
   clearDepth && gl.clearDepth()
   gl.render(scene, camera)
   gl.setScissorTest(false)
+  gl.autoClear = _autoClear
 }
 
 export const renderViewport = ({

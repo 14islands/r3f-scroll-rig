@@ -305,6 +305,7 @@ var renderScissor = function renderScissor(_ref) {
       _ref$clearDepth = _ref.clearDepth,
       clearDepth = _ref$clearDepth === void 0 ? true : _ref$clearDepth;
   if (!scene || !camera) return;
+  var _autoClear = gl.autoClear;
   gl.autoClear = autoClear;
   gl.setScissor(left, top, width, height);
   gl.setScissorTest(true);
@@ -312,6 +313,7 @@ var renderScissor = function renderScissor(_ref) {
   clearDepth && gl.clearDepth();
   gl.render(scene, camera);
   gl.setScissorTest(false);
+  gl.autoClear = _autoClear;
 };
 var renderViewport = function renderViewport(_ref2) {
   var gl = _ref2.gl,

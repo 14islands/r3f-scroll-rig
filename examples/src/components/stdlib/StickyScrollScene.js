@@ -12,8 +12,8 @@ export const StickyMesh = ({ children, scrollState, lerp, scale, priority, stick
     if (!scrollState.inViewport) return
 
     //  move to top of sticky area
-    let yTop = (scale.height / 2 - scale.viewportHeight * 0.5)
-    let yBottom = (-scale.height / 2 + scale.viewportHeight * 0.5)
+    let yTop = scale.height / 2 - scale.viewportHeight * 0.5
+    let yBottom = -scale.height / 2 + scale.viewportHeight * 0.5
     let ySticky = yTop - (scrollState.viewport - 1) * scale.viewportHeight
 
     let y = mesh.current.position.y
@@ -40,7 +40,6 @@ export const StickyMesh = ({ children, scrollState, lerp, scale, priority, stick
 
     local.lerp = MathUtils.lerp(local.lerp, targetLerp, stickyLerp < 1 ? lerp : 1)
     mesh.current.position.y = MathUtils.lerp(mesh.current.position.y, y, local.lerp)
-
   }, priority + 1) // must happen after ScrollScene's useFrame to be buttery
 
   return <mesh ref={mesh}>{children}</mesh>
@@ -54,13 +53,17 @@ export const renderAsSticky = (children, { stickyLerp, scaleToViewport }) => {
     if (scaleToViewport) {
       childScale = { ...scale, width: scale.viewportWidth, height: scale.viewportHeight }
     }
-    return <StickyMesh scale={scale} stickyLerp={stickyLerp} {...props}>{children({scale: childScale, ...props})}</StickyMesh>
+    return (
+      <StickyMesh scale={scale} stickyLerp={stickyLerp} {...props}>
+        {children({ scale: childScale, ...props })}
+      </StickyMesh>
+    )
   }
 }
 
 export const StickyScrollScene = ({ children, stickyLerp, scaleToViewport = true, ...props }) => {
   return (
-    <ScrollScene scissor={false} {...props} >
+    <ScrollScene scissor={false} {...props}>
       {renderAsSticky(children, { stickyLerp, scaleToViewport })}
     </ScrollScene>
   )
