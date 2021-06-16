@@ -1794,8 +1794,8 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
     setCameraDistance(cameraDistance);
 
     if (camera.current && !orthographic) {
-      camera.current.aspect = (viewportWidth + margin * 2) / (viewportHeight + margin * 2);
-      camera.current.fov = 2 * (180 / Math.PI) * Math.atan((viewportHeight + margin * 2) / (2 * cameraDistance));
+      camera.current.aspect = (viewportWidth + margin * 2 * scaleMultiplier) / (viewportHeight + margin * 2 * scaleMultiplier);
+      camera.current.fov = 2 * (180 / Math.PI) * Math.atan((viewportHeight + margin * 2 * scaleMultiplier) / (2 * cameraDistance));
       camera.current.updateProjectionMatrix(); // https://github.com/react-spring/@react-three/fiber/issues/178
       // Update matrix world since the renderer is a frame late
 
