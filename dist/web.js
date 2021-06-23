@@ -1,5 +1,5 @@
 import _extends from '@babel/runtime/helpers/esm/extends';
-import React, { useState, useEffect, useLayoutEffect, Suspense, Fragment, useRef, forwardRef, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useLayoutEffect, Fragment, useRef, forwardRef, useMemo, useCallback, Suspense } from 'react';
 import { addEffect, addAfterEffect, invalidate, useThree, useFrame, Canvas, extend, createPortal } from '@react-three/fiber';
 import { Vector2, NoToneMapping, Color, Scene, MathUtils, ImageBitmapLoader, TextureLoader, CanvasTexture, sRGBEncoding, LinearFilter, RGBFormat, RGBAFormat } from 'three';
 import { ResizeObserver } from '@juggle/resize-observer';
@@ -376,9 +376,7 @@ const GlobalRenderer = ({
   }, config.globalRender ? config.PRIORITY_GLOBAL : undefined); // Take over rendering
 
   config.debug && console.log('GlobalRenderer', Object.keys(canvasChildren).length);
-  return /*#__PURE__*/React.createElement(Suspense, {
-    fallback: null
-  }, Object.keys(canvasChildren).map((key, i) => {
+  return /*#__PURE__*/React.createElement(React.Fragment, null, Object.keys(canvasChildren).map((key, i) => {
     const {
       mesh,
       props
@@ -672,6 +670,7 @@ const GlobalCanvas = ({
   noEvents = true,
   config: confOverrides,
   camera,
+  fallback = null,
   ...props
 }) => {
   const pixelRatio = useCanvasStore(state => state.pixelRatio);
@@ -747,7 +746,9 @@ const GlobalCanvas = ({
       gl.toneMapping = NoToneMapping; // turn off tonemapping by default to provide better hex matching
     } // allow to override anything of the above
 
-  }, props), children, /*#__PURE__*/React.createElement(GlobalRenderer, null), !orthographic && /*#__PURE__*/React.createElement(PerspectiveCamera, _extends({
+  }, props), /*#__PURE__*/React.createElement(Suspense, {
+    fallback: fallback
+  }, children, /*#__PURE__*/React.createElement(GlobalRenderer, null)), !orthographic && /*#__PURE__*/React.createElement(PerspectiveCamera, _extends({
     makeDefault: true
   }, camera)), orthographic && /*#__PURE__*/React.createElement(OrthographicCamera, _extends({
     makeDefault: true

@@ -1,4 +1,4 @@
-import React, { Suspense, Fragment, useEffect, useLayoutEffect } from 'react'
+import React, { Fragment, useEffect, useLayoutEffect } from 'react'
 import PropTypes from 'prop-types'
 import { useThree, useFrame, invalidate } from '@react-three/fiber'
 
@@ -70,7 +70,7 @@ const GlobalRenderer = ({ children }) => {
 
   config.debug && console.log('GlobalRenderer', Object.keys(canvasChildren).length)
   return (
-    <Suspense fallback={null}>
+    <>
       {Object.keys(canvasChildren).map((key, i) => {
         const { mesh, props } = canvasChildren[key]
 
@@ -84,7 +84,7 @@ const GlobalRenderer = ({ children }) => {
         })
       })}
       {children}
-    </Suspense>
+    </>
   )
 }
 

@@ -465,9 +465,7 @@ var GlobalRenderer = function GlobalRenderer(_ref) {
   }, config.globalRender ? config.PRIORITY_GLOBAL : undefined); // Take over rendering
 
   config.debug && console.log('GlobalRenderer', Object.keys(canvasChildren).length);
-  return /*#__PURE__*/React__default['default'].createElement(React.Suspense, {
-    fallback: null
-  }, Object.keys(canvasChildren).map(function (key, i) {
+  return /*#__PURE__*/React__default['default'].createElement(React__default['default'].Fragment, null, Object.keys(canvasChildren).map(function (key, i) {
     var _canvasChildren$key = canvasChildren[key],
         mesh = _canvasChildren$key.mesh,
         props = _canvasChildren$key.props;
@@ -809,7 +807,9 @@ var GlobalCanvas = function GlobalCanvas(_ref) {
       noEvents = _ref$noEvents === void 0 ? true : _ref$noEvents,
       confOverrides = _ref.config,
       camera = _ref.camera,
-      props = _objectWithoutPropertiesLoose__default['default'](_ref, ["as", "children", "gl", "resizeOnHeight", "orthographic", "noEvents", "config", "camera"]);
+      _ref$fallback = _ref.fallback,
+      fallback = _ref$fallback === void 0 ? null : _ref$fallback,
+      props = _objectWithoutPropertiesLoose__default['default'](_ref, ["as", "children", "gl", "resizeOnHeight", "orthographic", "noEvents", "config", "camera", "fallback"]);
 
   var pixelRatio = useCanvasStore(function (state) {
     return state.pixelRatio;
@@ -885,7 +885,9 @@ var GlobalCanvas = function GlobalCanvas(_ref) {
       gl.toneMapping = three.NoToneMapping; // turn off tonemapping by default to provide better hex matching
     } // allow to override anything of the above
 
-  }, props), children, /*#__PURE__*/React__default['default'].createElement(GlobalRenderer, null), !orthographic && /*#__PURE__*/React__default['default'].createElement(PerspectiveCamera, _extends__default['default']({
+  }, props), /*#__PURE__*/React__default['default'].createElement(React.Suspense, {
+    fallback: fallback
+  }, children, /*#__PURE__*/React__default['default'].createElement(GlobalRenderer, null)), !orthographic && /*#__PURE__*/React__default['default'].createElement(PerspectiveCamera, _extends__default['default']({
     makeDefault: true
   }, camera)), orthographic && /*#__PURE__*/React__default['default'].createElement(OrthographicCamera, _extends__default['default']({
     makeDefault: true

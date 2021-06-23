@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useMemo } from 'react'
+import React, { useEffect, useLayoutEffect, useMemo, Suspense } from 'react'
 import PropTypes from 'prop-types'
 import { Canvas } from '@react-three/fiber'
 import { NoToneMapping } from 'three'
@@ -26,6 +26,7 @@ const GlobalCanvas = ({
   noEvents = true,
   config: confOverrides,
   camera,
+  fallback = null,
   ...props
 }) => {
   const pixelRatio = useCanvasStore((state) => state.pixelRatio)
@@ -97,8 +98,10 @@ const GlobalCanvas = ({
       // allow to override anything of the above
       {...props}
     >
-      {children}
-      <GlobalRenderer />
+      <Suspense fallback={fallback}>
+        {children}
+        <GlobalRenderer />
+      </Suspense>
       {!orthographic && <PerspectiveCamera makeDefault={true} {...camera} />}
       {orthographic && <OrthographicCamera makeDefault={true} {...camera} />}
       {config.debug && <StatsDebug />}
@@ -118,6 +121,7 @@ GlobalCanvas.propTypes = {
   config: PropTypes.bool, // scrollrig config overrides
   as: PropTypes.any, // renders as @react-three/fiber Canvas by default
   camera: PropTypes.object,
+  fallback: PropTypes.element,
 }
 
 const GlobalCanvasIfSupported = ({ onError, ...props }) => {
