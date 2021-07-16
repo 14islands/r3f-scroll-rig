@@ -48,7 +48,7 @@ const FakeScroller = ({
     state.frame = window.requestAnimationFrame(run)
     const { scroll } = state
 
-    scroll.current = _lerp(scroll.current, scroll.target, scroll.lerp, frameDelta)
+    scroll.current = _lerp(scroll.current, scroll.target, scroll.lerp, frameDelta * 0.001)
     const delta = scroll.current - scroll.target
     scroll.velocity = Math.abs(delta) // TODO fps independent velocity
     scroll.direction = Math.sign(delta)

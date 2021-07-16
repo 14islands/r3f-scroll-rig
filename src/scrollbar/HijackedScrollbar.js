@@ -71,7 +71,7 @@ export const HijackedScrollbar = ({
     if (!scrolling.current) return
 
     // use internal target with floating point precision to make sure lerp is smooth
-    const newTarget = _lerp(y.current, y.target, config.scrollLerp, frameDelta)
+    const newTarget = _lerp(y.current, y.target, config.scrollLerp, frameDelta * 0.001)
 
     delta.current = Math.abs(y.current - newTarget)
 

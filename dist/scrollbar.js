@@ -258,7 +258,7 @@ const FakeScroller = ({
     const {
       scroll
     } = state;
-    scroll.current = _lerp(scroll.current, scroll.target, scroll.lerp, frameDelta);
+    scroll.current = _lerp(scroll.current, scroll.target, scroll.lerp, frameDelta * 0.001);
     const delta = scroll.current - scroll.target;
     scroll.velocity = Math.abs(delta); // TODO fps independent velocity
 
@@ -595,7 +595,7 @@ const HijackedScrollbar = ({
     lastFrame.current = ts;
     if (!scrolling.current) return; // use internal target with floating point precision to make sure lerp is smooth
 
-    const newTarget = _lerp(y.current, y.target, config.scrollLerp, frameDelta);
+    const newTarget = _lerp(y.current, y.target, config.scrollLerp, frameDelta * 0.001);
 
     delta.current = Math.abs(y.current - newTarget);
     y.current = newTarget; // round for scrollbar
