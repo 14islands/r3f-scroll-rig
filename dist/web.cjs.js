@@ -16,6 +16,7 @@ var mergeRefs = require('react-merge-refs');
 var r3fScrollRig = require('@14islands/r3f-scroll-rig');
 var _inheritsLoose = require('@babel/runtime/helpers/inheritsLoose');
 var PropTypes = require('prop-types');
+var _lerp = require('@14islands/lerp');
 var shaderMaterial = require('@react-three/drei/core/shaderMaterial');
 var ReactDOM = require('react-dom');
 
@@ -30,6 +31,7 @@ var create__default = /*#__PURE__*/_interopDefaultLegacy(create);
 var mergeRefs__default = /*#__PURE__*/_interopDefaultLegacy(mergeRefs);
 var _inheritsLoose__default = /*#__PURE__*/_interopDefaultLegacy(_inheritsLoose);
 var PropTypes__default = /*#__PURE__*/_interopDefaultLegacy(PropTypes);
+var _lerp__default = /*#__PURE__*/_interopDefaultLegacy(_lerp);
 var ReactDOM__default = /*#__PURE__*/_interopDefaultLegacy(ReactDOM);
 
 // Use to override Frustum temporarily to pre-upload textures to GPU
@@ -1123,7 +1125,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
     };
   }, [pageReflowCompleted, updateLayout, scene]); // RENDER FRAME
 
-  fiber.useFrame(function (_ref2) {
+  fiber.useFrame(function (_ref2, frameDelta) {
     var gl = _ref2.gl,
         camera = _ref2.camera;
         _ref2.clock;
@@ -1136,7 +1138,8 @@ exports.ScrollScene = function ScrollScene(_ref) {
 
     var delta = Math.abs(prevBounds.y - y); // Lerp the distance to simulate easing
 
-    var lerpY = three.MathUtils.lerp(prevBounds.y, y, (lerp || config.scrollLerp) * lerpOffset);
+    var lerpY = _lerp__default['default'](prevBounds.y, y, (lerp || config.scrollLerp) * lerpOffset, frameDelta);
+
     var newY = config.subpixelScrolling ? lerpY : Math.floor(lerpY); // Abort if element not in screen
 
     var scrollMargin = inViewportMargin || size.height * 0.33;
@@ -1371,7 +1374,7 @@ var ScrollDomPortal = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
     };
   }, [live]); // RENDER FRAME
 
-  var frame = function frame(_ref2) {
+  var frame = function frame(_ref2, frameDelta) {
     var _getOffset, _getOffset2;
 
     _ref2.gl;
@@ -1392,9 +1395,12 @@ var ScrollDomPortal = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
     } // Lerp the distance
 
 
-    var lerpScroll = three.MathUtils.lerp(prevBounds.top, scrollTop, (lerp || config.scrollLerp) * lerpOffset);
-    var lerpX = three.MathUtils.lerp(prevBounds.x, offsetX, layoutLerp);
-    var lerpY = three.MathUtils.lerp(prevBounds.y, offsetY, layoutLerp); // Abort if element not in screen
+    var lerpScroll = _lerp__default['default'](prevBounds.top, scrollTop, (lerp || config.scrollLerp) * lerpOffset, frameDelta);
+
+    var lerpX = _lerp__default['default'](prevBounds.x, offsetX, layoutLerp, frameDelta);
+
+    var lerpY = _lerp__default['default'](prevBounds.y, offsetY, layoutLerp, frameDelta); // Abort if element not in screen
+
 
     var elTop = top + lerpScroll + lerpY;
     var isOffscreen = elTop + height < -100 || elTop > viewportHeight + 100; // Update DOM element position if in view, or if was in view last frame
@@ -1817,7 +1823,7 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
     };
   }, [pageReflowCompleted]); // RENDER FRAME
 
-  fiber.useFrame(function (_ref2) {
+  fiber.useFrame(function (_ref2, frameDelta) {
     var gl = _ref2.gl;
     if (!scene || !scale) return;
     var bounds = _transient.bounds,
@@ -1828,7 +1834,8 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
 
     var delta = Math.abs(prevBounds.top - topY); // Lerp the distance to simulate easing
 
-    var lerpTop = three.MathUtils.lerp(prevBounds.top, topY, (lerp || config.scrollLerp) * lerpOffset);
+    var lerpTop = _lerp__default['default'](prevBounds.top, topY, (lerp || config.scrollLerp) * lerpOffset, frameDelta);
+
     var newTop = config.subpixelScrolling ? lerpTop : Math.floor(lerpTop); // Abort if element not in screen
 
     var isOffscreen = newTop + bounds.height < -100 || newTop > size.height + 100; // store top value for next frame
@@ -2000,10 +2007,6 @@ function map_range(value, low1, high1, low2, high2) {
   return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
 }
 
-function _lerp$1(v0, v1, t) {
-  return v0 * (1 - t) + v1 * t;
-}
-
 var DRAG_ACTIVE_LERP = 0.3;
 var DRAG_INERTIA_LERP = 0.05;
 var HijackedScrollbar = function HijackedScrollbar(_ref) {
@@ -2042,6 +2045,7 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
   var preventPointer = React.useRef(false);
   var documentHeight = React.useRef(0);
   var delta = React.useRef(0);
+  var lastFrame = React.useRef(0);
   var originalLerp = React.useRef(lerp || config.scrollLerp).current;
 
   var setScrollPosition = function setScrollPosition() {
@@ -2061,9 +2065,11 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
   };
 
   var animate = function animate(ts) {
+    var frameDelta = ts - lastFrame.current;
+    lastFrame.current = ts;
     if (!scrolling.current) return; // use internal target with floating point precision to make sure lerp is smooth
 
-    var newTarget = _lerp$1(y.current, y.target, config.scrollLerp);
+    var newTarget = _lerp__default['default'](y.current, y.target, config.scrollLerp, frameDelta);
 
     delta.current = Math.abs(y.current - newTarget);
     y.current = newTarget; // round for scrollbar
@@ -2236,7 +2242,7 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
 
       var elapsed = Date.now() - lastEventTs;
       var time = Math.min(1, Math.max(0, map_range(elapsed, 0, 100, 0, 1)));
-      velY = _lerp$1(velY, 0, time); // inertia lerp
+      velY = _lerp__default['default'](velY, 0, time); // inertia lerp
 
       scrollTo(y.current + velY, DRAG_INERTIA_LERP);
     };
@@ -2293,10 +2299,6 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
   }));
 };
 
-function _lerp(v0, v1, t) {
-  return v0 * (1 - t) + v1 * t;
-}
-
 var FakeScroller = function FakeScroller(_ref) {
   var el = _ref.el,
       _ref$lerp = _ref.lerp,
@@ -2316,6 +2318,7 @@ var FakeScroller = function FakeScroller(_ref) {
     return state.setScrollY;
   });
   var heightEl = React.useRef();
+  var lastFrame = React.useRef(0);
 
   var _useState = React.useState(),
       fakeHeight = _useState[0],
@@ -2340,10 +2343,12 @@ var FakeScroller = function FakeScroller(_ref) {
     sections: null
   }).current; // ANIMATION LOOP
 
-  var run = function run() {
+  var run = function run(ts) {
+    var frameDelta = ts - lastFrame.current;
+    lastFrame.current = ts;
     state.frame = window.requestAnimationFrame(run);
     var scroll = state.scroll;
-    scroll.current = _lerp(scroll.current, scroll.target, scroll.lerp);
+    scroll.current = _lerp__default['default'](scroll.current, scroll.target, scroll.lerp, frameDelta);
     var delta = scroll.current - scroll.target;
     scroll.velocity = Math.abs(delta); // TODO fps independent velocity
 

@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect, useLayoutEffect } from 'react'
 import PropTypes from 'prop-types'
 import { MathUtils, Scene } from 'three'
 import { useFrame, useThree, createPortal } from '@react-three/fiber'
+import _lerp from '@14islands/lerp'
 
 import requestIdleCallback from './hooks/requestIdleCallback'
 
@@ -158,7 +159,7 @@ let ViewportScrollScene = ({
   }, [pageReflowCompleted])
 
   // RENDER FRAME
-  useFrame(({ gl }) => {
+  useFrame(({ gl }, frameDelta) => {
     if (!scene || !scale) return
     const { bounds, prevBounds } = transient
 
@@ -170,7 +171,7 @@ let ViewportScrollScene = ({
     const delta = Math.abs(prevBounds.top - topY)
 
     // Lerp the distance to simulate easing
-    const lerpTop = MathUtils.lerp(prevBounds.top, topY, (lerp || config.scrollLerp) * lerpOffset)
+    const lerpTop = _lerp(prevBounds.top, topY, (lerp || config.scrollLerp) * lerpOffset, frameDelta)
     const newTop = config.subpixelScrolling ? lerpTop : Math.floor(lerpTop)
 
     // Abort if element not in screen

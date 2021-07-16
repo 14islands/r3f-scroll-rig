@@ -10,6 +10,7 @@ import { useWindowSize, useWindowHeight } from '@react-hook/window-size';
 import mergeRefs from 'react-merge-refs';
 import { config as config$1, useScrollRig as useScrollRig$1 } from '@14islands/r3f-scroll-rig';
 import PropTypes from 'prop-types';
+import _lerp from '@14islands/lerp';
 import { shaderMaterial } from '@react-three/drei/core/shaderMaterial';
 import ReactDOM from 'react-dom';
 
@@ -966,7 +967,7 @@ let ScrollScene = ({
     gl,
     camera,
     clock
-  }) => {
+  }, frameDelta) => {
     if (!scene || !scale) return;
     const {
       bounds,
@@ -978,7 +979,8 @@ let ScrollScene = ({
 
     const delta = Math.abs(prevBounds.y - y); // Lerp the distance to simulate easing
 
-    const lerpY = MathUtils.lerp(prevBounds.y, y, (lerp || config.scrollLerp) * lerpOffset);
+    const lerpY = _lerp(prevBounds.y, y, (lerp || config.scrollLerp) * lerpOffset, frameDelta);
+
     const newY = config.subpixelScrolling ? lerpY : Math.floor(lerpY); // Abort if element not in screen
 
     const scrollMargin = inViewportMargin || size.height * 0.33;
@@ -1208,7 +1210,7 @@ const ScrollDomPortal = /*#__PURE__*/forwardRef(({
 
   const frame = ({
     gl
-  }) => {
+  }, frameDelta) => {
     var _getOffset, _getOffset2;
 
     const {
@@ -1230,9 +1232,12 @@ const ScrollDomPortal = /*#__PURE__*/forwardRef(({
     } // Lerp the distance
 
 
-    const lerpScroll = MathUtils.lerp(prevBounds.top, scrollTop, (lerp || config.scrollLerp) * lerpOffset);
-    const lerpX = MathUtils.lerp(prevBounds.x, offsetX, layoutLerp);
-    const lerpY = MathUtils.lerp(prevBounds.y, offsetY, layoutLerp); // Abort if element not in screen
+    const lerpScroll = _lerp(prevBounds.top, scrollTop, (lerp || config.scrollLerp) * lerpOffset, frameDelta);
+
+    const lerpX = _lerp(prevBounds.x, offsetX, layoutLerp, frameDelta);
+
+    const lerpY = _lerp(prevBounds.y, offsetY, layoutLerp, frameDelta); // Abort if element not in screen
+
 
     const elTop = top + lerpScroll + lerpY;
     const isOffscreen = elTop + height < -100 || elTop > viewportHeight + 100; // Update DOM element position if in view, or if was in view last frame
@@ -1590,7 +1595,7 @@ let ViewportScrollScene = ({
 
   useFrame(({
     gl
-  }) => {
+  }, frameDelta) => {
     if (!scene || !scale) return;
     const {
       bounds,
@@ -1602,7 +1607,8 @@ let ViewportScrollScene = ({
 
     const delta = Math.abs(prevBounds.top - topY); // Lerp the distance to simulate easing
 
-    const lerpTop = MathUtils.lerp(prevBounds.top, topY, (lerp || config.scrollLerp) * lerpOffset);
+    const lerpTop = _lerp(prevBounds.top, topY, (lerp || config.scrollLerp) * lerpOffset, frameDelta);
+
     const newTop = config.subpixelScrolling ? lerpTop : Math.floor(lerpTop); // Abort if element not in screen
 
     const isOffscreen = newTop + bounds.height < -100 || newTop > size.height + 100; // store top value for next frame
@@ -1748,10 +1754,6 @@ function map_range(value, low1, high1, low2, high2) {
   return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
 }
 
-function _lerp$1(v0, v1, t) {
-  return v0 * (1 - t) + v1 * t;
-}
-
 const DRAG_ACTIVE_LERP = 0.3;
 const DRAG_INERTIA_LERP = 0.05;
 const HijackedScrollbar = ({
@@ -1784,6 +1786,7 @@ const HijackedScrollbar = ({
   const preventPointer = useRef(false);
   const documentHeight = useRef(0);
   const delta = useRef(0);
+  const lastFrame = useRef(0);
   const originalLerp = useRef(lerp || config.scrollLerp).current;
 
   const setScrollPosition = () => {
@@ -1803,9 +1806,11 @@ const HijackedScrollbar = ({
   };
 
   const animate = ts => {
+    const frameDelta = ts - lastFrame.current;
+    lastFrame.current = ts;
     if (!scrolling.current) return; // use internal target with floating point precision to make sure lerp is smooth
 
-    const newTarget = _lerp$1(y.current, y.target, config.scrollLerp);
+    const newTarget = _lerp(y.current, y.target, config.scrollLerp, frameDelta);
 
     delta.current = Math.abs(y.current - newTarget);
     y.current = newTarget; // round for scrollbar
@@ -1968,7 +1973,7 @@ const HijackedScrollbar = ({
 
       const elapsed = Date.now() - lastEventTs;
       const time = Math.min(1, Math.max(0, map_range(elapsed, 0, 100, 0, 1)));
-      velY = _lerp$1(velY, 0, time); // inertia lerp
+      velY = _lerp(velY, 0, time); // inertia lerp
 
       scrollTo(y.current + velY, DRAG_INERTIA_LERP);
     };
@@ -2025,10 +2030,6 @@ const HijackedScrollbar = ({
   }));
 };
 
-function _lerp(v0, v1, t) {
-  return v0 * (1 - t) + v1 * t;
-}
-
 const FakeScroller = ({
   el,
   lerp = config.scrollLerp,
@@ -2040,6 +2041,7 @@ const FakeScroller = ({
   const triggerReflowCompleted = useCanvasStore(state => state.triggerReflowCompleted);
   const setScrollY = useCanvasStore(state => state.setScrollY);
   const heightEl = useRef();
+  const lastFrame = useRef(0);
   const [fakeHeight, setFakeHeight] = useState();
   const state = useRef({
     preventPointer: false,
@@ -2060,12 +2062,14 @@ const FakeScroller = ({
     sections: null
   }).current; // ANIMATION LOOP
 
-  const run = () => {
+  const run = ts => {
+    const frameDelta = ts - lastFrame.current;
+    lastFrame.current = ts;
     state.frame = window.requestAnimationFrame(run);
     const {
       scroll
     } = state;
-    scroll.current = _lerp(scroll.current, scroll.target, scroll.lerp);
+    scroll.current = _lerp(scroll.current, scroll.target, scroll.lerp, frameDelta);
     const delta = scroll.current - scroll.target;
     scroll.velocity = Math.abs(delta); // TODO fps independent velocity
 

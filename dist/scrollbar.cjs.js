@@ -6,6 +6,7 @@ var _objectWithoutPropertiesLoose = require('@babel/runtime/helpers/objectWithou
 var _extends = require('@babel/runtime/helpers/extends');
 var create = require('zustand');
 var React = require('react');
+var _lerp = require('@14islands/lerp');
 var windowSize = require('@react-hook/window-size');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
@@ -14,6 +15,7 @@ var _objectWithoutPropertiesLoose__default = /*#__PURE__*/_interopDefaultLegacy(
 var _extends__default = /*#__PURE__*/_interopDefaultLegacy(_extends);
 var create__default = /*#__PURE__*/_interopDefaultLegacy(create);
 var React__default = /*#__PURE__*/_interopDefaultLegacy(React);
+var _lerp__default = /*#__PURE__*/_interopDefaultLegacy(_lerp);
 
 /**
  * runtime check for requestIdleCallback
@@ -275,10 +277,6 @@ var ResizeManager = function ResizeManager(_ref) {
   return null;
 };
 
-function _lerp$1(v0, v1, t) {
-  return v0 * (1 - t) + v1 * t;
-}
-
 var FakeScroller = function FakeScroller(_ref) {
   var el = _ref.el,
       _ref$lerp = _ref.lerp,
@@ -298,6 +296,7 @@ var FakeScroller = function FakeScroller(_ref) {
     return state.setScrollY;
   });
   var heightEl = React.useRef();
+  var lastFrame = React.useRef(0);
 
   var _useState = React.useState(),
       fakeHeight = _useState[0],
@@ -322,10 +321,12 @@ var FakeScroller = function FakeScroller(_ref) {
     sections: null
   }).current; // ANIMATION LOOP
 
-  var run = function run() {
+  var run = function run(ts) {
+    var frameDelta = ts - lastFrame.current;
+    lastFrame.current = ts;
     state.frame = window.requestAnimationFrame(run);
     var scroll = state.scroll;
-    scroll.current = _lerp$1(scroll.current, scroll.target, scroll.lerp);
+    scroll.current = _lerp__default['default'](scroll.current, scroll.target, scroll.lerp, frameDelta);
     var delta = scroll.current - scroll.target;
     scroll.velocity = Math.abs(delta); // TODO fps independent velocity
 
@@ -604,10 +605,6 @@ function map_range(value, low1, high1, low2, high2) {
   return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
 }
 
-function _lerp(v0, v1, t) {
-  return v0 * (1 - t) + v1 * t;
-}
-
 var DRAG_ACTIVE_LERP = 0.3;
 var DRAG_INERTIA_LERP = 0.05;
 var HijackedScrollbar = function HijackedScrollbar(_ref) {
@@ -646,6 +643,7 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
   var preventPointer = React.useRef(false);
   var documentHeight = React.useRef(0);
   var delta = React.useRef(0);
+  var lastFrame = React.useRef(0);
   var originalLerp = React.useRef(lerp || config.scrollLerp).current;
 
   var setScrollPosition = function setScrollPosition() {
@@ -665,9 +663,11 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
   };
 
   var animate = function animate(ts) {
+    var frameDelta = ts - lastFrame.current;
+    lastFrame.current = ts;
     if (!scrolling.current) return; // use internal target with floating point precision to make sure lerp is smooth
 
-    var newTarget = _lerp(y.current, y.target, config.scrollLerp);
+    var newTarget = _lerp__default['default'](y.current, y.target, config.scrollLerp, frameDelta);
 
     delta.current = Math.abs(y.current - newTarget);
     y.current = newTarget; // round for scrollbar
@@ -840,7 +840,7 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
 
       var elapsed = Date.now() - lastEventTs;
       var time = Math.min(1, Math.max(0, map_range(elapsed, 0, 100, 0, 1)));
-      velY = _lerp(velY, 0, time); // inertia lerp
+      velY = _lerp__default['default'](velY, 0, time); // inertia lerp
 
       scrollTo(y.current + velY, DRAG_INERTIA_LERP);
     };

@@ -1,13 +1,10 @@
 import React, { useEffect, useRef, useState, useLayoutEffect } from 'react'
 import PropTypes from 'prop-types'
+import _lerp from '@14islands/lerp'
 
 import config from '../config'
 import useCanvasStore from '../store'
 import ResizeManager from '../ResizeManager'
-
-function _lerp(v0, v1, t) {
-  return v0 * (1 - t) + v1 * t
-}
 
 const FakeScroller = ({
   el,
@@ -21,6 +18,7 @@ const FakeScroller = ({
   const setScrollY = useCanvasStore((state) => state.setScrollY)
 
   const heightEl = useRef()
+  const lastFrame = useRef(0)
 
   const [fakeHeight, setFakeHeight] = useState()
 
@@ -44,11 +42,13 @@ const FakeScroller = ({
   }).current
 
   // ANIMATION LOOP
-  const run = () => {
+  const run = (ts) => {
+    const frameDelta = ts - lastFrame.current
+    lastFrame.current = ts
     state.frame = window.requestAnimationFrame(run)
     const { scroll } = state
 
-    scroll.current = _lerp(scroll.current, scroll.target, scroll.lerp)
+    scroll.current = _lerp(scroll.current, scroll.target, scroll.lerp, frameDelta)
     const delta = scroll.current - scroll.target
     scroll.velocity = Math.abs(delta) // TODO fps independent velocity
     scroll.direction = Math.sign(delta)

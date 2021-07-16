@@ -1,8 +1,7 @@
 import React, { memo, useRef, useEffect, forwardRef } from 'react'
 import ReactDOM from 'react-dom'
-
+import _lerp from '@14islands/lerp'
 import PropTypes from 'prop-types'
-import { MathUtils } from 'three'
 import { useWindowHeight } from '@react-hook/window-size'
 
 import { requestIdleCallback, cancelIdleCallback } from './hooks/requestIdleCallback'
@@ -124,7 +123,7 @@ const ScrollDomPortal = forwardRef(
     }, [live])
 
     // RENDER FRAME
-    const frame = ({ gl }) => {
+    const frame = ({ gl }, frameDelta) => {
       const { top, height } = bounds
 
       // get offset from resizing window + offset from callback function from parent
@@ -144,9 +143,9 @@ const ScrollDomPortal = forwardRef(
       }
 
       // Lerp the distance
-      const lerpScroll = MathUtils.lerp(prevBounds.top, scrollTop, (lerp || config.scrollLerp) * lerpOffset)
-      const lerpX = MathUtils.lerp(prevBounds.x, offsetX, layoutLerp)
-      const lerpY = MathUtils.lerp(prevBounds.y, offsetY, layoutLerp)
+      const lerpScroll = _lerp(prevBounds.top, scrollTop, (lerp || config.scrollLerp) * lerpOffset, frameDelta)
+      const lerpX = _lerp(prevBounds.x, offsetX, layoutLerp, frameDelta)
+      const lerpY = _lerp(prevBounds.y, offsetY, layoutLerp, frameDelta)
 
       // Abort if element not in screen
       const elTop = top + lerpScroll + lerpY

@@ -1,6 +1,7 @@
 import create from 'zustand';
 import _extends from '@babel/runtime/helpers/esm/extends';
 import React, { useRef, useEffect, useState, useLayoutEffect } from 'react';
+import _lerp from '@14islands/lerp';
 import { useWindowSize } from '@react-hook/window-size';
 
 /**
@@ -218,10 +219,6 @@ const ResizeManager = ({
   return null;
 };
 
-function _lerp$1(v0, v1, t) {
-  return v0 * (1 - t) + v1 * t;
-}
-
 const FakeScroller = ({
   el,
   lerp = config.scrollLerp,
@@ -233,6 +230,7 @@ const FakeScroller = ({
   const triggerReflowCompleted = useCanvasStore(state => state.triggerReflowCompleted);
   const setScrollY = useCanvasStore(state => state.setScrollY);
   const heightEl = useRef();
+  const lastFrame = useRef(0);
   const [fakeHeight, setFakeHeight] = useState();
   const state = useRef({
     preventPointer: false,
@@ -253,12 +251,14 @@ const FakeScroller = ({
     sections: null
   }).current; // ANIMATION LOOP
 
-  const run = () => {
+  const run = ts => {
+    const frameDelta = ts - lastFrame.current;
+    lastFrame.current = ts;
     state.frame = window.requestAnimationFrame(run);
     const {
       scroll
     } = state;
-    scroll.current = _lerp$1(scroll.current, scroll.target, scroll.lerp);
+    scroll.current = _lerp(scroll.current, scroll.target, scroll.lerp, frameDelta);
     const delta = scroll.current - scroll.target;
     scroll.velocity = Math.abs(delta); // TODO fps independent velocity
 
@@ -539,10 +539,6 @@ function map_range(value, low1, high1, low2, high2) {
   return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
 }
 
-function _lerp(v0, v1, t) {
-  return v0 * (1 - t) + v1 * t;
-}
-
 const DRAG_ACTIVE_LERP = 0.3;
 const DRAG_INERTIA_LERP = 0.05;
 const HijackedScrollbar = ({
@@ -575,6 +571,7 @@ const HijackedScrollbar = ({
   const preventPointer = useRef(false);
   const documentHeight = useRef(0);
   const delta = useRef(0);
+  const lastFrame = useRef(0);
   const originalLerp = useRef(lerp || config.scrollLerp).current;
 
   const setScrollPosition = () => {
@@ -594,9 +591,11 @@ const HijackedScrollbar = ({
   };
 
   const animate = ts => {
+    const frameDelta = ts - lastFrame.current;
+    lastFrame.current = ts;
     if (!scrolling.current) return; // use internal target with floating point precision to make sure lerp is smooth
 
-    const newTarget = _lerp(y.current, y.target, config.scrollLerp);
+    const newTarget = _lerp(y.current, y.target, config.scrollLerp, frameDelta);
 
     delta.current = Math.abs(y.current - newTarget);
     y.current = newTarget; // round for scrollbar
