@@ -125,8 +125,8 @@ export const HijackedScrollbar = ({
 
   // override window.scrollTo(0, targetY)
   useEffect(() => {
-    window.__origScrollTo = window.scrollTo
-    window.__origScroll = window.scroll
+    window.__origScrollTo = window.__origScrollTo || window.scrollTo
+    window.__origScroll = window.__origScroll || window.scroll
     window.scrollTo = (x, y, lerp) => scrollTo(y, lerp)
     window.scroll = (x, y, lerp) => scrollTo(y, lerp)
     return () => {

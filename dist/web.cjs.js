@@ -2126,8 +2126,8 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
   }, []); // override window.scrollTo(0, targetY)
 
   React.useEffect(function () {
-    window.__origScrollTo = window.scrollTo;
-    window.__origScroll = window.scroll;
+    window.__origScrollTo = window.__origScrollTo || window.scrollTo;
+    window.__origScroll = window.__origScroll || window.scroll;
 
     window.scrollTo = function (x, y, lerp) {
       return scrollTo(y, lerp);
