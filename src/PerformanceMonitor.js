@@ -5,8 +5,8 @@ import config from './config'
 import { useCanvasStore } from './store'
 
 const PerformanceMonitor = () => {
-  const { size } = useThree()
-  const setPixelRatio = useCanvasStore((state) => state.setPixelRatio)
+  const size = useThree(s => s.size)
+  const setDpr = useThree(s => s.setDpr)
 
   useEffect(() => {
     const devicePixelRatio = window.devicePixelRatio || 1
@@ -22,7 +22,8 @@ const PerformanceMonitor = () => {
 
       const pixelRatio = Math.max(1.0, Math.min(MAX_PIXEL_RATIO, devicePixelRatio * scale))
       config.debug && console.info('PerformanceMonitor', 'Set pixelRatio', pixelRatio)
-      setPixelRatio(pixelRatio)
+      setDpr(pixelRatio)
+      console.log('setDpr', pixelRatio)
     }
   }, [size])
 

@@ -45,10 +45,6 @@ const useCanvasStore = create((set) => ({
       return { canvasChildren: obj }
     }),
 
-  // current pixel ratio
-  pixelRatio: 1,
-  setPixelRatio: (pixelRatio) => set((state) => ({ pixelRatio })),
-
   // Used to ask components to re-calculate their positions after a layout reflow
   pageReflowRequested: 0,
   pageReflowCompleted: 0,

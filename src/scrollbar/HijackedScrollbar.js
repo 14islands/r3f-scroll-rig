@@ -1,11 +1,12 @@
 import React, { useEffect, useRef } from 'react'
 import PropTypes from 'prop-types'
 import _lerp from '@14islands/lerp'
+import { useWindowSize } from '@react-hook/window-size'
 
 import config from '../config'
 import useCanvasStore from '../store'
 import requestIdleCallback from '../hooks/requestIdleCallback'
-import ResizeManager from '../ResizeManager'
+
 
 // FIXME test on touch devices - handle touchmove/pointermove event
 
@@ -35,9 +36,9 @@ export const HijackedScrollbar = ({
   subpixelScrolling = false,
 }) => {
   const setVirtualScrollbar = useCanvasStore((state) => state.setVirtualScrollbar)
-  const requestReflow = useCanvasStore((state) => state.requestReflow)
   const pageReflowRequested = useCanvasStore((state) => state.pageReflowRequested)
   const setScrollY = useCanvasStore((state) => state.setScrollY)
+  const [width, height] = useWindowSize()
 
   const ref = useRef()
   const y = useRef({ current: 0, target: 0 }).current
@@ -133,7 +134,7 @@ export const HijackedScrollbar = ({
       window.scrollTo = window.__origScrollTo
       window.scroll = window.__origScroll
     }
-  }, [pageReflowRequested, location])
+  }, [])
 
   // disable subpixelScrolling for better visual sync with canvas
   useEffect(() => {
@@ -251,7 +252,7 @@ export const HijackedScrollbar = ({
     requestIdleCallback(() => {
       documentHeight.current = document.body.clientHeight - window.innerHeight
     })
-  }, [pageReflowRequested, location])
+  }, [pageReflowRequested, width, height, location])
 
   const onWheelEvent = (e) => {
     e.preventDefault()
@@ -277,7 +278,6 @@ export const HijackedScrollbar = ({
   return (
     <>
       {children({ ref })}
-      {!config.hasGlobalCanvas && <ResizeManager reflow={requestReflow} />}
     </>
   )
 }

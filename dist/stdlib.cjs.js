@@ -3,19 +3,28 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var _extends = require('@babel/runtime/helpers/extends');
-var _objectWithoutPropertiesLoose = require('@babel/runtime/helpers/objectWithoutPropertiesLoose');
+var _defineProperty = require('@babel/runtime/helpers/defineProperty');
+var _objectWithoutProperties = require('@babel/runtime/helpers/objectWithoutProperties');
 var React = require('react');
 var three = require('three');
 var fiber = require('@react-three/fiber');
 var Text = require('@react-three/drei/core/Text');
+var _slicedToArray = require('@babel/runtime/helpers/slicedToArray');
 var r3fScrollRig = require('@14islands/r3f-scroll-rig');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
 var _extends__default = /*#__PURE__*/_interopDefaultLegacy(_extends);
-var _objectWithoutPropertiesLoose__default = /*#__PURE__*/_interopDefaultLegacy(_objectWithoutPropertiesLoose);
+var _defineProperty__default = /*#__PURE__*/_interopDefaultLegacy(_defineProperty);
+var _objectWithoutProperties__default = /*#__PURE__*/_interopDefaultLegacy(_objectWithoutProperties);
 var React__default = /*#__PURE__*/_interopDefaultLegacy(React);
+var _slicedToArray__default = /*#__PURE__*/_interopDefaultLegacy(_slicedToArray);
 
+var _excluded$2 = ["el", "children", "material", "scale", "font", "fontOffsetY", "fontOffsetX", "overrideEmissive", "color"];
+
+function ownKeys$1(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread$1(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$1(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$1(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 /**
  * Returns a WebGL Troika text mesh styled as the source DOM element
  */
@@ -33,7 +42,7 @@ var WebGLText = function WebGLText(_ref) {
       _ref$overrideEmissive = _ref.overrideEmissive,
       overrideEmissive = _ref$overrideEmissive === void 0 ? false : _ref$overrideEmissive,
       color = _ref.color,
-      props = _objectWithoutPropertiesLoose__default['default'](_ref, ["el", "children", "material", "scale", "font", "fontOffsetY", "fontOffsetX", "overrideEmissive", "color"]);
+      props = _objectWithoutProperties__default["default"](_ref, _excluded$2);
 
   var _useThree = fiber.useThree(),
       size = _useThree.size;
@@ -42,10 +51,11 @@ var WebGLText = function WebGLText(_ref) {
     if (!el.current) return {};
     var cs = window.getComputedStyle(el.current); // font size relative letter spacing
 
+    // font size relative letter spacing
     var letterSpacing = (parseFloat(cs.letterSpacing) || 0) / parseFloat(cs.fontSize);
     var lineHeight = (parseFloat(cs.lineHeight) || 0) / parseFloat(cs.fontSize);
     var textColor = new three.Color(color || cs.color).convertSRGBToLinear();
-    return _extends__default['default']({}, cs, {
+    return _objectSpread$1(_objectSpread$1({}, cs), {}, {
       letterSpacing: letterSpacing,
       lineHeight: lineHeight,
       textColor: textColor,
@@ -73,7 +83,7 @@ var WebGLText = function WebGLText(_ref) {
   }
 
   var yOffset = scale ? scale.height * 0.5 : size.height * 0.5;
-  return /*#__PURE__*/React__default['default'].createElement(Text.Text, _extends__default['default']({
+  return /*#__PURE__*/React__default["default"].createElement(Text.Text, _extends__default["default"]({
     fontSize: fontSize,
     maxWidth: scale ? scale.width : size.width,
     lineHeight: lineHeight,
@@ -116,7 +126,8 @@ var WebGLImage = function WebGLImage(_ref) {
       size = _useThree.size;
 
   var _useImgTagAsTexture = r3fScrollRig.useImgTagAsTexture(image.current),
-      texture = _useImgTagAsTexture[0];
+      _useImgTagAsTexture2 = _slicedToArray__default["default"](_useImgTagAsTexture, 1),
+      texture = _useImgTagAsTexture2[0];
 
   var uniforms = React.useMemo(function () {
     return {
@@ -173,12 +184,12 @@ var WebGLImage = function WebGLImage(_ref) {
     material.current.uniforms.u_viewport.value = scrollState.viewport;
     if (invalidateFrameLoop) invalidate();
   });
-  return /*#__PURE__*/React__default['default'].createElement("mesh", {
+  return /*#__PURE__*/React__default["default"].createElement("mesh", {
     ref: mesh
-  }, /*#__PURE__*/React__default['default'].createElement("planeBufferGeometry", {
+  }, /*#__PURE__*/React__default["default"].createElement("planeBufferGeometry", {
     attach: "geometry",
     args: [scale.width, scale.height, widthSegments, heightSegments]
-  }), /*#__PURE__*/React__default['default'].createElement("shaderMaterial", {
+  }), /*#__PURE__*/React__default["default"].createElement("shaderMaterial", {
     ref: material,
     attach: "material",
     args: [{
@@ -189,6 +200,8 @@ var WebGLImage = function WebGLImage(_ref) {
     uniforms: uniforms
   }));
 };
+
+var _excluded$1 = ["children", "parallax", "stickyLerp"];
 
 var ParallaxMesh = function ParallaxMesh(_ref) {
   var children = _ref.children,
@@ -201,7 +214,7 @@ var ParallaxMesh = function ParallaxMesh(_ref) {
     var parallaxProgress = scrollState.progress * 2 - 1;
     mesh.current.position.y = parallax * parallaxProgress * scale.multiplier;
   });
-  return /*#__PURE__*/React__default['default'].createElement("mesh", {
+  return /*#__PURE__*/React__default["default"].createElement("mesh", {
     ref: mesh
   }, children);
 };
@@ -209,18 +222,25 @@ var ParallaxScrollScene = function ParallaxScrollScene(_ref2) {
   var children = _ref2.children,
       parallax = _ref2.parallax;
       _ref2.stickyLerp;
-      var props = _objectWithoutPropertiesLoose__default['default'](_ref2, ["children", "parallax", "stickyLerp"]);
+      var props = _objectWithoutProperties__default["default"](_ref2, _excluded$1);
 
-  return /*#__PURE__*/React__default['default'].createElement(r3fScrollRig.ScrollScene, _extends__default['default']({
+  return /*#__PURE__*/React__default["default"].createElement(r3fScrollRig.ScrollScene, _extends__default["default"]({
     scissor: false
   }, props, {
     inViewportMargin: Math.abs(parallax * 3)
   }), function (props) {
-    return /*#__PURE__*/React__default['default'].createElement(ParallaxMesh, _extends__default['default']({
+    return /*#__PURE__*/React__default["default"].createElement(ParallaxMesh, _extends__default["default"]({
       parallax: parallax
     }, props), children(props));
   });
 };
+
+var _excluded = ["scale"],
+    _excluded2 = ["children", "stickyLerp", "scaleToViewport"];
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 
 var StickyMesh = function StickyMesh(_ref) {
   var children = _ref.children,
@@ -248,22 +268,22 @@ var StickyMesh = function StickyMesh(_ref) {
       targetLerp = 1;
     } // sticky
     else if (scrollState.viewport > 1 && scrollState.visibility < 1) {
-        y = ySticky;
-        targetLerp = stickyLerp;
-      } // exit
-      else {
-          y = yBottom; // TODO figure out soft limits
-          // const f = Math.max(1, scrollState.visibility - 1)
-          // y =  MathUtils.lerp(ySticky, yBottom, f)
+      y = ySticky;
+      targetLerp = stickyLerp;
+    } // exit
+    else {
+      y = yBottom; // TODO figure out soft limits
+      // const f = Math.max(1, scrollState.visibility - 1)
+      // y =  MathUtils.lerp(ySticky, yBottom, f)
 
-          targetLerp = 1;
-        }
+      targetLerp = 1;
+    }
 
     local.lerp = three.MathUtils.lerp(local.lerp, targetLerp, stickyLerp < 1 ? lerp : 1);
     mesh.current.position.y = three.MathUtils.lerp(mesh.current.position.y, y, local.lerp);
   }, priority + 1); // must happen after ScrollScene's useFrame to be buttery
 
-  return /*#__PURE__*/React__default['default'].createElement("mesh", {
+  return /*#__PURE__*/React__default["default"].createElement("mesh", {
     ref: mesh
   }, children);
 };
@@ -272,23 +292,23 @@ var renderAsSticky = function renderAsSticky(children, _ref2) {
       scaleToViewport = _ref2.scaleToViewport;
   return function (_ref3) {
     var scale = _ref3.scale,
-        props = _objectWithoutPropertiesLoose__default['default'](_ref3, ["scale"]);
+        props = _objectWithoutProperties__default["default"](_ref3, _excluded);
 
     // set child's scale to 100vh/100vw instead of the full DOM el
     // the DOM el should be taller to indicate how far the scene stays sticky
     var childScale = scale;
 
     if (scaleToViewport) {
-      childScale = _extends__default['default']({}, scale, {
+      childScale = _objectSpread(_objectSpread({}, scale), {}, {
         width: scale.viewportWidth,
         height: scale.viewportHeight
       });
     }
 
-    return /*#__PURE__*/React__default['default'].createElement(StickyMesh, _extends__default['default']({
+    return /*#__PURE__*/React__default["default"].createElement(StickyMesh, _extends__default["default"]({
       scale: scale,
       stickyLerp: stickyLerp
-    }, props), children(_extends__default['default']({
+    }, props), children(_objectSpread({
       scale: childScale
     }, props)));
   };
@@ -298,9 +318,9 @@ var StickyScrollScene = function StickyScrollScene(_ref4) {
       stickyLerp = _ref4.stickyLerp,
       _ref4$scaleToViewport = _ref4.scaleToViewport,
       scaleToViewport = _ref4$scaleToViewport === void 0 ? true : _ref4$scaleToViewport,
-      props = _objectWithoutPropertiesLoose__default['default'](_ref4, ["children", "stickyLerp", "scaleToViewport"]);
+      props = _objectWithoutProperties__default["default"](_ref4, _excluded2);
 
-  return /*#__PURE__*/React__default['default'].createElement(r3fScrollRig.ScrollScene, _extends__default['default']({
+  return /*#__PURE__*/React__default["default"].createElement(r3fScrollRig.ScrollScene, _extends__default["default"]({
     scissor: false
   }, props), renderAsSticky(children, {
     stickyLerp: stickyLerp,

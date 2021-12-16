@@ -8,14 +8,10 @@ import config from './config'
  *  2. VirtualScrollbar triggers `pageReflowCompleted`
  *  3. Canvas scroll components listen to  `pageReflowCompleted` and recalc positions
  */
-const ResizeManager = ({ reflow, resizeOnHeight = true, resizeOnWebFontLoaded = true }) => {
+const ResizeManager = ({ reflow, resizeOnWebFontLoaded = true }) => {
   const mounted = useRef(false)
   // must be debounced more than the GlobalCanvas so all components have the correct value from useThree({ size })
   const [windowWidth, windowHeight] = useWindowSize({ wait: 300 })
-
-  // The reason for not resizing on height on "mobile" is because the height changes when the URL bar disapears in the browser chrome
-  // Can we base this on something better - or is there another way to avoid?
-  const height = resizeOnHeight ? windowHeight : null
 
   // Detect only resize events
   useEffect(() => {
@@ -25,7 +21,7 @@ const ResizeManager = ({ reflow, resizeOnHeight = true, resizeOnWebFontLoaded = 
     } else {
       mounted.current = true
     }
-  }, [windowWidth, height])
+  }, [windowWidth, windowHeight])
 
   // reflow on webfont loaded to prevent misalignments
   useEffect(() => {

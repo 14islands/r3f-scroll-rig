@@ -10,12 +10,10 @@ export const useScrollRig = () => {
   const hasVirtualScrollbar = useCanvasStore((state) => state.hasVirtualScrollbar)
   const requestReflow = useCanvasStore((state) => state.requestReflow)
   const pageReflowCompleted = useCanvasStore((state) => state.pageReflowCompleted)
-  const pixelRatio = useCanvasStore((state) => state.pixelRatio)
 
   return {
     isCanvasAvailable,
     hasVirtualScrollbar,
-    pixelRatio,
     preloadScene,
     requestRender,
     renderScissor,

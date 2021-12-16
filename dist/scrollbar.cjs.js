@@ -2,26 +2,34 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var _objectWithoutPropertiesLoose = require('@babel/runtime/helpers/objectWithoutPropertiesLoose');
-var _extends = require('@babel/runtime/helpers/extends');
+var _typeof = require('@babel/runtime/helpers/typeof');
+var _objectWithoutProperties = require('@babel/runtime/helpers/objectWithoutProperties');
+var _defineProperty = require('@babel/runtime/helpers/defineProperty');
 var create = require('zustand');
+var _extends = require('@babel/runtime/helpers/extends');
+var _slicedToArray = require('@babel/runtime/helpers/slicedToArray');
 var React = require('react');
 var _lerp = require('@14islands/lerp');
 var windowSize = require('@react-hook/window-size');
+var PropTypes = require('prop-types');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
-var _objectWithoutPropertiesLoose__default = /*#__PURE__*/_interopDefaultLegacy(_objectWithoutPropertiesLoose);
-var _extends__default = /*#__PURE__*/_interopDefaultLegacy(_extends);
+var _typeof__default = /*#__PURE__*/_interopDefaultLegacy(_typeof);
+var _objectWithoutProperties__default = /*#__PURE__*/_interopDefaultLegacy(_objectWithoutProperties);
+var _defineProperty__default = /*#__PURE__*/_interopDefaultLegacy(_defineProperty);
 var create__default = /*#__PURE__*/_interopDefaultLegacy(create);
+var _extends__default = /*#__PURE__*/_interopDefaultLegacy(_extends);
+var _slicedToArray__default = /*#__PURE__*/_interopDefaultLegacy(_slicedToArray);
 var React__default = /*#__PURE__*/_interopDefaultLegacy(React);
 var _lerp__default = /*#__PURE__*/_interopDefaultLegacy(_lerp);
+var PropTypes__default = /*#__PURE__*/_interopDefaultLegacy(PropTypes);
 
 /**
  * runtime check for requestIdleCallback
  */
-var requestIdleCallback = function requestIdleCallback(callback, _temp) {
-  var _ref = _temp === void 0 ? {} : _temp,
+var requestIdleCallback = function requestIdleCallback(callback) {
+  var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
       _ref$timeout = _ref.timeout,
       timeout = _ref$timeout === void 0 ? 100 : _ref$timeout;
 
@@ -33,6 +41,7 @@ var requestIdleCallback = function requestIdleCallback(callback, _temp) {
     setTimeout(callback, 0);
   }
 };
+var requestIdleCallback$1 = requestIdleCallback;
 
 // Transient shared state for canvas components
 // usContext() causes re-rendering which can drop frames
@@ -63,11 +72,16 @@ var config = {
   disableAutoClear: true,
   clearDepth: true
 };
+var config$1 = config;
 
-function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return typeof key === "symbol" ? key : String(key); }
+function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return _typeof__default["default"](key) === "symbol" ? key : String(key); }
 
-function _toPrimitive(input, hint) { if (typeof input !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (typeof res !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
-var useCanvasStore = create__default['default'](function (set) {
+function _toPrimitive(input, hint) { if (_typeof__default["default"](input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (_typeof__default["default"](res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+var useCanvasStore = create__default["default"](function (set) {
   return {
     // //////////////////////////////////////////////////////////////////////////
     // GLOBAL ScrollRig STATE
@@ -101,20 +115,15 @@ var useCanvasStore = create__default['default'](function (set) {
     // map of all components to render on the global canvas
     canvasChildren: {},
     // add component to canvas
-    renderToCanvas: function renderToCanvas(key, mesh, props) {
-      if (props === void 0) {
-        props = {};
-      }
-
+    renderToCanvas: function renderToCanvas(key, mesh) {
+      var props = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
       return set(function (_ref) {
-        var _extends2;
-
         var canvasChildren = _ref.canvasChildren;
 
-        var obj = _extends__default['default']({}, canvasChildren, (_extends2 = {}, _extends2[key] = {
+        var obj = _objectSpread(_objectSpread({}, canvasChildren), {}, _defineProperty__default["default"]({}, key, {
           mesh: mesh,
           props: props
-        }, _extends2));
+        }));
 
         return {
           canvasChildren: obj
@@ -124,18 +133,16 @@ var useCanvasStore = create__default['default'](function (set) {
     // pass new props to a canvas component
     updateCanvas: function updateCanvas(key, newProps) {
       return set(function (_ref2) {
-        var _extends3;
-
         var canvasChildren = _ref2.canvasChildren;
         if (!canvasChildren[key]) return;
         var _canvasChildren$key = canvasChildren[key],
             mesh = _canvasChildren$key.mesh,
             props = _canvasChildren$key.props;
 
-        var obj = _extends__default['default']({}, canvasChildren, (_extends3 = {}, _extends3[key] = {
+        var obj = _objectSpread(_objectSpread({}, canvasChildren), {}, _defineProperty__default["default"]({}, key, {
           mesh: mesh,
-          props: _extends__default['default']({}, props, newProps)
-        }, _extends3));
+          props: _objectSpread(_objectSpread({}, props), newProps)
+        }));
 
         return {
           canvasChildren: obj
@@ -148,20 +155,11 @@ var useCanvasStore = create__default['default'](function (set) {
         var canvasChildren = _ref3.canvasChildren;
 
         canvasChildren[key];
-            var obj = _objectWithoutPropertiesLoose__default['default'](canvasChildren, [key].map(_toPropertyKey)); // make a separate copy of the obj and omit
+            var obj = _objectWithoutProperties__default["default"](canvasChildren, [key].map(_toPropertyKey)); // make a separate copy of the obj and omit
 
 
         return {
           canvasChildren: obj
-        };
-      });
-    },
-    // current pixel ratio
-    pixelRatio: 1,
-    setPixelRatio: function setPixelRatio(pixelRatio) {
-      return set(function (state) {
-        return {
-          pixelRatio: pixelRatio
         };
       });
     },
@@ -171,7 +169,7 @@ var useCanvasStore = create__default['default'](function (set) {
     requestReflow: function requestReflow() {
       set(function (state) {
         // if VirtualScrollbar is active, it triggers `triggerReflowCompleted` instead
-        if (!config.hasVirtualScrollbar) {
+        if (!config$1.hasVirtualScrollbar) {
           requestIdleCallback(state.triggerReflowCompleted, {
             timeout: 100
           });
@@ -200,6 +198,7 @@ var useCanvasStore = create__default['default'](function (set) {
     }
   };
 });
+var useCanvasStore$1 = useCanvasStore;
 
 /**
  * Public interface for ScrollRig
@@ -232,8 +231,6 @@ var useScrollbar = function useScrollbar() {
 
 var ResizeManager = function ResizeManager(_ref) {
   var reflow = _ref.reflow,
-      _ref$resizeOnHeight = _ref.resizeOnHeight,
-      resizeOnHeight = _ref$resizeOnHeight === void 0 ? true : _ref$resizeOnHeight,
       _ref$resizeOnWebFontL = _ref.resizeOnWebFontLoaded,
       resizeOnWebFontLoaded = _ref$resizeOnWebFontL === void 0 ? true : _ref$resizeOnWebFontL;
   var mounted = React.useRef(false); // must be debounced more than the GlobalCanvas so all components have the correct value from useThree({ size })
@@ -241,20 +238,19 @@ var ResizeManager = function ResizeManager(_ref) {
   var _useWindowSize = windowSize.useWindowSize({
     wait: 300
   }),
-      windowWidth = _useWindowSize[0],
-      windowHeight = _useWindowSize[1]; // The reason for not resizing on height on "mobile" is because the height changes when the URL bar disapears in the browser chrome
-  // Can we base this on something better - or is there another way to avoid?
+      _useWindowSize2 = _slicedToArray__default["default"](_useWindowSize, 2),
+      windowWidth = _useWindowSize2[0],
+      windowHeight = _useWindowSize2[1]; // Detect only resize events
 
-
-  var height = resizeOnHeight ? windowHeight : null; // Detect only resize events
 
   React.useEffect(function () {
     if (mounted.current) {
+      config$1.debug && console.log('ResizeManager', 'reflow()');
       reflow();
     } else {
       mounted.current = true;
     }
-  }, [windowWidth, height]); // reflow on webfont loaded to prevent misalignments
+  }, [windowWidth, windowHeight]); // reflow on webfont loaded to prevent misalignments
 
   React.useEffect(function () {
     if (!resizeOnWebFontLoaded) return;
@@ -277,30 +273,35 @@ var ResizeManager = function ResizeManager(_ref) {
   return null;
 };
 
+var ResizeManager$1 = ResizeManager;
+
+var _excluded = ["disabled", "resizeOnHeight", "children", "scrollToTop"];
+
 var FakeScroller = function FakeScroller(_ref) {
   var el = _ref.el,
       _ref$lerp = _ref.lerp,
-      lerp = _ref$lerp === void 0 ? config.scrollLerp : _ref$lerp,
+      lerp = _ref$lerp === void 0 ? config$1.scrollLerp : _ref$lerp,
       _ref$restDelta = _ref.restDelta,
-      restDelta = _ref$restDelta === void 0 ? config.scrollRestDelta : _ref$restDelta,
+      restDelta = _ref$restDelta === void 0 ? config$1.scrollRestDelta : _ref$restDelta,
       onUpdate = _ref.onUpdate,
       _ref$threshold = _ref.threshold,
       threshold = _ref$threshold === void 0 ? 100 : _ref$threshold;
-  var pageReflowRequested = useCanvasStore(function (state) {
+  var pageReflowRequested = useCanvasStore$1(function (state) {
     return state.pageReflowRequested;
   });
-  var triggerReflowCompleted = useCanvasStore(function (state) {
+  var triggerReflowCompleted = useCanvasStore$1(function (state) {
     return state.triggerReflowCompleted;
   });
-  var setScrollY = useCanvasStore(function (state) {
+  var setScrollY = useCanvasStore$1(function (state) {
     return state.setScrollY;
   });
   var heightEl = React.useRef();
   var lastFrame = React.useRef(0);
 
   var _useState = React.useState(),
-      fakeHeight = _useState[0],
-      setFakeHeight = _useState[1];
+      _useState2 = _slicedToArray__default["default"](_useState, 2),
+      fakeHeight = _useState2[0],
+      setFakeHeight = _useState2[1];
 
   var state = React.useRef({
     preventPointer: false,
@@ -326,7 +327,7 @@ var FakeScroller = function FakeScroller(_ref) {
     lastFrame.current = ts;
     state.frame = window.requestAnimationFrame(run);
     var scroll = state.scroll;
-    scroll.current = _lerp__default['default'](scroll.current, scroll.target, scroll.lerp, frameDelta * 0.001);
+    scroll.current = _lerp__default["default"](scroll.current, scroll.target, scroll.lerp, frameDelta * 0.001);
     var delta = scroll.current - scroll.target;
     scroll.velocity = Math.abs(delta); // TODO fps independent velocity
 
@@ -348,7 +349,7 @@ var FakeScroller = function FakeScroller(_ref) {
         isResizing = state.isResizing,
         scroll = state.scroll,
         sections = state.sections;
-    var translate = "translate3d(0, " + -scroll.current + "px, 0)";
+    var translate = "translate3d(0, ".concat(-scroll.current, "px, 0)");
     if (!sections) return;
 
     for (var i = 0; i < total; i++) {
@@ -503,7 +504,7 @@ var FakeScroller = function FakeScroller(_ref) {
 
     bounds.scrollHeight = bottom; // update fake height
 
-    setFakeHeight(bounds.scrollHeight + "px");
+    setFakeHeight("".concat(bounds.scrollHeight, "px"));
     setTimeout(function () {
       // get new scroll position (changes if window height became smaller)
       scroll.current = window.pageYOffset; // move all items into place
@@ -518,7 +519,7 @@ var FakeScroller = function FakeScroller(_ref) {
   React.useEffect(function () {
     handleResize();
   }, [pageReflowRequested]);
-  return /*#__PURE__*/React__default['default'].createElement("div", {
+  return /*#__PURE__*/React__default["default"].createElement("div", {
     className: "js-fake-scroll",
     ref: heightEl,
     style: {
@@ -537,20 +538,21 @@ var VirtualScrollbar = function VirtualScrollbar(_ref4) {
       children = _ref4.children,
       _ref4$scrollToTop = _ref4.scrollToTop,
       scrollToTop = _ref4$scrollToTop === void 0 ? false : _ref4$scrollToTop,
-      rest = _objectWithoutPropertiesLoose__default['default'](_ref4, ["disabled", "resizeOnHeight", "children", "scrollToTop"]);
+      rest = _objectWithoutProperties__default["default"](_ref4, _excluded);
 
   var ref = React.useRef();
 
-  var _useState2 = React.useState(false),
-      active = _useState2[0],
-      setActive = _useState2[1]; // FakeScroller wont trigger resize without touching the store here..
+  var _useState3 = React.useState(false),
+      _useState4 = _slicedToArray__default["default"](_useState3, 2),
+      active = _useState4[0],
+      setActive = _useState4[1]; // FakeScroller wont trigger resize without touching the store here..
   // due to code splitting maybe? two instances of the store?
 
 
-  var requestReflow = useCanvasStore(function (state) {
+  var requestReflow = useCanvasStore$1(function (state) {
     return state.requestReflow;
   });
-  var setVirtualScrollbar = useCanvasStore(function (state) {
+  var setVirtualScrollbar = useCanvasStore$1(function (state) {
     return state.setVirtualScrollbar;
   }); // Optional: scroll to top when scrollbar mounts
 
@@ -569,11 +571,11 @@ var VirtualScrollbar = function VirtualScrollbar(_ref4) {
     var timer = setTimeout(function () {
       setActive(!disabled); // tell GlobalCanvas that VirtualScrollbar is active
 
-      config.hasVirtualScrollbar = !disabled;
+      config$1.hasVirtualScrollbar = !disabled;
     }, 0);
     return function () {
       clearTimeout(timer);
-      config.hasVirtualScrollbar = false;
+      config$1.hasVirtualScrollbar = false;
     };
   }, [disabled]);
   var activeStyle = {
@@ -585,12 +587,12 @@ var VirtualScrollbar = function VirtualScrollbar(_ref4) {
 
   };
   var style = active ? activeStyle : {};
-  return /*#__PURE__*/React__default['default'].createElement(React__default['default'].Fragment, null, children({
+  return /*#__PURE__*/React__default["default"].createElement(React__default["default"].Fragment, null, children({
     ref: ref,
     style: style
-  }), active && /*#__PURE__*/React__default['default'].createElement(FakeScroller, _extends__default['default']({
+  }), active && /*#__PURE__*/React__default["default"].createElement(FakeScroller, _extends__default["default"]({
     el: ref
-  }, rest)), /*#__PURE__*/React__default['default'].createElement(ResizeManager, {
+  }, rest)), !config$1.hasGlobalCanvas && /*#__PURE__*/React__default["default"].createElement(ResizeManager$1, {
     reflow: requestReflow,
     resizeOnHeight: resizeOnHeight
   }));
@@ -621,18 +623,21 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
       invalidate = _ref.invalidate,
       _ref$subpixelScrollin = _ref.subpixelScrolling,
       subpixelScrolling = _ref$subpixelScrollin === void 0 ? false : _ref$subpixelScrollin;
-  var setVirtualScrollbar = useCanvasStore(function (state) {
+  var setVirtualScrollbar = useCanvasStore$1(function (state) {
     return state.setVirtualScrollbar;
   });
-  var requestReflow = useCanvasStore(function (state) {
-    return state.requestReflow;
-  });
-  var pageReflowRequested = useCanvasStore(function (state) {
+  var pageReflowRequested = useCanvasStore$1(function (state) {
     return state.pageReflowRequested;
   });
-  var setScrollY = useCanvasStore(function (state) {
+  var setScrollY = useCanvasStore$1(function (state) {
     return state.setScrollY;
   });
+
+  var _useWindowSize = windowSize.useWindowSize(),
+      _useWindowSize2 = _slicedToArray__default["default"](_useWindowSize, 2),
+      width = _useWindowSize2[0],
+      height = _useWindowSize2[1];
+
   var ref = React.useRef();
   var y = React.useRef({
     current: 0,
@@ -644,7 +649,7 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
   var documentHeight = React.useRef(0);
   var delta = React.useRef(0);
   var lastFrame = React.useRef(0);
-  var originalLerp = React.useRef(lerp || config.scrollLerp).current;
+  var originalLerp = React.useRef(lerp || config$1.scrollLerp).current;
 
   var setScrollPosition = function setScrollPosition() {
     if (!scrolling.current) return;
@@ -654,7 +659,7 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
 
     onUpdate && onUpdate(y);
 
-    if (delta.current <= (restDelta || config.scrollRestDelta)) {
+    if (delta.current <= (restDelta || config$1.scrollRestDelta)) {
       scrolling.current = false;
       preventPointerEvents(false);
     } else {
@@ -667,24 +672,21 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
     lastFrame.current = ts;
     if (!scrolling.current) return; // use internal target with floating point precision to make sure lerp is smooth
 
-    var newTarget = _lerp__default['default'](y.current, y.target, config.scrollLerp, frameDelta * 0.001);
+    var newTarget = _lerp__default["default"](y.current, y.target, config$1.scrollLerp, frameDelta * 0.001);
 
     delta.current = Math.abs(y.current - newTarget);
     y.current = newTarget; // round for scrollbar
 
-    roundedY.current = config.subpixelScrolling ? y.current : Math.floor(y.current);
+    roundedY.current = config$1.subpixelScrolling ? y.current : Math.floor(y.current);
 
     if (!useRenderLoop) {
       setScrollPosition();
     }
   };
 
-  var scrollTo = function scrollTo(newY, lerp) {
-    if (lerp === void 0) {
-      lerp = originalLerp;
-    }
-
-    config.scrollLerp = lerp;
+  var scrollTo = function scrollTo(newY) {
+    var lerp = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : originalLerp;
+    config$1.scrollLerp = lerp;
     y.target = Math.min(Math.max(newY, 0), documentHeight.current);
 
     if (!scrolling.current) {
@@ -739,13 +741,13 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
       window.scrollTo = window.__origScrollTo;
       window.scroll = window.__origScroll;
     };
-  }, [pageReflowRequested, location]); // disable subpixelScrolling for better visual sync with canvas
+  }, []); // disable subpixelScrolling for better visual sync with canvas
 
   React.useEffect(function () {
-    var ssBefore = config.subpixelScrolling;
-    config.subpixelScrolling = subpixelScrolling;
+    var ssBefore = config$1.subpixelScrolling;
+    config$1.subpixelScrolling = subpixelScrolling;
     return function () {
-      config.subpixelScrolling = ssBefore;
+      config$1.subpixelScrolling = ssBefore;
     };
   }, []); // reset scroll on mount/unmount FIX history?!
 
@@ -840,7 +842,7 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
 
       var elapsed = Date.now() - lastEventTs;
       var time = Math.min(1, Math.max(0, map_range(elapsed, 0, 100, 0, 1)));
-      velY = _lerp__default['default'](velY, 0, time); // inertia lerp
+      velY = _lerp__default["default"](velY, 0, time); // inertia lerp
 
       scrollTo(y.current + velY, DRAG_INERTIA_LERP);
     };
@@ -858,10 +860,10 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
 
 
   React.useEffect(function () {
-    requestIdleCallback(function () {
+    requestIdleCallback$1(function () {
       documentHeight.current = document.body.clientHeight - window.innerHeight;
     });
-  }, [pageReflowRequested, location]);
+  }, [pageReflowRequested, width, height, location]);
 
   var onWheelEvent = function onWheelEvent(e) {
     e.preventDefault();
@@ -890,11 +892,21 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
       });
     };
   }, [disabled]);
-  return /*#__PURE__*/React__default['default'].createElement(React__default['default'].Fragment, null, children({
+  return /*#__PURE__*/React__default["default"].createElement(React__default["default"].Fragment, null, children({
     ref: ref
-  }), /*#__PURE__*/React__default['default'].createElement(ResizeManager, {
-    reflow: requestReflow
   }));
+};
+HijackedScrollbar.propTypes = {
+  disabled: PropTypes__default["default"].bool,
+  onUpdate: PropTypes__default["default"].func,
+  speed: PropTypes__default["default"].number,
+  lerp: PropTypes__default["default"].number,
+  restDelta: PropTypes__default["default"].number,
+  location: PropTypes__default["default"].any,
+  useUpdateLoop: PropTypes__default["default"].func,
+  useRenderLoop: PropTypes__default["default"].func,
+  invalidate: PropTypes__default["default"].func,
+  subpixelScrolling: PropTypes__default["default"].bool
 };
 
 exports.HijackedScrollbar = HijackedScrollbar;

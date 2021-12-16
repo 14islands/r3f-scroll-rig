@@ -1,4 +1,6 @@
 import * as utils from './utils'
+import config from './config'
+
 
 // Public & battle-tested
 // ----------------------------------
@@ -24,5 +26,8 @@ export { useScrollbar } from './scrollbar/useScrollbar'
 // Private-ish
 // ----------------------------------
 export { useCanvasStore } from './store'
-export { config } from './config'
+// export { config }
 export { utils }
+
+console.log('SCROLL RIG!', config)
+

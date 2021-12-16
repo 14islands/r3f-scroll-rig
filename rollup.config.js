@@ -16,14 +16,16 @@ const getBabelOptions = ({ useESModules }, targets) => ({
   exclude: '**/node_modules/**',
   runtimeHelpers: true,
   presets: [
-    ['@babel/preset-env', { loose: true, modules: false, targets }],
+    ['@babel/preset-env', { loose: false, modules: false, targets }],
     '@babel/preset-react',
     // '@babel/preset-typescript',
   ],
   plugins: [
-    '@babel/plugin-proposal-class-properties',
+    ['@babel/plugin-proposal-class-properties', { loose: false }],
     ['transform-react-remove-prop-types', { removeImport: true }],
     ['@babel/transform-runtime', { regenerator: false, useESModules }],
+    ['@babel/plugin-proposal-private-methods', { loose: false }],
+    ['@babel/plugin-proposal-private-property-in-object', { loose: false }]
   ],
 })
 

@@ -9,18 +9,19 @@ import { useScrollRig, useImgTagAsTexture, ScrollScene } from '@14islands/r3f-sc
  * Returns a WebGL Troika text mesh styled as the source DOM element
  */
 
-const WebGLText = ({
-  el,
-  children,
-  material,
-  scale,
-  font,
-  fontOffsetY = 0,
-  fontOffsetX = 0,
-  overrideEmissive = false,
-  color,
-  ...props
-}) => {
+const WebGLText = _ref => {
+  let {
+    el,
+    children,
+    material,
+    scale,
+    font,
+    fontOffsetY = 0,
+    fontOffsetX = 0,
+    overrideEmissive = false,
+    color,
+    ...props
+  } = _ref;
   const {
     size
   } = useThree();
@@ -76,17 +77,18 @@ const WebGLText = ({
   }, props), children);
 };
 
-const WebGLImage = ({
-  image,
-  scale,
-  scrollState,
-  scene,
-  vertexShader,
-  fragmentShader,
-  invalidateFrameLoop = false,
-  widthSegments = 128,
-  heightSegments = 128
-}) => {
+const WebGLImage = _ref => {
+  let {
+    image,
+    scale,
+    scrollState,
+    scene,
+    vertexShader,
+    fragmentShader,
+    invalidateFrameLoop = false,
+    widthSegments = 128,
+    heightSegments = 128
+  } = _ref;
   const material = useRef();
   const mesh = useRef();
   const {
@@ -171,12 +173,13 @@ const WebGLImage = ({
   }));
 };
 
-const ParallaxMesh = ({
-  children,
-  scrollState,
-  scale,
-  parallax
-}) => {
+const ParallaxMesh = _ref => {
+  let {
+    children,
+    scrollState,
+    scale,
+    parallax
+  } = _ref;
   const mesh = useRef();
   useFrame(() => {
     if (!scrollState.inViewport) return;
@@ -187,12 +190,13 @@ const ParallaxMesh = ({
     ref: mesh
   }, children);
 };
-const ParallaxScrollScene = ({
-  children,
-  parallax,
-  stickyLerp,
-  ...props
-}) => {
+const ParallaxScrollScene = _ref2 => {
+  let {
+    children,
+    parallax,
+    stickyLerp,
+    ...props
+  } = _ref2;
   return /*#__PURE__*/React.createElement(ScrollScene, _extends({
     scissor: false
   }, props, {
@@ -202,14 +206,15 @@ const ParallaxScrollScene = ({
   }, props), children(props)));
 };
 
-const StickyMesh = ({
-  children,
-  scrollState,
-  lerp,
-  scale,
-  priority,
-  stickyLerp = 1.0
-}) => {
+const StickyMesh = _ref => {
+  let {
+    children,
+    scrollState,
+    lerp,
+    scale,
+    priority,
+    stickyLerp = 1.0
+  } = _ref;
   const mesh = useRef();
   const local = useRef({
     lerp: 1
@@ -228,16 +233,16 @@ const StickyMesh = ({
       targetLerp = 1;
     } // sticky
     else if (scrollState.viewport > 1 && scrollState.visibility < 1) {
-        y = ySticky;
-        targetLerp = stickyLerp;
-      } // exit
-      else {
-          y = yBottom; // TODO figure out soft limits
-          // const f = Math.max(1, scrollState.visibility - 1)
-          // y =  MathUtils.lerp(ySticky, yBottom, f)
+      y = ySticky;
+      targetLerp = stickyLerp;
+    } // exit
+    else {
+      y = yBottom; // TODO figure out soft limits
+      // const f = Math.max(1, scrollState.visibility - 1)
+      // y =  MathUtils.lerp(ySticky, yBottom, f)
 
-          targetLerp = 1;
-        }
+      targetLerp = 1;
+    }
 
     local.lerp = MathUtils.lerp(local.lerp, targetLerp, stickyLerp < 1 ? lerp : 1);
     mesh.current.position.y = MathUtils.lerp(mesh.current.position.y, y, local.lerp);
@@ -247,14 +252,16 @@ const StickyMesh = ({
     ref: mesh
   }, children);
 };
-const renderAsSticky = (children, {
-  stickyLerp,
-  scaleToViewport
-}) => {
-  return ({
-    scale,
-    ...props
-  }) => {
+const renderAsSticky = (children, _ref2) => {
+  let {
+    stickyLerp,
+    scaleToViewport
+  } = _ref2;
+  return _ref3 => {
+    let {
+      scale,
+      ...props
+    } = _ref3;
     // set child's scale to 100vh/100vw instead of the full DOM el
     // the DOM el should be taller to indicate how far the scene stays sticky
     let childScale = scale;
@@ -275,12 +282,13 @@ const renderAsSticky = (children, {
     }));
   };
 };
-const StickyScrollScene = ({
-  children,
-  stickyLerp,
-  scaleToViewport = true,
-  ...props
-}) => {
+const StickyScrollScene = _ref4 => {
+  let {
+    children,
+    stickyLerp,
+    scaleToViewport = true,
+    ...props
+  } = _ref4;
   return /*#__PURE__*/React.createElement(ScrollScene, _extends({
     scissor: false
   }, props), renderAsSticky(children, {

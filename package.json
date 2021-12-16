@@ -38,17 +38,19 @@
   "dependencies": {
     "@juggle/resize-observer": "^3.2.0",
     "@react-hook/window-size": "^3.0.6",
-    "@react-three/fiber": "^6.0.8",
     "prop-types": "^15.7.2",
     "query-string": "^6.14.1",
     "zustand": "^3.4.2"
   },
   "devDependencies": {
+    "@14islands/lerp": "^1.0.3",
     "@babel/core": "^7.10.3",
     "@babel/plugin-proposal-class-properties": "^7.10.1",
     "@babel/plugin-transform-runtime": "^7.10.3",
     "@babel/preset-env": "^7.10.3",
     "@babel/preset-react": "^7.10.1",
+    "@react-three/drei": "^8.2.1",
+    "@react-three/fiber": "^7.0.24",
     "babel-eslint": "^10.1.0",
     "babel-plugin-transform-react-remove-prop-types": "^0.4.24",
     "eslint": "^7.3.1",
@@ -66,19 +68,18 @@
     "husky": "^4.2.5",
     "lint-staged": "^10.2.11",
     "prettier": "^2.0.5",
-    "react": "^17.0.1",
-    "react-dom": "^17.0.1",
     "rollup": "^2.18.1",
     "rollup-plugin-babel": "^4.4.0",
     "rollup-plugin-json": "^4.0.0",
     "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-peer-deps-external": "^2.2.3",
     "rollup-plugin-size-snapshot": "^0.12.0",
-    "three": "^0.126.1"
+    "three": "^0.130"
   },
   "peerDependencies": {
-    "react": ">=16.0",
-    "react-dom": ">=16.0",
+    "@14islands/lerp": ">=1.0.3",
+    "@react-three/drei": ">=8.2.1",
+    "@react-three/fiber": ">=7.0.24",
     "three": ">=0.126.0"
   }
 }
