@@ -23,7 +23,6 @@ export const config = {
   // Global rendering props
   globalRender: true,
   preloadQueue: [],
-  hasVirtualScrollbar: false,
   hasGlobalCanvas: false,
 
   disableAutoClear: true,

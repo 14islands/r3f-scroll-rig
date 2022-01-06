@@ -1,19 +1,19 @@
-import React, { useEffect, useLayoutEffect, useMemo, Suspense } from 'react'
+import React, { useLayoutEffect, useMemo, Suspense } from 'react'
 import PropTypes from 'prop-types'
 import { Canvas } from '@react-three/fiber'
 import { ResizeObserver } from '@juggle/resize-observer'
 import queryString from 'query-string'
 
-import config from './config'
-import { Stats } from './Stats'
-import { useCanvasStore } from './store'
+import { useCanvasStore } from '../store'
+import config from '../config'
+import { Stats } from '../utils/Stats'
+import StatsDebug from '../utils/StatsDebug'
+import ResizeManager from '../utils/ResizeManager'
+import PerspectiveCamera from '../cameras/PerspectiveCamera'
+import OrthographicCamera from '../cameras/OrthographicCamera'
+import DefaultScrollTracker from '../trackers/DefaultScrollTracker'
+
 import GlobalRenderer from './GlobalRenderer'
-import PerformanceMonitor from './PerformanceMonitor'
-import StatsDebug from './StatsDebug'
-import ResizeManager from './ResizeManager'
-import PerspectiveCamera from './PerspectiveCamera'
-import OrthographicCamera from './OrthographicCamera'
-import DefaultScrollTracker from './DefaultScrollTracker'
 import CanvasErrorBoundary from './CanvasErrorBoundary'
 
 const GlobalCanvas = ({
@@ -32,17 +32,8 @@ const GlobalCanvas = ({
   // override config
   useMemo(() => {
     Object.assign(config, confOverrides)
-  }, [confOverrides])
 
-  // flag that global canvas is active
-  useEffect(() => {
-    config.hasGlobalCanvas = true
-    return () => {
-      config.hasGlobalCanvas = false
-    }
-  }, [])
-
-  useEffect(() => {
+    // Querystring overrides
     const qs = queryString.parse(window.location.search)
 
     // show FPS counter on request
@@ -54,17 +45,15 @@ const GlobalCanvas = ({
     if (typeof qs.debug !== 'undefined') {
       config.debug = true
     }
-  }, [])
+  }, [confOverrides])
 
   const CanvasElement = as
 
   return (
     <CanvasElement
       className="ScrollRigCanvas"
-
       // use our own default camera
       camera={null}
-
       // Some sane defaults
       gl={{
         antialias: true,
@@ -75,13 +64,10 @@ const GlobalCanvas = ({
         failIfMajorPerformanceCaveat: true, // skip webgl if slow device
         ...gl,
       }}
-
       // polyfill old iOS safari
       resize={{ scroll: false, debounce: 0, polyfill: ResizeObserver }}
-
       // default pixelratio
       dpr={[1, 2]}
-
       // default styles
       style={{
         position: 'fixed',
@@ -90,9 +76,8 @@ const GlobalCanvas = ({
         right: 0,
         height: '100vh', // use 100vh to avoid resize on iOS when url bar goes away
         transform: 'translateZ(0)',
-        ...style
+        ...style,
       }}
-
       // allow to override anything of the above
       {...props}
     >
@@ -100,12 +85,15 @@ const GlobalCanvas = ({
         {children}
         <GlobalRenderer />
       </Suspense>
+
       {!orthographic && <PerspectiveCamera makeDefault={true} {...camera} />}
       {orthographic && <OrthographicCamera makeDefault={true} {...camera} />}
+
       {config.debug && <StatsDebug />}
       {config.fps && <Stats />}
-      {config.autoPixelRatio && <PerformanceMonitor />}
+
       <ResizeManager reflow={requestReflow} />
+
       <DefaultScrollTracker />
     </CanvasElement>
   )

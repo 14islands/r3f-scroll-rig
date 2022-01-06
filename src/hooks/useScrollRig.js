@@ -1,6 +1,6 @@
-import { useCanvasStore } from './store'
+import { useCanvasStore } from '../store'
 
-import { preloadScene, requestRender, renderScissor, renderViewport } from './renderer-api'
+import { preloadScene, requestRender, renderScissor, renderViewport } from '../renderer-api'
 
 /**
  * Public interface for ScrollRig

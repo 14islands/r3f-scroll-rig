@@ -7,7 +7,8 @@ import { LinearFilter, VideoTexture, sRGBEncoding, MathUtils } from 'three'
 const WebGLVideo = ({ image, scale, scrollState, scene }) => {
   const material = useRef()
   const mesh = useRef()
-  const { pixelRatio, preloadScene } = useScrollRig()
+  const { preloadScene } = useScrollRig()
+  const pixelRatio = useThree(s => s.viewport.dpr)
   const { invalidate, camera, size, gl } = useThree()
   const [texture, setTexture] = useState(null)
 

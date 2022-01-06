@@ -1,8 +1,8 @@
 import config from './config'
-import * as utils from './utils'
 import { Vector2 } from 'three'
 import { invalidate } from '@react-three/fiber'
 
+import { setAllCulled } from './utils/helpers'
 import { useCanvasStore } from './store'
 
 const viewportSize = new Vector2()
@@ -69,10 +69,10 @@ export const preloadScene = (scene, camera, layer = 0, callback) => {
   if (!scene || !camera) return
   config.preloadQueue.push((gl) => {
     gl.setScissorTest(false)
-    utils.setAllCulled(scene, false)
+    setAllCulled(scene, false)
     camera.layers.set(layer)
     gl.render(scene, camera)
-    utils.setAllCulled(scene, true)
+    setAllCulled(scene, true)
     callback && callback()
   })
   // auto trigger a new frame for the preload

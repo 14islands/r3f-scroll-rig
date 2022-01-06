@@ -3,7 +3,7 @@ import React, { useMemo, useEffect, useRef } from 'react';
 import { Color, Vector2, MathUtils } from 'three';
 import { useThree, useFrame } from '@react-three/fiber';
 import { Text } from '@react-three/drei/core/Text';
-import { useScrollRig, useImgTagAsTexture, ScrollScene } from '@14islands/r3f-scroll-rig';
+import { useScrollRig, useImgTagAsTexture, ScrollScene, _config } from '@14islands/r3f-scroll-rig';
 
 /**
  * Returns a WebGL Troika text mesh styled as the source DOM element
@@ -92,7 +92,6 @@ const WebGLImage = _ref => {
   const material = useRef();
   const mesh = useRef();
   const {
-    pixelRatio,
     preloadScene
   } = useScrollRig();
   const {
@@ -100,6 +99,7 @@ const WebGLImage = _ref => {
     camera,
     size
   } = useThree();
+  const pixelRatio = useThree(s => s.viewport.dpr);
   const [texture] = useImgTagAsTexture(image.current);
   const uniforms = useMemo(() => {
     return {
@@ -297,4 +297,26 @@ const StickyScrollScene = _ref4 => {
   }));
 };
 
-export { ParallaxScrollScene, StickyScrollScene, WebGLImage, WebGLText };
+const DprScaler = () => {
+  const size = useThree(s => s.size);
+  const setDpr = useThree(s => s.setDpr);
+  useEffect(() => {
+    const devicePixelRatio = window.devicePixelRatio || 1;
+
+    if (devicePixelRatio > 1) {
+      const MAX_PIXEL_RATIO = 2.5; // TODO Can we allow better resolution on more powerful computers somehow?
+      // Calculate avg frame rate and lower pixelRatio on demand?
+      // scale down when scrolling fast?
+
+      let scale;
+      scale = size.width > 1500 ? 0.9 : 1.0;
+      scale = size.width > 1900 ? 0.8 : scale;
+      const dpr = Math.max(1.0, Math.min(MAX_PIXEL_RATIO, devicePixelRatio * scale));
+      _config.debug && console.info('DprScaler', 'Set dpr', dpr);
+      setDpr(dpr);
+    }
+  }, [size]);
+  return null;
+};
+
+export { DprScaler, ParallaxScrollScene, StickyScrollScene, WebGLImage, WebGLText };

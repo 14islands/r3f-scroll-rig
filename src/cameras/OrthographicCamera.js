@@ -2,8 +2,9 @@ import React, { useRef, forwardRef, useLayoutEffect, useMemo } from 'react'
 import PropTypes from 'prop-types'
 import { useThree } from '@react-three/fiber'
 import mergeRefs from 'react-merge-refs'
-import useScrollRig from './useScrollRig'
-import config from './config'
+
+import useScrollRig from '../hooks/useScrollRig'
+import config from '../config'
 
 export const OrthographicCamera = forwardRef(
   ({ makeDefault = false, scaleMultiplier = config.scaleMultiplier, ...props }, ref) => {

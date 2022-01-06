@@ -117,13 +117,16 @@ var WebGLImage = function WebGLImage(_ref) {
   var mesh = React.useRef();
 
   var _useScrollRig = r3fScrollRig.useScrollRig(),
-      pixelRatio = _useScrollRig.pixelRatio,
       preloadScene = _useScrollRig.preloadScene;
 
   var _useThree = fiber.useThree(),
       invalidate = _useThree.invalidate,
       camera = _useThree.camera,
       size = _useThree.size;
+
+  var pixelRatio = fiber.useThree(function (s) {
+    return s.viewport.dpr;
+  });
 
   var _useImgTagAsTexture = r3fScrollRig.useImgTagAsTexture(image.current),
       _useImgTagAsTexture2 = _slicedToArray__default["default"](_useImgTagAsTexture, 1),
@@ -328,6 +331,33 @@ var StickyScrollScene = function StickyScrollScene(_ref4) {
   }));
 };
 
+var DprScaler = function DprScaler() {
+  var size = fiber.useThree(function (s) {
+    return s.size;
+  });
+  var setDpr = fiber.useThree(function (s) {
+    return s.setDpr;
+  });
+  React.useEffect(function () {
+    var devicePixelRatio = window.devicePixelRatio || 1;
+
+    if (devicePixelRatio > 1) {
+      var MAX_PIXEL_RATIO = 2.5; // TODO Can we allow better resolution on more powerful computers somehow?
+      // Calculate avg frame rate and lower pixelRatio on demand?
+      // scale down when scrolling fast?
+
+      var scale;
+      scale = size.width > 1500 ? 0.9 : 1.0;
+      scale = size.width > 1900 ? 0.8 : scale;
+      var dpr = Math.max(1.0, Math.min(MAX_PIXEL_RATIO, devicePixelRatio * scale));
+      r3fScrollRig._config.debug && console.info('DprScaler', 'Set dpr', dpr);
+      setDpr(dpr);
+    }
+  }, [size]);
+  return null;
+};
+
+exports.DprScaler = DprScaler;
 exports.ParallaxScrollScene = ParallaxScrollScene;
 exports.StickyScrollScene = StickyScrollScene;
 exports.WebGLImage = WebGLImage;

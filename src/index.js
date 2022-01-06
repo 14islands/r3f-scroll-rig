@@ -1,33 +1,28 @@
-import * as utils from './utils'
-import config from './config'
-
-
 // Public & battle-tested
 // ----------------------------------
-export { default as GlobalCanvas } from './GlobalCanvas'
-export { ScrollScene } from './ScrollScene'
-export { ScrollDomPortal } from './ScrollDomPortal'
-export { useScrollRig } from './useScrollRig'
-export { useCanvas } from './useCanvas'
-export { useImgTagAsTexture, useTextureLoader } from './useImgTagAsTexture'
+export { default as GlobalCanvas } from './canvas/GlobalCanvas'
+export { ScrollScene } from './trackers/ScrollScene'
+export { ScrollDomPortal } from './trackers/ScrollDomPortal'
+export { useScrollRig } from './hooks/useScrollRig'
+export { useCanvas } from './hooks/useCanvas'
+export { useImgTagAsTexture, useTextureLoader } from './hooks/useImgTagAsTexture'
 
 // Public & somewhat experimental
 // ----------------------------------
-export { ViewportScrollScene } from './ViewportScrollScene'
-export { ViewportScrollScene as PerspectiveCameraScene } from './ViewportScrollScene'
-export { useDelayedCanvas } from './useDelayedCanvas'
+export { ViewportScrollScene } from './trackers/ViewportScrollScene'
+export { ViewportScrollScene as PerspectiveCameraScene } from './trackers/ViewportScrollScene'
+export { useDelayedCanvas } from './hooks/useDelayedCanvas'
+export { HijackedScrollbar as SmoothScrollbar } from './scrollbar/HijackedScrollbar'
+
+// will be deprecated
 export { HijackedScrollbar } from './scrollbar/HijackedScrollbar'
+export { HijackedScrollbar as VirtualScrollbar } from './scrollbar/HijackedScrollbar'
 
 // Public & battle-tested
 // ----------------------------------
-export { VirtualScrollbar } from './scrollbar/VirtualScrollbar'
 export { useScrollbar } from './scrollbar/useScrollbar'
 
 // Private-ish
 // ----------------------------------
 export { useCanvasStore } from './store'
-// export { config }
-export { utils }
-
-console.log('SCROLL RIG!', config)
-
+export { config as _config } from './config'

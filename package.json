@@ -74,7 +74,7 @@
     "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-peer-deps-external": "^2.2.3",
     "rollup-plugin-size-snapshot": "^0.12.0",
-    "three": "^0.130"
+    "three": "^0.132.0"
   },
   "peerDependencies": {
     "@14islands/lerp": ">=1.0.3",

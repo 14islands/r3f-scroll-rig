@@ -7,8 +7,9 @@ import { useFrame, useThree } from '@react-three/fiber'
 const WebGLImage = ({ image, scale, scrollState, scene, vertexShader, fragmentShader, invalidateFrameLoop = false, widthSegments = 128, heightSegments = 128 }) => {
   const material = useRef()
   const mesh = useRef()
-  const { pixelRatio, preloadScene } = useScrollRig()
+  const { preloadScene } = useScrollRig()
   const { invalidate, camera, size } = useThree()
+  const pixelRatio = useThree(s => s.viewport.dpr)
 
   const [texture] = useImgTagAsTexture(image.current)
 

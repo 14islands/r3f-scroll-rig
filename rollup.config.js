@@ -25,7 +25,7 @@ const getBabelOptions = ({ useESModules }, targets) => ({
     ['transform-react-remove-prop-types', { removeImport: true }],
     ['@babel/transform-runtime', { regenerator: false, useESModules }],
     ['@babel/plugin-proposal-private-methods', { loose: false }],
-    ['@babel/plugin-proposal-private-property-in-object', { loose: false }]
+    // ['@babel/plugin-proposal-private-property-in-object', { loose: false }]
   ],
 })
 

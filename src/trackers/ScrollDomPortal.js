@@ -4,10 +4,10 @@ import _lerp from '@14islands/lerp'
 import PropTypes from 'prop-types'
 import { useWindowHeight } from '@react-hook/window-size'
 
-import { requestIdleCallback, cancelIdleCallback } from './hooks/requestIdleCallback'
+import { requestIdleCallback, cancelIdleCallback } from '../polyfills/requestIdleCallback'
 
-import config from './config'
-import { useCanvasStore } from './store'
+import config from '../config'
+import { useCanvasStore } from '../store'
 
 // Linear interpolation from last position - high performance easing
 const LAYOUT_LERP = 0.1
@@ -34,7 +34,7 @@ const ScrollDomPortal = forwardRef(
     ref,
   ) => {
     const copyEl = useRef()
-    const local = useRef({ needUpdate: false, offsetY: 0, offsetX: 0, raf: -1 }).current
+    const local = useRef({ needUpdate: false, offsetY: 0, offsetX: 0, raf: -1, lastFrame: -1 }).current
     const bounds = useRef({ top: 0, left: 0, width: 0, height: 0 }).current
     const prevBounds = useRef({ top: 0, wasOffscreen: false }).current
     const viewportHeight = useWindowHeight()
@@ -51,11 +51,11 @@ const ScrollDomPortal = forwardRef(
     useEffect(
       () =>
         useCanvasStore.subscribe(
+          (state) => state.scrollY,
           (y) => {
             scrollY.current = y
             invalidate() // Trigger render on scroll
           },
-          (state) => state.scrollY,
         ),
       [],
     )
@@ -123,8 +123,13 @@ const ScrollDomPortal = forwardRef(
     }, [live])
 
     // RENDER FRAME
-    const frame = ({ gl }, frameDelta) => {
+    const frame = (ts) => {
       const { top, height } = bounds
+      if (!local.lastFrame) {
+        local.lastFrame = ts
+      }
+      const frameDelta = (ts - local.lastFrame) * 0.001
+      local.lastFrame = ts
 
       // get offset from resizing window + offset from callback function from parent
       const offsetX = local.offsetX + ((live && getOffset()?.x) || 0)

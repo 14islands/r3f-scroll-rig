@@ -1,97 +1,18 @@
 import _extends from '@babel/runtime/helpers/esm/extends';
-import React, { useState, useEffect, useLayoutEffect, Fragment, useRef, forwardRef, useMemo, useCallback, Suspense } from 'react';
-import { addEffect, addAfterEffect, invalidate, useThree, useFrame, Canvas, extend, createPortal } from '@react-three/fiber';
+import React, { useState, useEffect, useRef, forwardRef, useMemo, useLayoutEffect, useCallback, Fragment, Suspense } from 'react';
+import { addEffect, addAfterEffect, useFrame, invalidate, useThree, Canvas, extend, createPortal } from '@react-three/fiber';
 import { ResizeObserver } from '@juggle/resize-observer';
 import queryString from 'query-string';
-import StatsImpl from 'three/examples/js/libs/stats.min';
 import create from 'zustand';
-import { Vector2, Color, Scene, MathUtils, ImageBitmapLoader, TextureLoader, CanvasTexture, sRGBEncoding, LinearFilter, RGBFormat, RGBAFormat } from 'three';
+import { subscribeWithSelector } from 'zustand/middleware';
+import StatsImpl from 'three/examples/js/libs/stats.min';
 import { useWindowSize, useWindowHeight } from '@react-hook/window-size';
 import mergeRefs from 'react-merge-refs';
+import { Vector2, Color, Scene, MathUtils, ImageBitmapLoader, TextureLoader, CanvasTexture, sRGBEncoding, LinearFilter, RGBFormat, RGBAFormat } from 'three';
 import PropTypes from 'prop-types';
 import _lerp from '@14islands/lerp';
 import { shaderMaterial } from '@react-three/drei/core/shaderMaterial';
 import ReactDOM from 'react-dom';
-
-// Use to override Frustum temporarily to pre-upload textures to GPU
-function setAllCulled(obj, overrideCulled) {
-  if (!obj) return;
-
-  if (overrideCulled === false) {
-    obj.wasFrustumCulled = obj.frustumCulled;
-    obj.wasVisible = obj.visible;
-    obj.visible = true;
-    obj.frustumCulled = false;
-  } else {
-    obj.visible = obj.wasVisible;
-    obj.frustumCulled = obj.wasFrustumCulled;
-  }
-
-  obj.children.forEach(child => setAllCulled(child, overrideCulled));
-}
-
-var utils = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  setAllCulled: setAllCulled
-});
-
-// Transient shared state for canvas components
-// usContext() causes re-rendering which can drop frames
-const config = {
-  debug: false,
-  fps: false,
-  autoPixelRatio: true,
-  // use PerformanceMonitor
-  // Global lerp settings
-  scrollLerp: 0.14,
-  // Linear interpolation - high performance easing
-  scrollRestDelta: 0.014,
-  // min delta to trigger animation frame on scroll
-  subpixelScrolling: true,
-  // Execution order for useFrames (highest = last render)
-  PRIORITY_PRELOAD: 0,
-  PRIORITY_SCISSORS: 1,
-  PRIORITY_VIEWPORTS: 1,
-  PRIORITY_GLOBAL: 1000,
-  // Scaling
-  scaleMultiplier: 1,
-  // scale pixels vs viewport units (1:1 by default)
-  // Global rendering props
-  globalRender: true,
-  preloadQueue: [],
-  hasVirtualScrollbar: false,
-  hasGlobalCanvas: false,
-  disableAutoClear: true,
-  clearDepth: true
-};
-var config$1 = config;
-
-/* Copied from drei - no need to import just for this */
-
-function Stats(_ref) {
-  let {
-    showPanel = 0,
-    className,
-    parent
-  } = _ref;
-  const [stats] = useState(new StatsImpl());
-  useEffect(() => {
-    if (stats) {
-      const node = parent && parent.current || document.body;
-      stats.showPanel(showPanel);
-      node.appendChild(stats.dom);
-      if (className) stats.dom.classList.add(className);
-      const begin = addEffect(() => stats.begin());
-      const end = addAfterEffect(() => stats.end());
-      return () => {
-        node.removeChild(stats.dom);
-        begin();
-        end();
-      };
-    }
-  }, [parent, stats, className, showPanel]);
-  return null;
-}
 
 /**
  * runtime check for requestIdleCallback
@@ -118,7 +39,7 @@ const cancelIdleCallback = id => {
 };
 var requestIdleCallback$1 = requestIdleCallback;
 
-const useCanvasStore = create(set => ({
+const useCanvasStore = create(subscribeWithSelector(set => ({
   // //////////////////////////////////////////////////////////////////////////
   // GLOBAL ScrollRig STATE
   // //////////////////////////////////////////////////////////////////////////
@@ -199,13 +120,9 @@ const useCanvasStore = create(set => ({
   pageReflowCompleted: 0,
   requestReflow: () => {
     set(state => {
-      // if VirtualScrollbar is active, it triggers `triggerReflowCompleted` instead
-      if (!config$1.hasVirtualScrollbar) {
-        requestIdleCallback(state.triggerReflowCompleted, {
-          timeout: 100
-        });
-      }
-
+      requestIdleCallback(state.triggerReflowCompleted, {
+        timeout: 100
+      });
       return {
         pageReflowRequested: state.pageReflowRequested + 1
       };
@@ -221,7 +138,174 @@ const useCanvasStore = create(set => ({
   setScrollY: scrollY => set(state => ({
     scrollY
   }))
-}));
+})));
+
+// Transient shared state for canvas components
+// usContext() causes re-rendering which can drop frames
+const config = {
+  debug: false,
+  fps: false,
+  autoPixelRatio: true,
+  // use PerformanceMonitor
+  // Global lerp settings
+  scrollLerp: 0.14,
+  // Linear interpolation - high performance easing
+  scrollRestDelta: 0.014,
+  // min delta to trigger animation frame on scroll
+  subpixelScrolling: true,
+  // Execution order for useFrames (highest = last render)
+  PRIORITY_PRELOAD: 0,
+  PRIORITY_SCISSORS: 1,
+  PRIORITY_VIEWPORTS: 1,
+  PRIORITY_GLOBAL: 1000,
+  // Scaling
+  scaleMultiplier: 1,
+  // scale pixels vs viewport units (1:1 by default)
+  // Global rendering props
+  globalRender: true,
+  preloadQueue: [],
+  hasGlobalCanvas: false,
+  disableAutoClear: true,
+  clearDepth: true
+};
+
+/* Copied from drei - no need to import just for this */
+
+function Stats(_ref) {
+  let {
+    showPanel = 0,
+    className,
+    parent
+  } = _ref;
+  const [stats] = useState(new StatsImpl());
+  useEffect(() => {
+    if (stats) {
+      const node = parent && parent.current || document.body;
+      stats.showPanel(showPanel);
+      node.appendChild(stats.dom);
+      if (className) stats.dom.classList.add(className);
+      const begin = addEffect(() => stats.begin());
+      const end = addAfterEffect(() => stats.end());
+      return () => {
+        node.removeChild(stats.dom);
+        begin();
+        end();
+      };
+    }
+  }, [parent, stats, className, showPanel]);
+  return null;
+}
+
+const StatsDebug = _ref => {
+  let {
+    render = true,
+    memory = true
+  } = _ref;
+  const stats = useRef({
+    calls: 0,
+    triangles: 0,
+    geometries: 0,
+    textures: 0
+  }).current;
+  useFrame(_ref2 => {
+    let {
+      gl,
+      clock
+    } = _ref2;
+    gl.info.autoReset = false;
+    const _calls = gl.info.render.calls;
+    const _triangles = gl.info.render.triangles;
+    const _geometries = gl.info.memory.geometries;
+    const _textures = gl.info.memory.textures;
+
+    if (render) {
+      if (_calls !== stats.calls || _triangles !== stats.triangles) {
+        requestIdleCallback(() => console.info('Draw calls: ', _calls, ' Triangles: ', _triangles));
+        stats.calls = _calls;
+        stats.triangles = _triangles;
+      }
+    }
+
+    if (memory) {
+      if (_geometries !== stats.geometries || _textures !== stats.textures) {
+        requestIdleCallback(() => console.info('Geometries: ', _geometries, 'Textures: ', _textures));
+        stats.geometries = _geometries;
+        stats.textures = _textures;
+      }
+    }
+
+    gl.info.reset();
+  });
+  return null;
+};
+
+var StatsDebug$1 = StatsDebug;
+
+/**
+ * Manages Scroll rig resize events by trigger a reflow instead of individual resize listeners in each component
+ * The order is carefully scripted:
+ *  1. reflow() will trigger canvas components to calculate positions
+ *  3. Canvas scroll components listen to `pageReflowCompleted` and recalc positions
+ */
+
+const ResizeManager = _ref => {
+  let {
+    reflow,
+    resizeOnWebFontLoaded = true
+  } = _ref;
+  const mounted = useRef(false);
+  const [windowWidth, windowHeight] = useWindowSize({
+    wait: 300
+  }); // Detect only resize events
+
+  useEffect(() => {
+    if (mounted.current) {
+      config.debug && console.log('ResizeManager', 'reflow() because width changed');
+      reflow();
+    } else {
+      mounted.current = true;
+    }
+  }, [windowWidth, windowHeight]); // reflow on webfont loaded to prevent misalignments
+
+  useEffect(() => {
+    if (!resizeOnWebFontLoaded) return;
+    let fallbackTimer;
+
+    if ('fonts' in document) {
+      document.fonts.onloadingdone = reflow;
+    } else {
+      fallbackTimer = setTimeout(reflow, 1000);
+    }
+
+    return () => {
+      if ('fonts' in document) {
+        document.fonts.onloadingdone = null;
+      } else {
+        clearTimeout(fallbackTimer);
+      }
+    };
+  }, []);
+  return null;
+};
+
+var ResizeManager$1 = ResizeManager;
+
+// Use to override Frustum temporarily to pre-upload textures to GPU
+function setAllCulled(obj, overrideCulled) {
+  if (!obj) return;
+
+  if (overrideCulled === false) {
+    obj.wasFrustumCulled = obj.frustumCulled;
+    obj.wasVisible = obj.visible;
+    obj.visible = true;
+    obj.frustumCulled = false;
+  } else {
+    obj.visible = obj.wasVisible;
+    obj.frustumCulled = obj.wasFrustumCulled;
+  }
+
+  obj.children.forEach(child => setAllCulled(child, overrideCulled));
+}
 
 const viewportSize = new Vector2(); // Flag that we need global rendering (full screen)
 
@@ -286,7 +370,7 @@ const preloadScene = function (scene, camera) {
   let layer = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
   let callback = arguments.length > 3 ? arguments[3] : undefined;
   if (!scene || !camera) return;
-  config$1.preloadQueue.push(gl => {
+  config.preloadQueue.push(gl => {
     gl.setScissorTest(false);
     setAllCulled(scene, false);
     camera.layers.set(layer);
@@ -307,11 +391,9 @@ const useScrollRig = () => {
   const hasVirtualScrollbar = useCanvasStore(state => state.hasVirtualScrollbar);
   const requestReflow = useCanvasStore(state => state.requestReflow);
   const pageReflowCompleted = useCanvasStore(state => state.pageReflowCompleted);
-  const pixelRatio = useCanvasStore(state => state.pixelRatio);
   return {
     isCanvasAvailable,
     hasVirtualScrollbar,
-    pixelRatio,
     preloadScene,
     requestRender,
     renderScissor,
@@ -321,222 +403,10 @@ const useScrollRig = () => {
   };
 };
 
-/**
- * Global render loop to avoid double renders on the same frame
- */
-
-const GlobalRenderer = _ref => {
-  let {
-    children
-  } = _ref;
-  const {
-    gl
-  } = useThree();
-  const canvasChildren = useCanvasStore(state => state.canvasChildren);
-  const scrollRig = useScrollRig();
-  useLayoutEffect(() => {
-    gl.debug.checkShaderErrors = config$1.debug;
-  }, []);
-  useEffect(() => {
-    // clear canvas automatically if all children were removed
-    if (!children && !Object.keys(canvasChildren).length) {
-      config$1.debug && console.log('GlobalRenderer', 'auto clear empty canvas');
-      gl.clear();
-    }
-  }, [children, canvasChildren]); // PRELOAD RENDER LOOP
-
-  useFrame(_ref2 => {
-    if (!config$1.preloadQueue.length) return;
-    gl.autoClear = false; // Render preload frames first and clear directly
-
-    config$1.preloadQueue.forEach(render => render(gl)); // cleanup
-
-    gl.clear();
-    config$1.preloadQueue = [];
-    gl.autoClear = true; // trigger new frame to get correct visual state after all preloads
-
-    config$1.debug && console.log('GlobalRenderer', 'preload complete. trigger global render');
-    scrollRig.requestRender();
-    invalidate();
-  }, config$1.PRIORITY_PRELOAD); // GLOBAL RENDER LOOP
-
-  useFrame(_ref3 => {
-    let {
-      camera,
-      scene
-    } = _ref3;
-
-    // Global render pass
-    if (config$1.globalRender && useCanvasStore.getState().globalRenderQueue) {
-      if (config$1.disableAutoClear) {
-        gl.autoClear = false; // will fail in VR
-      } // render default layer, scene, camera
-
-
-      camera.layers.disableAll();
-      useCanvasStore.getState().globalRenderQueue.forEach(layer => {
-        camera.layers.enable(layer);
-      });
-      config$1.clearDepth && gl.clearDepth(); // render as HUD over any other renders
-
-      gl.render(scene, camera); // cleanup for next frame
-
-      useCanvasStore.getState().clearGlobalRenderQueue();
-      gl.autoClear = true;
-    }
-  }, config$1.globalRender ? config$1.PRIORITY_GLOBAL : undefined); // Take over rendering
-
-  config$1.debug && console.log('GlobalRenderer', Object.keys(canvasChildren).length);
-  return /*#__PURE__*/React.createElement(React.Fragment, null, Object.keys(canvasChildren).map((key, i) => {
-    const {
-      mesh,
-      props
-    } = canvasChildren[key];
-
-    if (typeof mesh === 'function') {
-      return /*#__PURE__*/React.createElement(Fragment, {
-        key: key
-      }, mesh({
-        key,
-        ...scrollRig,
-        ...props
-      }));
-    }
-
-    return /*#__PURE__*/React.cloneElement(mesh, {
-      key,
-      ...props
-    });
-  }), children);
-};
-
-var GlobalRenderer$1 = GlobalRenderer;
-
-const PerformanceMonitor = () => {
-  const size = useThree(s => s.size);
-  const setDpr = useThree(s => s.setDpr);
-  useEffect(() => {
-    const devicePixelRatio = window.devicePixelRatio || 1;
-
-    if (devicePixelRatio > 1) {
-      const MAX_PIXEL_RATIO = 2.5; // TODO Can we allow better resolution on more powerful computers somehow?
-      // Calculate avg frame rate and lower pixelRatio on demand?
-      // scale down when scrolling fast?
-
-      let scale;
-      scale = size.width > 1500 ? 0.9 : 1.0;
-      scale = size.width > 1900 ? 0.8 : scale;
-      const pixelRatio = Math.max(1.0, Math.min(MAX_PIXEL_RATIO, devicePixelRatio * scale));
-      config$1.debug && console.info('PerformanceMonitor', 'Set pixelRatio', pixelRatio);
-      setDpr(pixelRatio);
-      console.log('setDpr', pixelRatio);
-    }
-  }, [size]);
-  return null;
-};
-
-var PerformanceMonitor$1 = PerformanceMonitor;
-
-const StatsDebug = _ref => {
-  let {
-    render = true,
-    memory = true
-  } = _ref;
-  const stats = useRef({
-    calls: 0,
-    triangles: 0,
-    geometries: 0,
-    textures: 0
-  }).current;
-  useFrame(_ref2 => {
-    let {
-      gl,
-      clock
-    } = _ref2;
-    gl.info.autoReset = false;
-    const _calls = gl.info.render.calls;
-    const _triangles = gl.info.render.triangles;
-    const _geometries = gl.info.memory.geometries;
-    const _textures = gl.info.memory.textures;
-
-    if (render) {
-      if (_calls !== stats.calls || _triangles !== stats.triangles) {
-        requestIdleCallback(() => console.info('Draw calls: ', _calls, ' Triangles: ', _triangles));
-        stats.calls = _calls;
-        stats.triangles = _triangles;
-      }
-    }
-
-    if (memory) {
-      if (_geometries !== stats.geometries || _textures !== stats.textures) {
-        requestIdleCallback(() => console.info('Geometries: ', _geometries, 'Textures: ', _textures));
-        stats.geometries = _geometries;
-        stats.textures = _textures;
-      }
-    }
-
-    gl.info.reset();
-  });
-  return null;
-};
-
-var StatsDebug$1 = StatsDebug;
-
-/**
- * Manages Scroll rig resize events by trigger a reflow instead of individual resize listeners in each component
- * The order is carefully scripted:
- *  1. reflow() will cause VirtualScrollbar to recalculate positions
- *  2. VirtualScrollbar triggers `pageReflowCompleted`
- *  3. Canvas scroll components listen to  `pageReflowCompleted` and recalc positions
- */
-
-const ResizeManager = _ref => {
-  let {
-    reflow,
-    resizeOnWebFontLoaded = true
-  } = _ref;
-  const mounted = useRef(false); // must be debounced more than the GlobalCanvas so all components have the correct value from useThree({ size })
-
-  const [windowWidth, windowHeight] = useWindowSize({
-    wait: 300
-  }); // Detect only resize events
-
-  useEffect(() => {
-    if (mounted.current) {
-      config$1.debug && console.log('ResizeManager', 'reflow()');
-      reflow();
-    } else {
-      mounted.current = true;
-    }
-  }, [windowWidth, windowHeight]); // reflow on webfont loaded to prevent misalignments
-
-  useEffect(() => {
-    if (!resizeOnWebFontLoaded) return;
-    let fallbackTimer;
-
-    if ('fonts' in document) {
-      document.fonts.onloadingdone = reflow;
-    } else {
-      fallbackTimer = setTimeout(reflow, 1000);
-    }
-
-    return () => {
-      if ('fonts' in document) {
-        document.fonts.onloadingdone = null;
-      } else {
-        clearTimeout(fallbackTimer);
-      }
-    };
-  }, []);
-  return null;
-};
-
-var ResizeManager$1 = ResizeManager;
-
 const PerspectiveCamera = /*#__PURE__*/forwardRef((_ref, ref) => {
   let {
     makeDefault = false,
-    scaleMultiplier = config$1.scaleMultiplier,
+    scaleMultiplier = config.scaleMultiplier,
     ...props
   } = _ref;
   const set = useThree(state => state.set);
@@ -587,7 +457,7 @@ var PerspectiveCamera$1 = PerspectiveCamera;
 const OrthographicCamera = /*#__PURE__*/forwardRef((_ref, ref) => {
   let {
     makeDefault = false,
-    scaleMultiplier = config$1.scaleMultiplier,
+    scaleMultiplier = config.scaleMultiplier,
     ...props
   } = _ref;
   const set = useThree(state => state.set);
@@ -652,6 +522,100 @@ const DefaultScrollTracker = () => {
 };
 var DefaultScrollTracker$1 = DefaultScrollTracker;
 
+/**
+ * Global render loop to avoid double renders on the same frame
+ */
+
+const GlobalRenderer = _ref => {
+  let {
+    children
+  } = _ref;
+  const gl = useThree(s => s.gl);
+  const frameloop = useThree(s => s.frameloop);
+  const canvasChildren = useCanvasStore(state => state.canvasChildren);
+  const scrollRig = useScrollRig();
+  useLayoutEffect(() => {
+    gl.debug.checkShaderErrors = config.debug;
+  }, []);
+  useEffect(() => {
+    // clear canvas automatically if all children were removed
+    if (!children && !Object.keys(canvasChildren).length) {
+      config.debug && console.log('GlobalRenderer', 'auto clear empty canvas');
+      gl.clear();
+    }
+  }, [children, canvasChildren]); // PRELOAD RENDER LOOP
+
+  useFrame(_ref2 => {
+    if (!config.preloadQueue.length) return;
+    gl.autoClear = false; // Render preload frames first and clear directly
+
+    config.preloadQueue.forEach(render => render(gl)); // cleanup
+
+    gl.clear();
+    config.preloadQueue = [];
+    gl.autoClear = true; // trigger new frame to get correct visual state after all preloads
+
+    config.debug && console.log('GlobalRenderer', 'preload complete. trigger global render');
+    scrollRig.requestRender();
+    invalidate();
+  }, config.PRIORITY_PRELOAD); // GLOBAL RENDER LOOP
+
+  useFrame(_ref3 => {
+    let {
+      camera,
+      scene
+    } = _ref3;
+    const globalRenderQueue = useCanvasStore.getState().globalRenderQueue; // Render if requested or if always on
+
+    if (config.globalRender && (frameloop === 'always' || globalRenderQueue)) {
+      if (config.disableAutoClear) {
+        gl.autoClear = false; // will fail in VR
+      } // render default layer, scene, camera
+
+
+      camera.layers.disableAll();
+
+      if (globalRenderQueue) {
+        globalRenderQueue.forEach(layer => {
+          camera.layers.enable(layer);
+        });
+      }
+
+      config.clearDepth && gl.clearDepth(); // render as HUD over any other renders
+
+      gl.render(scene, camera); // cleanup for next frame
+
+      useCanvasStore.getState().clearGlobalRenderQueue();
+      gl.autoClear = true;
+    }
+  }, config.globalRender ? config.PRIORITY_GLOBAL : undefined); // Take over rendering
+
+  config.debug && console.log('GlobalRenderer', Object.keys(canvasChildren).length);
+  return /*#__PURE__*/React.createElement(React.Fragment, null, Object.keys(canvasChildren).map((key, i) => {
+    const {
+      mesh,
+      props
+    } = canvasChildren[key];
+
+    if (typeof mesh === 'function') {
+      return /*#__PURE__*/React.createElement(Fragment, {
+        key: key
+      }, mesh({
+        key,
+        ...scrollRig,
+        ...props
+      }));
+    }
+
+    return /*#__PURE__*/React.cloneElement(mesh, {
+      key,
+      ...props
+    });
+  }), children);
+};
+
+var GlobalRenderer$1 = GlobalRenderer;
+
 class CanvasErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -700,27 +664,19 @@ const GlobalCanvas = _ref => {
   const requestReflow = useCanvasStore(state => state.requestReflow); // override config
 
   useMemo(() => {
-    Object.assign(config$1, confOverrides);
-  }, [confOverrides]); // flag that global canvas is active
+    Object.assign(config, confOverrides); // Querystring overrides
 
-  useEffect(() => {
-    config$1.hasGlobalCanvas = true;
-    return () => {
-      config$1.hasGlobalCanvas = false;
-    };
-  }, []);
-  useEffect(() => {
     const qs = queryString.parse(window.location.search); // show FPS counter on request
 
     if (typeof qs.fps !== 'undefined') {
-      config$1.fps = true;
+      config.fps = true;
     } // show debug statements
 
 
     if (typeof qs.debug !== 'undefined') {
-      config$1.debug = true;
+      config.debug = true;
     }
-  }, []);
+  }, [confOverrides]);
   const CanvasElement = as;
   return /*#__PURE__*/React.createElement(CanvasElement, _extends({
     className: "ScrollRigCanvas" // use our own default camera
@@ -763,7 +719,7 @@ const GlobalCanvas = _ref => {
     makeDefault: true
   }, camera)), orthographic && /*#__PURE__*/React.createElement(OrthographicCamera$1, _extends({
     makeDefault: true
-  }, camera)), config$1.debug && /*#__PURE__*/React.createElement(StatsDebug$1, null), config$1.fps && /*#__PURE__*/React.createElement(Stats, null), config$1.autoPixelRatio && /*#__PURE__*/React.createElement(PerformanceMonitor$1, null), /*#__PURE__*/React.createElement(ResizeManager$1, {
+  }, camera)), config.debug && /*#__PURE__*/React.createElement(StatsDebug$1, null), config.fps && /*#__PURE__*/React.createElement(Stats, null), /*#__PURE__*/React.createElement(ResizeManager$1, {
     reflow: requestReflow
   }), /*#__PURE__*/React.createElement(DefaultScrollTracker$1, null));
 };
@@ -843,7 +799,7 @@ let ScrollScene = _ref => {
     // change current lerp by a factor - use this instead of `lerp`
     children,
     renderOrder = 1,
-    priority = config$1.PRIORITY_SCISSORS,
+    priority = config.PRIORITY_SCISSORS,
     margin = 14,
     // Margin outside viewport to avoid clipping vertex displacement (px)
     inViewportMargin,
@@ -867,7 +823,6 @@ let ScrollScene = _ref => {
       setScene(node);
     }
   }, []);
-  useRef();
   const [scene, setScene] = useState(scissor ? new Scene() : null);
   const [inViewport, setInViewport] = useState(false);
   const [scale, setScale] = useState(null);
@@ -882,10 +837,10 @@ let ScrollScene = _ref => {
   const pageReflowCompleted = useCanvasStore(state => state.pageReflowCompleted); // get initial scrollY and listen for transient updates
 
   const scrollY = useRef(useCanvasStore.getState().scrollY);
-  useEffect(() => useCanvasStore.subscribe(y => {
+  useEffect(() => useCanvasStore.subscribe(state => state.scrollY, y => {
     scrollY.current = y;
     invalidate(); // Trigger render on scroll
-  }, state => state.scrollY), []); // non-reactive state
+  }), []); // non-reactive state
 
   const transient = useRef({
     mounted: false,
@@ -950,17 +905,17 @@ let ScrollScene = _ref => {
     bounds.centerOffset = size.height * 0.5 - height * 0.5; // scale in viewport units and pixel
 
     setScale({
-      width: width * config$1.scaleMultiplier,
-      height: height * config$1.scaleMultiplier,
-      multiplier: config$1.scaleMultiplier,
+      width: width * config.scaleMultiplier,
+      height: height * config.scaleMultiplier,
+      multiplier: config.scaleMultiplier,
       pixelWidth: width,
       pixelHeight: height,
-      viewportWidth: size.width * config$1.scaleMultiplier,
-      viewportHeight: size.height * config$1.scaleMultiplier
+      viewportWidth: size.width * config.scaleMultiplier,
+      viewportHeight: size.height * config.scaleMultiplier
     }); // place horizontally
 
     bounds.x = left - size.width * 0.5 + width * 0.5;
-    scene.position.x = bounds.x * config$1.scaleMultiplier; // prevents ghost lerp on first render
+    scene.position.x = bounds.x * config.scaleMultiplier; // prevents ghost lerp on first render
 
     if (transient.isFirstRender) {
       prevBounds.y = top - bounds.centerOffset;
@@ -992,14 +947,14 @@ let ScrollScene = _ref => {
       prevBounds
     } = transient; // Find new Y based on cached position and scroll
 
-    const initialPos = config$1.subpixelScrolling ? bounds.top - bounds.centerOffset : Math.floor(bounds.top - bounds.centerOffset);
+    const initialPos = config.subpixelScrolling ? bounds.top - bounds.centerOffset : Math.floor(bounds.top - bounds.centerOffset);
     const y = initialPos - scrollY.current; // frame delta
 
     const delta = Math.abs(prevBounds.y - y); // Lerp the distance to simulate easing
 
-    const lerpY = _lerp(prevBounds.y, y, (lerp || config$1.scrollLerp) * lerpOffset, frameDelta);
+    const lerpY = _lerp(prevBounds.y, y, (lerp || config.scrollLerp) * lerpOffset, frameDelta);
 
-    const newY = config$1.subpixelScrolling ? lerpY : Math.floor(lerpY); // Abort if element not in screen
+    const newY = config.subpixelScrolling ? lerpY : Math.floor(lerpY); // Abort if element not in screen
 
     const scrollMargin = inViewportMargin || size.height * 0.33;
     const isOffscreen = hideOffscreen && (newY + size.height * 0.5 + scale.pixelHeight * 0.5 < -scrollMargin || newY + size.height * 0.5 - scale.pixelHeight * 0.5 > size.height + scrollMargin); // store top value for next frame
@@ -1013,7 +968,7 @@ let ScrollScene = _ref => {
     if (scene.visible) {
       // move scene
       if (!positionFixed) {
-        scene.position.y = -newY * config$1.scaleMultiplier;
+        scene.position.y = -newY * config.scaleMultiplier;
       }
 
       const positiveYUpBottom = size.height * 0.5 - (newY + scale.pixelHeight * 0.5); // inverse Y
@@ -1042,7 +997,7 @@ let ScrollScene = _ref => {
     } // render another frame if delta is large enough
 
 
-    if (!isOffscreen && delta > config$1.scrollRestDelta) {
+    if (!isOffscreen && delta > config.scrollRestDelta) {
       invalidate();
     }
   }, priority);
@@ -1053,7 +1008,7 @@ let ScrollScene = _ref => {
   }), children && scene && scale && children({
     // inherited props
     el,
-    lerp: lerp || config$1.scrollLerp,
+    lerp: lerp || config.scrollLerp,
     lerpOffset,
     margin,
     renderOrder,
@@ -1065,7 +1020,7 @@ let ScrollScene = _ref => {
     scene,
     inViewport,
     // useFrame render priority (in case children need to run after)
-    priority: config$1.PRIORITY_SCISSORS + renderOrder,
+    priority: config.PRIORITY_SCISSORS + renderOrder,
     // tunnel the rest
     ...props
   })); // portal if scissor or inline nested scene
@@ -1099,7 +1054,7 @@ ScrollScene.childPropTypes = { ...ScrollScene.propTypes,
   inViewport: PropTypes.bool // {x,y} to scale
 
 };
-ScrollScene.priority = config$1.PRIORITY_SCISSORS;
+ScrollScene.priority = config.PRIORITY_SCISSORS;
 
 const LAYOUT_LERP = 0.1;
 /**
@@ -1130,7 +1085,8 @@ const ScrollDomPortal = /*#__PURE__*/forwardRef((_ref, ref) => {
     needUpdate: false,
     offsetY: 0,
     offsetX: 0,
-    raf: -1
+    raf: -1,
+    lastFrame: -1
   }).current;
   const bounds = useRef({
     top: 0,
@@ -1152,10 +1108,10 @@ const ScrollDomPortal = /*#__PURE__*/forwardRef((_ref, ref) => {
 
 
   const scrollY = useRef(useCanvasStore.getState().scrollY);
-  useEffect(() => useCanvasStore.subscribe(y => {
+  useEffect(() => useCanvasStore.subscribe(state => state.scrollY, y => {
     scrollY.current = y;
     invalidate(); // Trigger render on scroll
-  }, state => state.scrollY), []); // Find initial position of proxy element on mount
+  }), []); // Find initial position of proxy element on mount
 
   useEffect(() => {
     if (!el || !el.current) return;
@@ -1227,12 +1183,20 @@ const ScrollDomPortal = /*#__PURE__*/forwardRef((_ref, ref) => {
     return () => cancelIdleCallback(id);
   }, [live]); // RENDER FRAME
 
-  const frame = (_ref2, frameDelta) => {
+  const frame = ts => {
     var _getOffset, _getOffset2;
+
     const {
       top,
       height
-    } = bounds; // get offset from resizing window + offset from callback function from parent
+    } = bounds;
+
+    if (!local.lastFrame) {
+      local.lastFrame = ts;
+    }
+
+    const frameDelta = (ts - local.lastFrame) * 0.001;
+    local.lastFrame = ts; // get offset from resizing window + offset from callback function from parent
 
     const offsetX = local.offsetX + (live && ((_getOffset = getOffset()) === null || _getOffset === void 0 ? void 0 : _getOffset.x) || 0);
     const offsetY = local.offsetY + (live && ((_getOffset2 = getOffset()) === null || _getOffset2 === void 0 ? void 0 : _getOffset2.y) || 0); // add scroll value to bounds to get current position
@@ -1242,13 +1206,13 @@ const ScrollDomPortal = /*#__PURE__*/forwardRef((_ref, ref) => {
     const deltaScroll = prevBounds.top - scrollTop;
     const delta = Math.abs(deltaScroll) + Math.abs(prevBounds.x - offsetX) + Math.abs(prevBounds.y - offsetY);
 
-    if (!local.needUpdate && delta < config$1.scrollRestDelta) {
+    if (!local.needUpdate && delta < config.scrollRestDelta) {
       // abort if no delta change
       return;
     } // Lerp the distance
 
 
-    const lerpScroll = _lerp(prevBounds.top, scrollTop, (lerp || config$1.scrollLerp) * lerpOffset, frameDelta);
+    const lerpScroll = _lerp(prevBounds.top, scrollTop, (lerp || config.scrollLerp) * lerpOffset, frameDelta);
 
     const lerpX = _lerp(prevBounds.x, offsetX, layoutLerp, frameDelta);
 
@@ -1279,7 +1243,7 @@ const ScrollDomPortal = /*#__PURE__*/forwardRef((_ref, ref) => {
     prevBounds.y = lerpY;
     local.needUpdate = false; // render another frame if delta is large enough
 
-    if (!isOffscreen && delta > config$1.scrollRestDelta) {
+    if (!isOffscreen && delta > config.scrollRestDelta) {
       invalidate();
       local.needUpdate = true;
     }
@@ -1490,11 +1454,11 @@ let ViewportScrollScene = _ref => {
     // Margin outside viewport to avoid clipping vertex displacement (px)
     visible = true,
     renderOrder,
-    priority = config$1.PRIORITY_VIEWPORTS,
+    priority = config.PRIORITY_VIEWPORTS,
     debug = false,
     setInViewportProp = false,
     renderOnTop = false,
-    scaleMultiplier = config$1.scaleMultiplier,
+    scaleMultiplier = config.scaleMultiplier,
     // use global setting as default
     orthographic = false,
     hiddenStyle = {
@@ -1538,10 +1502,10 @@ let ViewportScrollScene = _ref => {
   }).current; // get initial scrollY and listen for transient updates
 
   const scrollY = useRef(useCanvasStore.getState().scrollY);
-  useEffect(() => useCanvasStore.subscribe(y => {
+  useEffect(() => useCanvasStore.subscribe(state => state.scrollY, y => {
     scrollY.current = y;
     invalidate(); // Trigger render on scroll
-  }, state => state.scrollY), []);
+  }), []);
   useEffect(() => {
     transient.mounted = true;
     return () => {
@@ -1631,14 +1595,14 @@ let ViewportScrollScene = _ref => {
       prevBounds
     } = transient; // add scroll value to bounds to get current position
 
-    const initialPos = config$1.subpixelScrolling ? bounds.top : Math.floor(bounds.top);
+    const initialPos = config.subpixelScrolling ? bounds.top : Math.floor(bounds.top);
     const topY = initialPos - scrollY.current; // frame delta
 
     const delta = Math.abs(prevBounds.top - topY); // Lerp the distance to simulate easing
 
-    const lerpTop = _lerp(prevBounds.top, topY, (lerp || config$1.scrollLerp) * lerpOffset, frameDelta);
+    const lerpTop = _lerp(prevBounds.top, topY, (lerp || config.scrollLerp) * lerpOffset, frameDelta);
 
-    const newTop = config$1.subpixelScrolling ? lerpTop : Math.floor(lerpTop); // Abort if element not in screen
+    const newTop = config.subpixelScrolling ? lerpTop : Math.floor(lerpTop); // Abort if element not in screen
 
     const isOffscreen = newTop + bounds.height < -100 || newTop > size.height + 100; // store top value for next frame
 
@@ -1672,7 +1636,7 @@ let ViewportScrollScene = _ref => {
     } // render another frame if delta is large enough
 
 
-    if (!isOffscreen && delta > config$1.scrollRestDelta) {
+    if (!isOffscreen && delta > config.scrollRestDelta) {
       invalidate();
     }
   }, priority);
@@ -1697,7 +1661,7 @@ let ViewportScrollScene = _ref => {
   }), children && scene && scale && children({
     // inherited props
     el,
-    lerp: lerp || config$1.scrollLerp,
+    lerp: lerp || config.scrollLerp,
     lerpOffset,
     margin,
     renderOrder,
@@ -1710,7 +1674,7 @@ let ViewportScrollScene = _ref => {
     camera: camera.current,
     inViewport,
     // useFrame render priority (in case children need to run after)
-    priority: config$1.PRIORITY_VIEWPORTS + renderOrder,
+    priority: config.PRIORITY_VIEWPORTS + renderOrder,
     // tunnel the rest
     ...props
   }))), scene);
@@ -1795,7 +1759,9 @@ const HijackedScrollbar = _ref => {
     disabled,
     onUpdate,
     speed = 1,
+    // scroll speed
     lerp,
+    // smoothness - default = 0.14
     restDelta,
     location,
     useUpdateLoop,
@@ -1807,6 +1773,7 @@ const HijackedScrollbar = _ref => {
     subpixelScrolling = false
   } = _ref;
   const setVirtualScrollbar = useCanvasStore(state => state.setVirtualScrollbar);
+  const requestReflow = useCanvasStore(state => state.requestReflow);
   const pageReflowRequested = useCanvasStore(state => state.pageReflowRequested);
   const setScrollY = useCanvasStore(state => state.setScrollY);
   const [width, height] = useWindowSize();
@@ -1821,7 +1788,19 @@ const HijackedScrollbar = _ref => {
   const documentHeight = useRef(0);
   const delta = useRef(0);
   const lastFrame = useRef(0);
-  const originalLerp = useRef(lerp || config$1.scrollLerp).current;
+  const originalLerp = useMemo(() => lerp || config.scrollLerp, [lerp]); // reflow on webfont loaded to prevent misalignments
+
+  useLayoutEffect(() => {
+    if ('fonts' in document) {
+      document.fonts.onloadingdone = requestReflow;
+    }
+
+    return () => {
+      if ('fonts' in document) {
+        document.fonts.onloadingdone = null;
+      }
+    };
+  }, []);
 
   const setScrollPosition = () => {
     if (!scrolling.current) return;
@@ -1831,7 +1810,7 @@ const HijackedScrollbar = _ref => {
 
     onUpdate && onUpdate(y);
 
-    if (delta.current <= (restDelta || config$1.scrollRestDelta)) {
+    if (delta.current <= (restDelta || config.scrollRestDelta)) {
       scrolling.current = false;
       preventPointerEvents(false);
     } else {
@@ -1844,21 +1823,21 @@ const HijackedScrollbar = _ref => {
     lastFrame.current = ts;
     if (!scrolling.current) return; // use internal target with floating point precision to make sure lerp is smooth
 
-    const newTarget = _lerp(y.current, y.target, config$1.scrollLerp, frameDelta * 0.001);
+    const newTarget = _lerp(y.current, y.target, config.scrollLerp, frameDelta * 0.001);
 
     delta.current = Math.abs(y.current - newTarget);
     y.current = newTarget; // round for scrollbar
 
-    roundedY.current = config$1.subpixelScrolling ? y.current : Math.floor(y.current);
+    roundedY.current = config.subpixelScrolling ? y.current : Math.floor(y.current);
 
     if (!useRenderLoop) {
       setScrollPosition();
     }
   };
 
-  const scrollTo = function (newY) {
+  const scrollTo = useCallback(function (newY) {
     let lerp = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : originalLerp;
-    config$1.scrollLerp = lerp;
+    config.scrollLerp = lerp;
     y.target = Math.min(Math.max(newY, 0), documentHeight.current);
 
     if (!scrolling.current) {
@@ -1871,8 +1850,7 @@ const HijackedScrollbar = _ref => {
     }
 
     setScrollY(y.target);
-  }; // disable pointer events while scrolling to avoid slow event handlers
-
+  }, []); // disable pointer events while scrolling to avoid slow event handlers
 
   const preventPointerEvents = prevent => {
     if (ref.current) {
@@ -1883,17 +1861,12 @@ const HijackedScrollbar = _ref => {
   }; // reset pointer events when moving mouse
 
 
-  const onMouseMove = () => {
+  const onMouseMove = useCallback(() => {
     if (preventPointer.current) {
       preventPointerEvents(false);
     }
-  }; // Bind mouse event
-
-
-  useEffect(() => {
-    window.addEventListener('mousemove', onMouseMove);
-    return () => window.removeEventListener('mousemove', onMouseMove);
-  }, []); // override window.scrollTo(0, targetY)
+  }, []); // override window.scrollTo(0, targetY) with our lerped version
+  // Don't use useLayoutEffect as we want the native scrollTo to execute first and set the history position
 
   useEffect(() => {
     window.__origScrollTo = window.__origScrollTo || window.scrollTo;
@@ -1907,20 +1880,13 @@ const HijackedScrollbar = _ref => {
       window.scrollTo = window.__origScrollTo;
       window.scroll = window.__origScroll;
     };
-  }, []); // disable subpixelScrolling for better visual sync with canvas
+  }, [scrollTo]); // disable subpixelScrolling for better visual sync with canvas
 
-  useEffect(() => {
-    const ssBefore = config$1.subpixelScrolling;
-    config$1.subpixelScrolling = subpixelScrolling;
+  useLayoutEffect(() => {
+    const ssBefore = config.subpixelScrolling;
+    config.subpixelScrolling = subpixelScrolling;
     return () => {
-      config$1.subpixelScrolling = ssBefore;
-    };
-  }, []); // reset scroll on mount/unmount FIX history?!
-
-  useEffect(() => {
-    setScrollY(window.pageYOffset);
-    return () => {
-      setScrollY(window.pageYOffset);
+      config.subpixelScrolling = ssBefore;
     };
   }, []); // Check if we are using an external update loop (like r3f)
   // update scroll target before everything else
@@ -1937,17 +1903,20 @@ const HijackedScrollbar = _ref => {
       return useRenderLoop(setScrollPosition);
     }
   }, [useRenderLoop]);
+  /*
+   * Called by each call to native window.scroll
+   * Either as a scrollbar / key navigation event
+   * Or as a result of the lerp animation
+   */
 
   const onScrollEvent = e => {
-    e.preventDefault(); // Scroll manually using keys or drag scrollbars
-
+    // If scrolling manually using keys or drag scrollbars
     if (!scrolling.current) {
+      // skip lerp
       y.current = window.scrollY;
-      y.target = window.scrollY; // set lerp to 1 temporarily so stuff moves immediately
-      // if (!config._scrollLerp) {
-      //   config._scrollLerp = config.scrollLerp
-      // }
-      // config.scrollLerp = 1
+      y.target = window.scrollY; // set lerp to 1 temporarily so canvas also moves immediately
+
+      config.scrollLerp = 1; // update internal state to we are in sync
 
       setScrollY(y.target);
       onUpdate && onUpdate(y);
@@ -2048,6 +2017,7 @@ const HijackedScrollbar = _ref => {
     window.addEventListener('touchstart', onTouchStart, {
       passive: false
     });
+    window.addEventListener('mousemove', onMouseMove);
     return () => {
       window.removeEventListener('wheel', onWheelEvent, {
         passive: false
@@ -2056,6 +2026,7 @@ const HijackedScrollbar = _ref => {
       window.removeEventListener('touchstart', onTouchStart, {
         passive: false
       });
+      window.removeEventListener('mousemove', onMouseMove);
     };
   }, [disabled]);
   return /*#__PURE__*/React.createElement(React.Fragment, null, children({
@@ -2075,321 +2046,6 @@ HijackedScrollbar.propTypes = {
   subpixelScrolling: PropTypes.bool
 };
 
-const FakeScroller = _ref => {
-  let {
-    el,
-    lerp = config$1.scrollLerp,
-    restDelta = config$1.scrollRestDelta,
-    onUpdate,
-    threshold = 100
-  } = _ref;
-  const pageReflowRequested = useCanvasStore(state => state.pageReflowRequested);
-  const triggerReflowCompleted = useCanvasStore(state => state.triggerReflowCompleted);
-  const setScrollY = useCanvasStore(state => state.setScrollY);
-  const heightEl = useRef();
-  const lastFrame = useRef(0);
-  const [fakeHeight, setFakeHeight] = useState();
-  const state = useRef({
-    preventPointer: false,
-    total: 0,
-    scroll: {
-      target: 0,
-      current: 0,
-      lerp,
-      direction: 0,
-      velocity: 0
-    },
-    bounds: {
-      height: window.innerHeight,
-      scrollHeight: 0
-    },
-    isResizing: false,
-    sectionEls: null,
-    sections: null
-  }).current; // ANIMATION LOOP
-
-  const run = ts => {
-    const frameDelta = ts - lastFrame.current;
-    lastFrame.current = ts;
-    state.frame = window.requestAnimationFrame(run);
-    const {
-      scroll
-    } = state;
-    scroll.current = _lerp(scroll.current, scroll.target, scroll.lerp, frameDelta * 0.001);
-    const delta = scroll.current - scroll.target;
-    scroll.velocity = Math.abs(delta); // TODO fps independent velocity
-
-    scroll.direction = Math.sign(delta);
-    transformSections(); // update callback
-
-    onUpdate && onUpdate(scroll); // stop animation if delta is low
-
-    if (scroll.velocity < restDelta) {
-      window.cancelAnimationFrame(state.frame);
-      state.frame = null; // el.current && el.current.classList.remove('is-scrolling')
-
-      preventPointerEvents(false);
-    }
-  };
-
-  const transformSections = () => {
-    const {
-      total,
-      isResizing,
-      scroll,
-      sections
-    } = state;
-    const translate = `translate3d(0, ${-scroll.current}px, 0)`;
-    if (!sections) return;
-
-    for (let i = 0; i < total; i++) {
-      const data = sections[i];
-      const {
-        el,
-        bounds
-      } = data;
-
-      if (isVisible(bounds) || isResizing) {
-        Object.assign(data, {
-          out: false
-        });
-        el.style.transform = translate;
-      } else if (!data.out) {
-        Object.assign(data, {
-          out: true
-        });
-        el.style.transform = translate;
-      }
-    }
-  };
-
-  const isVisible = bounds => {
-    const {
-      height
-    } = state.bounds;
-    const {
-      current
-    } = state.scroll;
-    const {
-      top,
-      bottom
-    } = bounds;
-    const start = top - current;
-    const end = bottom - current;
-    const isVisible = start < threshold + height && end > -threshold;
-    return isVisible;
-  };
-
-  const getSections = () => {
-    if (!state.sectionEls) return;
-    state.sections = [];
-    state.sectionEls.forEach(el => {
-      el.style.transform = 'translate3d(0, 0, 0)'; // FF complains that we exceed the budget for willChange and will ignore the rest
-      // Testing to remove this to see if it speeds up other things
-      // el.style.willChange = 'transform'
-
-      const {
-        top,
-        bottom
-      } = el.getBoundingClientRect();
-      state.sections.push({
-        el,
-        bounds: {
-          top,
-          bottom
-        },
-        out: true
-      });
-    });
-  }; // disable pointer events while scrolling to avoid slow event handlers
-
-
-  const preventPointerEvents = prevent => {
-    if (el.current) {
-      el.current.style.pointerEvents = prevent ? 'none' : '';
-    }
-
-    state.preventPointer = prevent;
-  };
-
-  const onScroll = val => {
-    // check if use with scroll wrapper or native scroll event
-    state.scroll.target = window.pageYOffset;
-    setScrollY(state.scroll.target); // restart animation loop if needed
-
-    if (!state.frame && !state.isResizing) {
-      state.frame = window.requestAnimationFrame(run);
-    }
-
-    if (!state.preventPointer && state.scroll.velocity > 100) {
-      setTimeout(() => {
-        // el.current && el.current.classList.add('is-scrolling')
-        state.preventPointer = true;
-        preventPointerEvents(true);
-      }, 0);
-    }
-  }; // reset pointer events when moving mouse
-
-
-  const onMouseMove = () => {
-    if (state.preventPointer) {
-      preventPointerEvents(false);
-    }
-  }; // Bind mouse event
-
-
-  useEffect(() => {
-    window.addEventListener('mousemove', onMouseMove);
-    return () => window.removeEventListener('mousemove', onMouseMove);
-  }, []); // Bind scroll event
-
-  useEffect(() => {
-    window.addEventListener('scroll', onScroll);
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
-  useEffect(() => {
-    if (el.current) {
-      state.sectionEls = Array.from(el.current.children);
-      state.total = state.sectionEls.length;
-      getSections();
-    } // reset on umount
-
-
-    return () => {
-      const {
-        sections
-      } = state;
-
-      if (sections) {
-        sections.forEach(_ref2 => {
-          let {
-            el,
-            bounds
-          } = _ref2;
-          el.style.transform = '';
-        });
-        state.sections = null;
-      }
-    };
-  }, [el.current]); // RESIZE calculate fake height and move elemnts into place
-
-  const handleResize = () => {
-    const {
-      total,
-      bounds,
-      sections,
-      scroll
-    } = state;
-    state.isResizing = true;
-    bounds.height = window.innerHeight; // move els back into place and measure their offset
-
-    if (sections) {
-      sections.forEach(_ref3 => {
-        let {
-          el,
-          bounds
-        } = _ref3;
-        el.style.transform = 'translate3d(0, 0, 0)';
-        const {
-          top,
-          bottom
-        } = el.getBoundingClientRect();
-        bounds.top = top;
-        bounds.bottom = bottom;
-      });
-    } // set viewport height and fake document height
-
-
-    const {
-      bottom
-    } = state.sectionEls[total - 1].getBoundingClientRect();
-    bounds.scrollHeight = bottom; // update fake height
-
-    setFakeHeight(`${bounds.scrollHeight}px`);
-    setTimeout(() => {
-      // get new scroll position (changes if window height became smaller)
-      scroll.current = window.pageYOffset; // move all items into place
-
-      transformSections(); // notify canvas components to refresh positions
-
-      triggerReflowCompleted();
-      state.isResizing = false;
-    }, 0);
-  };
-
-  useEffect(() => {
-    handleResize();
-  }, [pageReflowRequested]);
-  return /*#__PURE__*/React.createElement("div", {
-    className: "js-fake-scroll",
-    ref: heightEl,
-    style: {
-      height: fakeHeight
-    }
-  });
-};
-
-/**
- * Wrapper for virtual scrollbar
- * @param {*} param0
- */
-const VirtualScrollbar = _ref4 => {
-  let {
-    disabled,
-    resizeOnHeight,
-    children,
-    scrollToTop = false,
-    ...rest
-  } = _ref4;
-  const ref = useRef();
-  const [active, setActive] = useState(false); // FakeScroller wont trigger resize without touching the store here..
-  // due to code splitting maybe? two instances of the store?
-
-  const requestReflow = useCanvasStore(state => state.requestReflow);
-  const setVirtualScrollbar = useCanvasStore(state => state.setVirtualScrollbar); // Optional: scroll to top when scrollbar mounts
-
-  useLayoutEffect(() => {
-    if (!scrollToTop) return; // __tl_back_button_pressed is set by `gatsby-plugin-transition-link`
-
-    if (!window.__tl_back_button_pressed) {
-      // make sure we start at top if scrollbar is active (transition)
-      !disabled && window.scrollTo(0, 0);
-    }
-  }, [scrollToTop, disabled]);
-  useEffect(() => {
-    document.documentElement.classList.toggle('js-has-virtual-scrollbar', !disabled);
-    setVirtualScrollbar(!disabled); // allow webgl components to find positions first on page load
-
-    const timer = setTimeout(() => {
-      setActive(!disabled); // tell GlobalCanvas that VirtualScrollbar is active
-
-      config$1.hasVirtualScrollbar = !disabled;
-    }, 0);
-    return () => {
-      clearTimeout(timer);
-      config$1.hasVirtualScrollbar = false;
-    };
-  }, [disabled]);
-  const activeStyle = {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%' // overflow: 'hidden',  // prevents tabbing to links in Chrome
-
-  };
-  const style = active ? activeStyle : {};
-  return /*#__PURE__*/React.createElement(React.Fragment, null, children({
-    ref,
-    style
-  }), active && /*#__PURE__*/React.createElement(FakeScroller, _extends({
-    el: ref
-  }, rest)), !config$1.hasGlobalCanvas && /*#__PURE__*/React.createElement(ResizeManager$1, {
-    reflow: requestReflow,
-    resizeOnHeight: resizeOnHeight
-  }));
-};
-
 /**
  * Public interface for ScrollRig
  */
@@ -2405,6 +2061,4 @@ const useScrollbar = () => {
   };
 };
 
-console.log('SCROLL RIG!', config$1);
-
-export { GlobalCanvasIfSupported$1 as GlobalCanvas, HijackedScrollbar, ViewportScrollScene as PerspectiveCameraScene, ScrollDomPortal, ScrollScene, ViewportScrollScene, VirtualScrollbar, useCanvas, useCanvasStore, useDelayedCanvas, useImgTagAsTexture, useScrollRig, useScrollbar, useTextureLoader, utils };
+export { GlobalCanvasIfSupported$1 as GlobalCanvas, HijackedScrollbar, ViewportScrollScene as PerspectiveCameraScene, ScrollDomPortal, ScrollScene, HijackedScrollbar as SmoothScrollbar, ViewportScrollScene, HijackedScrollbar as VirtualScrollbar, config as _config, useCanvas, useCanvasStore, useDelayedCanvas, useImgTagAsTexture, useScrollRig, useScrollbar, useTextureLoader };

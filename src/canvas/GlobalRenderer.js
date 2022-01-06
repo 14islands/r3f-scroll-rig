@@ -2,15 +2,16 @@ import React, { Fragment, useEffect, useLayoutEffect } from 'react'
 import PropTypes from 'prop-types'
 import { useThree, useFrame, invalidate } from '@react-three/fiber'
 
-import config from './config'
-import { useCanvasStore } from './store'
-import { useScrollRig } from './useScrollRig'
+import config from '../config'
+import { useCanvasStore } from '../store'
+import { useScrollRig } from '../hooks/useScrollRig'
 
 /**
  * Global render loop to avoid double renders on the same frame
  */
 const GlobalRenderer = ({ children }) => {
-  const { gl } = useThree()
+  const gl = useThree((s) => s.gl)
+  const frameloop = useThree((s) => s.frameloop)
   const canvasChildren = useCanvasStore((state) => state.canvasChildren)
   const scrollRig = useScrollRig()
 
@@ -45,17 +46,21 @@ const GlobalRenderer = ({ children }) => {
   // GLOBAL RENDER LOOP
   useFrame(
     ({ camera, scene }) => {
-      // Global render pass
-      if (config.globalRender && useCanvasStore.getState().globalRenderQueue) {
+      const globalRenderQueue = useCanvasStore.getState().globalRenderQueue
+
+      // Render if requested or if always on
+      if (config.globalRender && (frameloop === 'always' || globalRenderQueue)) {
         if (config.disableAutoClear) {
           gl.autoClear = false // will fail in VR
         }
 
         // render default layer, scene, camera
         camera.layers.disableAll()
-        useCanvasStore.getState().globalRenderQueue.forEach((layer) => {
-          camera.layers.enable(layer)
-        })
+        if (globalRenderQueue) {
+          globalRenderQueue.forEach((layer) => {
+            camera.layers.enable(layer)
+          })
+        }
         config.clearDepth && gl.clearDepth() // render as HUD over any other renders
         gl.render(scene, camera)
 
