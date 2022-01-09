@@ -631,7 +631,6 @@ var DefaultScrollTracker = function DefaultScrollTracker() {
     return state.setScrollY;
   });
   var setScroll = React.useCallback(function () {
-    console.log('DefaultScrollTracker', 'setScrollY', window.pageYOffset);
     setScrollY(window.pageYOffset);
   }, [setScrollY]);
   React.useEffect(function () {

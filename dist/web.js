@@ -519,7 +519,6 @@ const DefaultScrollTracker = () => {
   const hasVirtualScrollbar = useCanvasStore(state => state.hasVirtualScrollbar);
   const setScrollY = useCanvasStore(state => state.setScrollY);
   const setScroll = useCallback(() => {
-    console.log('DefaultScrollTracker', 'setScrollY', window.pageYOffset);
     setScrollY(window.pageYOffset);
   }, [setScrollY]);
   useEffect(() => {
