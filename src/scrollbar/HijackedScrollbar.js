@@ -1,11 +1,11 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useMemo, useEffect, useRef, useLayoutEffect, useCallback } from 'react'
 import PropTypes from 'prop-types'
 import _lerp from '@14islands/lerp'
+import { useWindowSize } from '@react-hook/window-size'
 
 import config from '../config'
 import useCanvasStore from '../store'
-import requestIdleCallback from '../hooks/requestIdleCallback'
-import ResizeManager from '../ResizeManager'
+import requestIdleCallback from '../polyfills/requestIdleCallback'
 
 // FIXME test on touch devices - handle touchmove/pointermove event
 
@@ -25,8 +25,8 @@ export const HijackedScrollbar = ({
   children,
   disabled,
   onUpdate,
-  speed = 1,
-  lerp,
+  speed = 1, // scroll speed
+  lerp, // smoothness - default = 0.14
   restDelta,
   location,
   useUpdateLoop, // external loop for updating positions
@@ -38,6 +38,7 @@ export const HijackedScrollbar = ({
   const requestReflow = useCanvasStore((state) => state.requestReflow)
   const pageReflowRequested = useCanvasStore((state) => state.pageReflowRequested)
   const setScrollY = useCanvasStore((state) => state.setScrollY)
+  const [width, height] = useWindowSize({ wait: 100 }) // run before ResizeManager
 
   const ref = useRef()
   const y = useRef({ current: 0, target: 0 }).current
@@ -48,7 +49,19 @@ export const HijackedScrollbar = ({
   const delta = useRef(0)
   const lastFrame = useRef(0)
 
-  const originalLerp = useRef(lerp || config.scrollLerp).current
+  const originalLerp = useMemo(() => lerp || config.scrollLerp, [lerp])
+
+  // reflow on webfont loaded to prevent misalignments
+  useLayoutEffect(() => {
+    if ('fonts' in document) {
+      document.fonts.onloadingdone = requestReflow
+    }
+    return () => {
+      if ('fonts' in document) {
+        document.fonts.onloadingdone = null
+      }
+    }
+  }, [])
 
   const setScrollPosition = () => {
     if (!scrolling.current) return
@@ -85,7 +98,7 @@ export const HijackedScrollbar = ({
     }
   }
 
-  const scrollTo = (newY, lerp = originalLerp) => {
+  const scrollTo = useCallback((newY, lerp = originalLerp) => {
     config.scrollLerp = lerp
 
     y.target = Math.min(Math.max(newY, 0), documentHeight.current)
@@ -100,7 +113,7 @@ export const HijackedScrollbar = ({
     }
 
     setScrollY(y.target)
-  }
+  }, [])
 
   // disable pointer events while scrolling to avoid slow event handlers
   const preventPointerEvents = (prevent) => {
@@ -111,19 +124,14 @@ export const HijackedScrollbar = ({
   }
 
   // reset pointer events when moving mouse
-  const onMouseMove = () => {
+  const onMouseMove = useCallback(() => {
     if (preventPointer.current) {
       preventPointerEvents(false)
     }
-  }
-
-  // Bind mouse event
-  useEffect(() => {
-    window.addEventListener('mousemove', onMouseMove)
-    return () => window.removeEventListener('mousemove', onMouseMove)
   }, [])
 
-  // override window.scrollTo(0, targetY)
+  // override window.scrollTo(0, targetY) with our lerped version
+  // Don't use useLayoutEffect as we want the native scrollTo to execute first and set the history position
   useEffect(() => {
     window.__origScrollTo = window.__origScrollTo || window.scrollTo
     window.__origScroll = window.__origScroll || window.scroll
@@ -133,22 +141,21 @@ export const HijackedScrollbar = ({
       window.scrollTo = window.__origScrollTo
       window.scroll = window.__origScroll
     }
-  }, [pageReflowRequested, location])
+  }, [scrollTo])
+
+  // make sure we have correct internal values at mount
+  useEffect(() => {
+    y.current = window.pageYOffset
+    y.target = window.pageYOffset
+    setScrollY(y.target)
+  }, [])
 
   // disable subpixelScrolling for better visual sync with canvas
-  useEffect(() => {
+  useLayoutEffect(() => {
     const ssBefore = config.subpixelScrolling
     config.subpixelScrolling = subpixelScrolling
     return () => {
       config.subpixelScrolling = ssBefore
-    }
-  }, [])
-
-  // reset scroll on mount/unmount FIX history?!
-  useEffect(() => {
-    setScrollY(window.pageYOffset)
-    return () => {
-      setScrollY(window.pageYOffset)
     }
   }, [])
 
@@ -168,20 +175,22 @@ export const HijackedScrollbar = ({
     }
   }, [useRenderLoop])
 
+  /*
+   * Called by each call to native window.scroll
+   * Either as a scrollbar / key navigation event
+   * Or as a result of the lerp animation
+   */
   const onScrollEvent = (e) => {
-    e.preventDefault()
-
-    // Scroll manually using keys or drag scrollbars
+    // If scrolling manually using keys or drag scrollbars
     if (!scrolling.current) {
-      y.current = window.scrollY
-      y.target = window.scrollY
+      // skip lerp
+      y.current = window.pageYOffset
+      y.target = window.pageYOffset
 
-      // set lerp to 1 temporarily so stuff moves immediately
-      // if (!config._scrollLerp) {
-      //   config._scrollLerp = config.scrollLerp
-      // }
-      // config.scrollLerp = 1
+      // set lerp to 1 temporarily so canvas also moves immediately
+      config.scrollLerp = 1
 
+      // update internal state to we are in sync
       setScrollY(y.target)
       onUpdate && onUpdate(y)
     }
@@ -251,11 +260,10 @@ export const HijackedScrollbar = ({
     requestIdleCallback(() => {
       documentHeight.current = document.body.clientHeight - window.innerHeight
     })
-  }, [pageReflowRequested, location])
+  }, [pageReflowRequested, width, height, location])
 
   const onWheelEvent = (e) => {
     e.preventDefault()
-
     scrollTo(y.target + e.deltaY * speed)
   }
 
@@ -267,19 +275,16 @@ export const HijackedScrollbar = ({
     window.addEventListener('wheel', onWheelEvent, { passive: false })
     window.addEventListener('scroll', onScrollEvent)
     window.addEventListener('touchstart', onTouchStart, { passive: false })
+    window.addEventListener('mousemove', onMouseMove)
     return () => {
       window.removeEventListener('wheel', onWheelEvent, { passive: false })
       window.removeEventListener('scroll', onScrollEvent)
       window.removeEventListener('touchstart', onTouchStart, { passive: false })
+      window.removeEventListener('mousemove', onMouseMove)
     }
   }, [disabled])
 
-  return (
-    <>
-      {children({ ref })}
-      {!config.hasGlobalCanvas && <ResizeManager reflow={requestReflow} />}
-    </>
-  )
+  return <>{children({ ref })}</>
 }
 
 HijackedScrollbar.propTypes = {

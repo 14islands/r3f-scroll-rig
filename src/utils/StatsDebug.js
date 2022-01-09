@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { requestIdleCallback } from './hooks/requestIdleCallback'
+
+import { requestIdleCallback } from '../polyfills/requestIdleCallback'
 
 const StatsDebug = ({ render = true, memory = true }) => {
   const stats = useRef({ calls: 0, triangles: 0, geometries: 0, textures: 0 }).current

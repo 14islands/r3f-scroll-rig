@@ -4,7 +4,7 @@ import _lerp from '@14islands/lerp'
 
 import config from '../config'
 import useCanvasStore from '../store'
-import ResizeManager from '../ResizeManager'
+import ResizeManager from '../utils/ResizeManager'
 
 const FakeScroller = ({
   el,

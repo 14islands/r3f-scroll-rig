@@ -2,14 +2,15 @@ import React, { useRef, forwardRef, useLayoutEffect, useMemo } from 'react'
 import PropTypes from 'prop-types'
 import { useThree } from '@react-three/fiber'
 import mergeRefs from 'react-merge-refs'
-import { useScrollRig, config } from '@14islands/r3f-scroll-rig'
 
-export const PerspectiveCamera = forwardRef(
+import useScrollRig from '../hooks/useScrollRig'
+import config from '../config'
+
+export const OrthographicCamera = forwardRef(
   ({ makeDefault = false, scaleMultiplier = config.scaleMultiplier, ...props }, ref) => {
     const set = useThree((state) => state.set)
     const camera = useThree((state) => state.camera)
     const size = useThree((state) => state.size)
-
     const { reflowCompleted } = useScrollRig()
 
     const distance = useMemo(() => {
@@ -20,11 +21,6 @@ export const PerspectiveCamera = forwardRef(
 
     const cameraRef = useRef()
     useLayoutEffect(() => {
-      const width = size.width * scaleMultiplier
-      const height = size.height * scaleMultiplier
-
-      cameraRef.current.aspect = width / height
-      cameraRef.current.fov = 2 * (180 / Math.PI) * Math.atan(height / (2 * distance))
       cameraRef.current.lookAt(0, 0, 0)
       cameraRef.current.updateProjectionMatrix()
       // https://github.com/react-spring/@react-three/fiber/issues/178
@@ -41,23 +37,27 @@ export const PerspectiveCamera = forwardRef(
     }, [camera, cameraRef, makeDefault, set])
 
     return (
-      <perspectiveCamera
-        ref={mergeRefs([cameraRef, ref])}
-        position={[0, 0, distance]}
-        onUpdate={(self) => self.updateProjectionMatrix()}
-        near={0.1}
+      <orthographicCamera
+        left={(size.width * scaleMultiplier) / -2}
+        right={(size.width * scaleMultiplier) / 2}
+        top={(size.height * scaleMultiplier) / 2}
+        bottom={(size.height * scaleMultiplier) / -2}
         far={distance * 2}
+        position={[0, 0, distance]}
+        near={0.001}
+        ref={mergeRefs([cameraRef, ref])}
+        onUpdate={(self) => self.updateProjectionMatrix()}
         {...props}
       />
     )
   },
 )
 
-PerspectiveCamera.propTypes = {
+OrthographicCamera.propTypes = {
   makeDefault: PropTypes.bool,
   scaleMultiplier: PropTypes.number,
 }
 
-PerspectiveCamera.displayName = 'PerspectiveCamera'
+OrthographicCamera.displayName = 'OrthographicCamera'
 
-export default PerspectiveCamera
+export default OrthographicCamera

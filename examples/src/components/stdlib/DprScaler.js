@@ -1,12 +1,11 @@
 import { useEffect } from 'react'
 import { useThree } from '@react-three/fiber'
 
-import config from './config'
-import { useCanvasStore } from './store'
+import { _config } from '@14islands/r3f-scroll-rig'
 
-const PerformanceMonitor = () => {
-  const { size } = useThree()
-  const setPixelRatio = useCanvasStore((state) => state.setPixelRatio)
+const DprScaler = () => {
+  const size = useThree(s => s.size)
+  const setDpr = useThree(s => s.setDpr)
 
   useEffect(() => {
     const devicePixelRatio = window.devicePixelRatio || 1
@@ -20,13 +19,13 @@ const PerformanceMonitor = () => {
       scale = size.width > 1500 ? 0.9 : 1.0
       scale = size.width > 1900 ? 0.8 : scale
 
-      const pixelRatio = Math.max(1.0, Math.min(MAX_PIXEL_RATIO, devicePixelRatio * scale))
-      config.debug && console.info('PerformanceMonitor', 'Set pixelRatio', pixelRatio)
-      setPixelRatio(pixelRatio)
+      const dpr = Math.max(1.0, Math.min(MAX_PIXEL_RATIO, devicePixelRatio * scale))
+      _config.debug && console.info('DprScaler', 'Set dpr', dpr)
+      setDpr(dpr)
     }
   }, [size])
 
   return null
 }
 
-export default PerformanceMonitor
+export default DprScaler

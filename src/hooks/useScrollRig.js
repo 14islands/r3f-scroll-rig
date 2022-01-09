@@ -1,6 +1,8 @@
-import { useCanvasStore } from './store'
+import { useEffect } from 'react'
 
-import { preloadScene, requestRender, renderScissor, renderViewport } from './renderer-api'
+import { useCanvasStore } from '../store'
+import { preloadScene, requestRender, renderScissor, renderViewport } from '../renderer-api'
+import config from '../config'
 
 /**
  * Public interface for ScrollRig
@@ -10,12 +12,17 @@ export const useScrollRig = () => {
   const hasVirtualScrollbar = useCanvasStore((state) => state.hasVirtualScrollbar)
   const requestReflow = useCanvasStore((state) => state.requestReflow)
   const pageReflowCompleted = useCanvasStore((state) => state.pageReflowCompleted)
-  const pixelRatio = useCanvasStore((state) => state.pixelRatio)
+
+  useEffect(() => {
+    if (config.debug) {
+      window._scrollRig = window._scrollRig || {}
+      window._scrollRig.reflow = requestReflow
+    }
+  }, [])
 
   return {
     isCanvasAvailable,
     hasVirtualScrollbar,
-    pixelRatio,
     preloadScene,
     requestRender,
     renderScissor,

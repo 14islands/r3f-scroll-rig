@@ -135,7 +135,6 @@ import { useScrollRig } from '@14islands/r3f-scroll-rig'
 const {
   isCanvasAvailable, // True if webgl is enabled and GlobalCanvas has been added to the page
   hasVirtualScrollbar, // True if a smooth scrollbar is currently enabled onm the DOM content
-  pixelRatio, // current pixelratio used by the canvas
   preloadScene, // request scene to do a preload render before next frame, (scene, camera, layer, callback) => void
   requestRender, // request the global render loop to render next frame
   renderScissor, // renders scene with a scissor to the canvas, ({ gl, scene, camera, left, top, width, height, layer, autoClear, clearDepth}) => void

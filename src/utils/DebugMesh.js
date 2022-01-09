@@ -1,6 +1,5 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-
 import { extend } from '@react-three/fiber'
 import { shaderMaterial } from '@react-three/drei/core/shaderMaterial'
 import { Color } from 'three'

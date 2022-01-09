@@ -1,6 +1,6 @@
 import { useEffect, useCallback } from 'react'
 
-import { useCanvasStore } from './store'
+import { useCanvasStore } from '../store'
 
 // Track scroll position and update store
 export const DefaultScrollTracker = () => {

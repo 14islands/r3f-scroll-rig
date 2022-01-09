@@ -7,7 +7,18 @@ import { Text } from '@react-three/drei/core/Text'
  * Returns a WebGL Troika text mesh styled as the source DOM element
  */
 
-export const WebGLText = ({ el, children, material, scale, font, fontOffsetY = 0, fontOffsetX = 0, overrideEmissive = false, color, ...props }) => {
+export const WebGLText = ({
+  el,
+  children,
+  material,
+  scale,
+  font,
+  fontOffsetY = 0,
+  fontOffsetX = 0,
+  overrideEmissive = false,
+  color,
+  ...props
+}) => {
   const { size } = useThree()
 
   const { textColor, fontSize, textAlign, lineHeight, letterSpacing } = useMemo(() => {
@@ -20,11 +31,11 @@ export const WebGLText = ({ el, children, material, scale, font, fontOffsetY = 0
     const textColor = new Color(color || cs.color).convertSRGBToLinear()
 
     return {
-      ...cs,
       letterSpacing,
       lineHeight,
       textColor,
       fontSize: parseFloat(cs.fontSize) * scale.multiplier,
+      textAlign: cs.textAlign,
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [el, size, scale, color]) // recalc on resize
@@ -38,11 +49,9 @@ export const WebGLText = ({ el, children, material, scale, font, fontOffsetY = 0
   let xOffset = 0
   if (textAlign === 'left' || textAlign === 'start') {
     xOffset = scale.width * -0.5
-  }
-  else if (textAlign === 'right' || textAlign === 'end') {
+  } else if (textAlign === 'right' || textAlign === 'end') {
     xOffset = scale.width * 0.5
   }
-
 
   const yOffset = scale ? scale.height * 0.5 : size.height * 0.5
 

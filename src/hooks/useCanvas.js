@@ -1,15 +1,14 @@
 import { useLayoutEffect, useMemo } from 'react'
 import { MathUtils } from 'three'
 
-import useDelayedEffect from './hooks/useDelayedEffect'
-import requestIdleCallback from './hooks/requestIdleCallback'
-import { useCanvasStore } from './store'
+import requestIdleCallback from '../polyfills/requestIdleCallback'
+import { useCanvasStore } from '../store'
 
 /**
- * Adds THREE.js object to the GlobalCanvas while the component is mounted after initial delay (ms)
+ * Adds THREE.js object to the GlobalCanvas while the component is mounted
  * @param {object} object THREE.js object3d
  */
-export const useDelayedCanvas = (object, ms, deps = [], key) => {
+export const useCanvas = (object, deps = [], key) => {
   const updateCanvas = useCanvasStore((state) => state.updateCanvas)
   const renderToCanvas = useCanvasStore((state) => state.renderToCanvas)
   const removeFromCanvas = useCanvasStore((state) => state.removeFromCanvas)
@@ -17,18 +16,10 @@ export const useDelayedCanvas = (object, ms, deps = [], key) => {
   // auto generate uuid v4 key
   const uniqueKey = useMemo(() => key || MathUtils.generateUUID(), [])
 
-  // remove on unmount
   useLayoutEffect(() => {
+    renderToCanvas(uniqueKey, object)
     return () => removeFromCanvas(uniqueKey)
-  }, [])
-
-  useDelayedEffect(
-    () => {
-      renderToCanvas(uniqueKey, object)
-    },
-    deps,
-    ms,
-  )
+  }, deps)
 
   // return function that can set new props on the canvas component
   const set = (props) => {
@@ -38,4 +29,4 @@ export const useDelayedCanvas = (object, ms, deps = [], key) => {
   return set
 }
 
-export default useDelayedCanvas
+export default useCanvas
