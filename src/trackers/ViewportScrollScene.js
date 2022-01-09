@@ -28,7 +28,6 @@ let ViewportScrollScene = ({
   priority = config.PRIORITY_VIEWPORTS,
   debug = false,
   setInViewportProp = false,
-  renderOnTop = false,
   scaleMultiplier = config.scaleMultiplier, // use global setting as default
   orthographic = false,
   hiddenStyle = { opacity: 0 },
@@ -197,7 +196,6 @@ let ViewportScrollScene = ({
         top: positiveYUpBottom - margin,
         width: bounds.width + margin * 2,
         height: bounds.height + margin * 2,
-        renderOnTop,
       })
 
       // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
@@ -257,7 +255,7 @@ let ViewportScrollScene = ({
             camera: camera.current,
             inViewport,
             // useFrame render priority (in case children need to run after)
-            priority: config.PRIORITY_VIEWPORTS + renderOrder,
+            priority: priority + renderOrder,
             // tunnel the rest
             ...props,
           })}

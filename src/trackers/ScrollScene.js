@@ -245,7 +245,7 @@ let ScrollScene = ({
           scene,
           inViewport,
           // useFrame render priority (in case children need to run after)
-          priority: config.PRIORITY_SCISSORS + renderOrder,
+          priority: priority + renderOrder,
           // tunnel the rest
           ...props,
         })}

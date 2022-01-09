@@ -3,7 +3,6 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var _extends = require('@babel/runtime/helpers/extends');
-var _defineProperty = require('@babel/runtime/helpers/defineProperty');
 var _objectWithoutProperties = require('@babel/runtime/helpers/objectWithoutProperties');
 var React = require('react');
 var three = require('three');
@@ -11,20 +10,17 @@ var fiber = require('@react-three/fiber');
 var Text = require('@react-three/drei/core/Text');
 var _slicedToArray = require('@babel/runtime/helpers/slicedToArray');
 var r3fScrollRig = require('@14islands/r3f-scroll-rig');
+var _defineProperty = require('@babel/runtime/helpers/defineProperty');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
 var _extends__default = /*#__PURE__*/_interopDefaultLegacy(_extends);
-var _defineProperty__default = /*#__PURE__*/_interopDefaultLegacy(_defineProperty);
 var _objectWithoutProperties__default = /*#__PURE__*/_interopDefaultLegacy(_objectWithoutProperties);
 var React__default = /*#__PURE__*/_interopDefaultLegacy(React);
 var _slicedToArray__default = /*#__PURE__*/_interopDefaultLegacy(_slicedToArray);
+var _defineProperty__default = /*#__PURE__*/_interopDefaultLegacy(_defineProperty);
 
 var _excluded$2 = ["el", "children", "material", "scale", "font", "fontOffsetY", "fontOffsetX", "overrideEmissive", "color"];
-
-function ownKeys$1(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
-
-function _objectSpread$1(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$1(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$1(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 /**
  * Returns a WebGL Troika text mesh styled as the source DOM element
  */
@@ -55,12 +51,13 @@ var WebGLText = function WebGLText(_ref) {
     var letterSpacing = (parseFloat(cs.letterSpacing) || 0) / parseFloat(cs.fontSize);
     var lineHeight = (parseFloat(cs.lineHeight) || 0) / parseFloat(cs.fontSize);
     var textColor = new three.Color(color || cs.color).convertSRGBToLinear();
-    return _objectSpread$1(_objectSpread$1({}, cs), {}, {
+    return {
       letterSpacing: letterSpacing,
       lineHeight: lineHeight,
       textColor: textColor,
-      fontSize: parseFloat(cs.fontSize) * scale.multiplier
-    }); // eslint-disable-next-line react-hooks/exhaustive-deps
+      fontSize: parseFloat(cs.fontSize) * scale.multiplier,
+      textAlign: cs.textAlign
+    }; // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [el, size, scale, color]),
       textColor = _useMemo.textColor,
       fontSize = _useMemo.fontSize,

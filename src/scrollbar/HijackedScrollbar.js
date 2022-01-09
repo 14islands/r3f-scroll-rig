@@ -38,7 +38,7 @@ export const HijackedScrollbar = ({
   const requestReflow = useCanvasStore((state) => state.requestReflow)
   const pageReflowRequested = useCanvasStore((state) => state.pageReflowRequested)
   const setScrollY = useCanvasStore((state) => state.setScrollY)
-  const [width, height] = useWindowSize()
+  const [width, height] = useWindowSize({ wait: 100 }) // run before ResizeManager
 
   const ref = useRef()
   const y = useRef({ current: 0, target: 0 }).current
@@ -143,6 +143,13 @@ export const HijackedScrollbar = ({
     }
   }, [scrollTo])
 
+  // make sure we have correct internal values at mount
+  useEffect(() => {
+    y.current = window.pageYOffset
+    y.target = window.pageYOffset
+    setScrollY(y.target)
+  }, [])
+
   // disable subpixelScrolling for better visual sync with canvas
   useLayoutEffect(() => {
     const ssBefore = config.subpixelScrolling
@@ -177,8 +184,8 @@ export const HijackedScrollbar = ({
     // If scrolling manually using keys or drag scrollbars
     if (!scrolling.current) {
       // skip lerp
-      y.current = window.scrollY
-      y.target = window.scrollY
+      y.current = window.pageYOffset
+      y.target = window.pageYOffset
 
       // set lerp to 1 temporarily so canvas also moves immediately
       config.scrollLerp = 1

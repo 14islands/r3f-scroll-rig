@@ -2,6 +2,8 @@ import create from 'zustand'
 import { requestIdleCallback } from './polyfills/requestIdleCallback'
 import { subscribeWithSelector } from 'zustand/middleware'
 
+import config from './config'
+
 const useCanvasStore = create(
   subscribeWithSelector((set) => ({
     // //////////////////////////////////////////////////////////////////////////
@@ -50,6 +52,7 @@ const useCanvasStore = create(
     pageReflowRequested: 0,
     pageReflowCompleted: 0,
     requestReflow: () => {
+      config.debug && console.log('ScrollRig', 'reflow() requested')
       set((state) => {
         requestIdleCallback(state.triggerReflowCompleted, { timeout: 100 })
         return { pageReflowRequested: state.pageReflowRequested + 1 }

@@ -6,8 +6,11 @@ import config from '../config'
 /**
  * Manages Scroll rig resize events by trigger a reflow instead of individual resize listeners in each component
  * The order is carefully scripted:
- *  1. reflow() will trigger canvas components to calculate positions
- *  3. Canvas scroll components listen to `pageReflowCompleted` and recalc positions
+ *  1. reflow() will cause VirtualScrollbar to recalculate positions
+ *  2. VirtualScrollbar triggers `pageReflowCompleted`
+ *  3. Canvas scroll components listen to  `pageReflowCompleted` and recalc positions
+ *
+ *  HijackedScrollbar does not care about this and only react to window resize to recalculate the total page height
  */
 const ResizeManager = ({ reflow, resizeOnWebFontLoaded = true }) => {
   const mounted = useRef(false)

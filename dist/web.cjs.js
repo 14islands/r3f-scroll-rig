@@ -75,6 +75,35 @@ var cancelIdleCallback = function cancelIdleCallback(id) {
 };
 var requestIdleCallback$1 = requestIdleCallback;
 
+// Transient shared state for canvas components
+// usContext() causes re-rendering which can drop frames
+var config = {
+  debug: false,
+  fps: false,
+  autoPixelRatio: true,
+  // use PerformanceMonitor
+  // Global lerp settings
+  scrollLerp: 0.14,
+  // Linear interpolation - high performance easing
+  scrollRestDelta: 0.014,
+  // min delta to trigger animation frame on scroll
+  subpixelScrolling: true,
+  // Execution order for useFrames (highest = last render)
+  PRIORITY_PRELOAD: 0,
+  PRIORITY_SCISSORS: 1,
+  PRIORITY_VIEWPORTS: 1,
+  PRIORITY_GLOBAL: 1000,
+  // Scaling
+  scaleMultiplier: 1,
+  // scale pixels vs viewport units (1:1 by default)
+  // Global rendering props
+  globalRender: true,
+  preloadQueue: [],
+  hasGlobalCanvas: false,
+  disableAutoClear: true,
+  clearDepth: true
+};
+
 function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return _typeof__default["default"](key) === "symbol" ? key : String(key); }
 
 function _toPrimitive(input, hint) { if (_typeof__default["default"](input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (_typeof__default["default"](res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
@@ -168,6 +197,7 @@ var useCanvasStore = create__default["default"](middleware.subscribeWithSelector
     pageReflowRequested: 0,
     pageReflowCompleted: 0,
     requestReflow: function requestReflow() {
+      config.debug && console.log('ScrollRig', 'reflow() requested');
       set(function (state) {
         requestIdleCallback(state.triggerReflowCompleted, {
           timeout: 100
@@ -195,35 +225,6 @@ var useCanvasStore = create__default["default"](middleware.subscribeWithSelector
     }
   };
 }));
-
-// Transient shared state for canvas components
-// usContext() causes re-rendering which can drop frames
-var config = {
-  debug: false,
-  fps: false,
-  autoPixelRatio: true,
-  // use PerformanceMonitor
-  // Global lerp settings
-  scrollLerp: 0.14,
-  // Linear interpolation - high performance easing
-  scrollRestDelta: 0.014,
-  // min delta to trigger animation frame on scroll
-  subpixelScrolling: true,
-  // Execution order for useFrames (highest = last render)
-  PRIORITY_PRELOAD: 0,
-  PRIORITY_SCISSORS: 1,
-  PRIORITY_VIEWPORTS: 1,
-  PRIORITY_GLOBAL: 1000,
-  // Scaling
-  scaleMultiplier: 1,
-  // scale pixels vs viewport units (1:1 by default)
-  // Global rendering props
-  globalRender: true,
-  preloadQueue: [],
-  hasGlobalCanvas: false,
-  disableAutoClear: true,
-  clearDepth: true
-};
 
 /* Copied from drei - no need to import just for this */
 
@@ -309,8 +310,11 @@ var StatsDebug$1 = StatsDebug;
 /**
  * Manages Scroll rig resize events by trigger a reflow instead of individual resize listeners in each component
  * The order is carefully scripted:
- *  1. reflow() will trigger canvas components to calculate positions
- *  3. Canvas scroll components listen to `pageReflowCompleted` and recalc positions
+ *  1. reflow() will cause VirtualScrollbar to recalculate positions
+ *  2. VirtualScrollbar triggers `pageReflowCompleted`
+ *  3. Canvas scroll components listen to  `pageReflowCompleted` and recalc positions
+ *
+ *  HijackedScrollbar does not care about this and only react to window resize to recalculate the total page height
  */
 
 var ResizeManager = function ResizeManager(_ref) {
@@ -473,6 +477,12 @@ var useScrollRig = function useScrollRig() {
   var pageReflowCompleted = useCanvasStore(function (state) {
     return state.pageReflowCompleted;
   });
+  React.useEffect(function () {
+    if (config.debug) {
+      window._scrollRig = window._scrollRig || {};
+      window._scrollRig.reflow = requestReflow;
+    }
+  }, []);
   return {
     isCanvasAvailable: isCanvasAvailable,
     hasVirtualScrollbar: hasVirtualScrollbar,
@@ -485,13 +495,13 @@ var useScrollRig = function useScrollRig() {
   };
 };
 
-var _excluded$4 = ["makeDefault", "scaleMultiplier"];
+var _excluded$5 = ["makeDefault", "scaleMultiplier"];
 var PerspectiveCamera = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
   var _ref$makeDefault = _ref.makeDefault,
       makeDefault = _ref$makeDefault === void 0 ? false : _ref$makeDefault,
       _ref$scaleMultiplier = _ref.scaleMultiplier,
       scaleMultiplier = _ref$scaleMultiplier === void 0 ? config.scaleMultiplier : _ref$scaleMultiplier,
-      props = _objectWithoutProperties__default["default"](_ref, _excluded$4);
+      props = _objectWithoutProperties__default["default"](_ref, _excluded$5);
 
   var set = fiber.useThree(function (state) {
     return state.set;
@@ -549,13 +559,13 @@ var PerspectiveCamera = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
 PerspectiveCamera.displayName = 'PerspectiveCamera';
 var PerspectiveCamera$1 = PerspectiveCamera;
 
-var _excluded$3 = ["makeDefault", "scaleMultiplier"];
+var _excluded$4 = ["makeDefault", "scaleMultiplier"];
 var OrthographicCamera = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
   var _ref$makeDefault = _ref.makeDefault,
       makeDefault = _ref$makeDefault === void 0 ? false : _ref$makeDefault,
       _ref$scaleMultiplier = _ref.scaleMultiplier,
       scaleMultiplier = _ref$scaleMultiplier === void 0 ? config.scaleMultiplier : _ref$scaleMultiplier,
-      props = _objectWithoutProperties__default["default"](_ref, _excluded$3);
+      props = _objectWithoutProperties__default["default"](_ref, _excluded$4);
 
   var set = fiber.useThree(function (state) {
     return state.set;
@@ -621,6 +631,7 @@ var DefaultScrollTracker = function DefaultScrollTracker() {
     return state.setScrollY;
   });
   var setScroll = React.useCallback(function () {
+    console.log('DefaultScrollTracker', 'setScrollY', window.pageYOffset);
     setScrollY(window.pageYOffset);
   }, [setScrollY]);
   React.useEffect(function () {
@@ -786,7 +797,7 @@ var CanvasErrorBoundary = /*#__PURE__*/function (_React$Component) {
 
 var CanvasErrorBoundary$1 = CanvasErrorBoundary;
 
-var _excluded$2 = ["as", "children", "gl", "style", "orthographic", "config", "camera", "fallback"],
+var _excluded$3 = ["as", "children", "gl", "style", "orthographic", "config", "camera", "fallback"],
     _excluded2 = ["onError"];
 
 function ownKeys$3(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
@@ -804,7 +815,7 @@ var GlobalCanvas = function GlobalCanvas(_ref) {
       camera = _ref.camera,
       _ref$fallback = _ref.fallback,
       fallback = _ref$fallback === void 0 ? null : _ref$fallback,
-      props = _objectWithoutProperties__default["default"](_ref, _excluded$2);
+      props = _objectWithoutProperties__default["default"](_ref, _excluded$3);
 
   var requestReflow = useCanvasStore(function (state) {
     return state.requestReflow;
@@ -915,7 +926,7 @@ var DebugMesh = function DebugMesh(_ref) {
 };
 var DebugMesh$1 = DebugMesh;
 
-var _excluded$1 = ["el", "lerp", "lerpOffset", "children", "renderOrder", "priority", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed", "hiddenStyle", "resizeDelay", "as", "autoRender", "hideOffscreen"];
+var _excluded$2 = ["el", "lerp", "lerpOffset", "children", "renderOrder", "priority", "margin", "inViewportMargin", "visible", "scissor", "debug", "setInViewportProp", "updateLayout", "positionFixed", "hiddenStyle", "resizeDelay", "as", "autoRender", "hideOffscreen"];
 
 function ownKeys$2(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
@@ -964,7 +975,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
       autoRender = _ref$autoRender === void 0 ? true : _ref$autoRender,
       _ref$hideOffscreen = _ref.hideOffscreen,
       hideOffscreen = _ref$hideOffscreen === void 0 ? true : _ref$hideOffscreen,
-      props = _objectWithoutProperties__default["default"](_ref, _excluded$1);
+      props = _objectWithoutProperties__default["default"](_ref, _excluded$2);
 
   var inlineSceneRef = React.useCallback(function (node) {
     if (node !== null) {
@@ -1187,7 +1198,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
     scene: scene,
     inViewport: inViewport,
     // useFrame render priority (in case children need to run after)
-    priority: config.PRIORITY_SCISSORS + renderOrder
+    priority: priority + renderOrder
   }, props))); // portal if scissor or inline nested scene
 
   var InlineElement = as;
@@ -1221,9 +1232,310 @@ exports.ScrollScene.childPropTypes = _objectSpread$2(_objectSpread$2({}, exports
 });
 exports.ScrollScene.priority = config.PRIORITY_SCISSORS;
 
+var _excluded$1 = ["el", "lerp", "lerpOffset", "children", "margin", "visible", "renderOrder", "priority", "debug", "setInViewportProp", "scaleMultiplier", "orthographic", "hiddenStyle", "resizeDelay"];
+
 function ownKeys$1(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread$1(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$1(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$1(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+/**
+ * Generic THREE.js Scene that tracks the dimensions and position of a DOM element while scrolling
+ * Scene is rendered into a GL viewport matching the DOM position for better performance
+ *
+ * Adapted to @react-three/fiber from https://threejsfundamentals.org/threejs/lessons/threejs-multiple-scenes.html
+ * @author david@14islands.com
+ */
+
+exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
+  var el = _ref.el,
+      lerp = _ref.lerp,
+      _ref$lerpOffset = _ref.lerpOffset,
+      lerpOffset = _ref$lerpOffset === void 0 ? 1 : _ref$lerpOffset,
+      children = _ref.children,
+      _ref$margin = _ref.margin,
+      margin = _ref$margin === void 0 ? 0 : _ref$margin,
+      _ref$visible = _ref.visible,
+      visible = _ref$visible === void 0 ? true : _ref$visible,
+      renderOrder = _ref.renderOrder,
+      _ref$priority = _ref.priority,
+      priority = _ref$priority === void 0 ? config.PRIORITY_VIEWPORTS : _ref$priority,
+      _ref$debug = _ref.debug,
+      debug = _ref$debug === void 0 ? false : _ref$debug,
+      _ref$setInViewportPro = _ref.setInViewportProp,
+      setInViewportProp = _ref$setInViewportPro === void 0 ? false : _ref$setInViewportPro,
+      _ref$scaleMultiplier = _ref.scaleMultiplier,
+      scaleMultiplier = _ref$scaleMultiplier === void 0 ? config.scaleMultiplier : _ref$scaleMultiplier,
+      _ref$orthographic = _ref.orthographic,
+      orthographic = _ref$orthographic === void 0 ? false : _ref$orthographic,
+      _ref$hiddenStyle = _ref.hiddenStyle,
+      hiddenStyle = _ref$hiddenStyle === void 0 ? {
+    opacity: 0
+  } : _ref$hiddenStyle,
+      _ref$resizeDelay = _ref.resizeDelay,
+      resizeDelay = _ref$resizeDelay === void 0 ? 0 : _ref$resizeDelay,
+      props = _objectWithoutProperties__default["default"](_ref, _excluded$1);
+
+  var camera = React.useRef();
+
+  var _useState = React.useState(function () {
+    return new three.Scene();
+  }),
+      _useState2 = _slicedToArray__default["default"](_useState, 1),
+      scene = _useState2[0];
+
+  var _useState3 = React.useState(false),
+      _useState4 = _slicedToArray__default["default"](_useState3, 2),
+      inViewport = _useState4[0],
+      setInViewport = _useState4[1];
+
+  var _useState5 = React.useState(null),
+      _useState6 = _slicedToArray__default["default"](_useState5, 2),
+      scale = _useState6[0],
+      setScale = _useState6[1];
+
+  var _useThree = fiber.useThree(),
+      size = _useThree.size,
+      invalidate = _useThree.invalidate;
+
+  var _useScrollRig = useScrollRig(),
+      renderViewport = _useScrollRig.renderViewport;
+
+  var pageReflowCompleted = useCanvasStore(function (state) {
+    return state.pageReflowCompleted;
+  });
+
+  var _useState7 = React.useState(0),
+      _useState8 = _slicedToArray__default["default"](_useState7, 2),
+      cameraDistance = _useState8[0],
+      setCameraDistance = _useState8[1]; // non-reactive state
+
+
+  var _transient = React.useRef({
+    mounted: false,
+    bounds: {
+      top: 0,
+      left: 0,
+      width: 0,
+      height: 0,
+      inViewport: false,
+      progress: 0,
+      viewport: 0,
+      visibility: 0
+    },
+    prevBounds: {
+      top: 0,
+      left: 0,
+      width: 0,
+      height: 0
+    }
+  }).current; // get initial scrollY and listen for transient updates
+
+  var scrollY = React.useRef(useCanvasStore.getState().scrollY);
+  React.useEffect(function () {
+    return useCanvasStore.subscribe(function (state) {
+      return state.scrollY;
+    }, function (y) {
+      scrollY.current = y;
+      invalidate(); // Trigger render on scroll
+    });
+  }, []);
+  React.useEffect(function () {
+    _transient.mounted = true;
+    return function () {
+      _transient.mounted = false;
+    };
+  }, []); // El is rendered
+
+  React.useLayoutEffect(function () {
+    // hide image - leave in DOM to measure and get events
+    if (!(el !== null && el !== void 0 && el.current)) return;
+
+    if (debug) {
+      el.current.style.opacity = 0.5;
+    } else {
+      Object.assign(el.current.style, _objectSpread$1({}, hiddenStyle));
+    }
+
+    return function () {
+      if (!(el !== null && el !== void 0 && el.current)) return;
+      Object.keys(hiddenStyle).forEach(function (key) {
+        return el.current.style[key] = '';
+      });
+    };
+  }, [el.current]);
+
+  var updateSizeAndPosition = function updateSizeAndPosition() {
+    if (!el || !el.current) return;
+    var bounds = _transient.bounds,
+        prevBounds = _transient.prevBounds;
+
+    var _el$current$getBoundi = el.current.getBoundingClientRect(),
+        top = _el$current$getBoundi.top,
+        left = _el$current$getBoundi.left,
+        width = _el$current$getBoundi.width,
+        height = _el$current$getBoundi.height; // pixel bounds
+
+
+    bounds.top = top + window.pageYOffset;
+    bounds.left = left;
+    bounds.width = width;
+    bounds.height = height;
+    prevBounds.top = top;
+    var viewportWidth = width * scaleMultiplier;
+    var viewportHeight = height * scaleMultiplier; // scale in viewport units and pixel
+
+    setScale({
+      width: viewportWidth,
+      height: viewportHeight,
+      multiplier: scaleMultiplier,
+      pixelWidth: width,
+      pixelHeight: height,
+      viewportWidth: size.width * scaleMultiplier,
+      viewportHeight: size.height * scaleMultiplier
+    });
+    var cameraDistance = Math.max(viewportWidth, viewportHeight);
+    setCameraDistance(cameraDistance);
+
+    if (camera.current && !orthographic) {
+      camera.current.aspect = (viewportWidth + margin * 2 * scaleMultiplier) / (viewportHeight + margin * 2 * scaleMultiplier);
+      camera.current.fov = 2 * (180 / Math.PI) * Math.atan((viewportHeight + margin * 2 * scaleMultiplier) / (2 * cameraDistance));
+      camera.current.updateProjectionMatrix(); // https://github.com/react-spring/@react-three/fiber/issues/178
+      // Update matrix world since the renderer is a frame late
+
+      camera.current.updateMatrixWorld();
+    }
+
+    invalidate(); // trigger render
+  }; // Find bounding box & scale mesh on resize
+
+
+  React.useLayoutEffect(function () {
+    var timer = setTimeout(function () {
+      updateSizeAndPosition();
+    }, resizeDelay);
+    return function () {
+      clearTimeout(timer);
+    };
+  }, [pageReflowCompleted]); // RENDER FRAME
+
+  fiber.useFrame(function (_ref2, frameDelta) {
+    var gl = _ref2.gl;
+    if (!scene || !scale) return;
+    var bounds = _transient.bounds,
+        prevBounds = _transient.prevBounds; // add scroll value to bounds to get current position
+
+    var initialPos = config.subpixelScrolling ? bounds.top : Math.floor(bounds.top);
+    var topY = initialPos - scrollY.current; // frame delta
+
+    var delta = Math.abs(prevBounds.top - topY); // Lerp the distance to simulate easing
+
+    var lerpTop = _lerp__default["default"](prevBounds.top, topY, (lerp || config.scrollLerp) * lerpOffset, frameDelta);
+
+    var newTop = config.subpixelScrolling ? lerpTop : Math.floor(lerpTop); // Abort if element not in screen
+
+    var isOffscreen = newTop + bounds.height < -100 || newTop > size.height + 100; // store top value for next frame
+
+    bounds.inViewport = !isOffscreen;
+    setInViewportProp && requestIdleCallback$1(function () {
+      return _transient.mounted && setInViewport(!isOffscreen);
+    });
+    prevBounds.top = lerpTop; // hide/show scene
+
+    scene.visible = !isOffscreen && visible; // Render scene to viewport using local camera and limit updates using scissor test
+    // Performance improvement - faster than always rendering full canvas
+
+    if (scene.visible) {
+      var positiveYUpBottom = size.height - (newTop + bounds.height); // inverse Y
+
+      renderViewport({
+        gl: gl,
+        scene: scene,
+        camera: camera.current,
+        left: bounds.left - margin,
+        top: positiveYUpBottom - margin,
+        width: bounds.width + margin * 2,
+        height: bounds.height + margin * 2
+      }); // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
+
+      var pxInside = bounds.top - newTop - bounds.top + size.height;
+      bounds.progress = three.MathUtils.mapLinear(pxInside, 0, size.height + bounds.height, 0, 1); // percent of total visible distance
+
+      bounds.visibility = three.MathUtils.mapLinear(pxInside, 0, bounds.height, 0, 1); // percent of item height in view
+
+      bounds.viewport = three.MathUtils.mapLinear(pxInside, 0, size.height, 0, 1); // percent of window height scrolled since visible
+    } // render another frame if delta is large enough
+
+
+    if (!isOffscreen && delta > config.scrollRestDelta) {
+      invalidate();
+    }
+  }, priority);
+  return fiber.createPortal( /*#__PURE__*/React__default["default"].createElement(React__default["default"].Fragment, null, !orthographic && /*#__PURE__*/React__default["default"].createElement("perspectiveCamera", {
+    ref: camera,
+    position: [0, 0, cameraDistance],
+    onUpdate: function onUpdate(self) {
+      return self.updateProjectionMatrix();
+    }
+  }), orthographic && /*#__PURE__*/React__default["default"].createElement("orthographicCamera", {
+    ref: camera,
+    position: [0, 0, cameraDistance],
+    onUpdate: function onUpdate(self) {
+      return self.updateProjectionMatrix();
+    },
+    left: scale.width / -2,
+    right: scale.width / 2,
+    top: scale.height / 2,
+    bottom: scale.height / -2,
+    far: cameraDistance * 2,
+    near: 0.001
+  }), /*#__PURE__*/React__default["default"].createElement("group", {
+    renderOrder: renderOrder
+  }, (!children || debug) && scale && /*#__PURE__*/React__default["default"].createElement(DebugMesh$1, {
+    scale: scale
+  }), children && scene && scale && children(_objectSpread$1({
+    // inherited props
+    el: el,
+    lerp: lerp || config.scrollLerp,
+    lerpOffset: lerpOffset,
+    margin: margin,
+    renderOrder: renderOrder,
+    // new props
+    scale: scale,
+    state: _transient,
+    // @deprecated
+    scrollState: _transient.bounds,
+    scene: scene,
+    camera: camera.current,
+    inViewport: inViewport,
+    // useFrame render priority (in case children need to run after)
+    priority: priority + renderOrder
+  }, props)))), scene);
+};
+
+exports.ViewportScrollScene = /*#__PURE__*/React__default["default"].memo(exports.ViewportScrollScene);
+exports.ViewportScrollScene.childPropTypes = _objectSpread$1(_objectSpread$1({}, exports.ViewportScrollScene.propTypes), {}, {
+  scale: PropTypes__default["default"].shape({
+    width: PropTypes__default["default"].number,
+    height: PropTypes__default["default"].number
+  }),
+  state: PropTypes__default["default"].shape({
+    bounds: PropTypes__default["default"].shape({
+      left: PropTypes__default["default"].number,
+      top: PropTypes__default["default"].number,
+      width: PropTypes__default["default"].number,
+      height: PropTypes__default["default"].number,
+      inViewport: PropTypes__default["default"].bool,
+      progress: PropTypes__default["default"].number
+    })
+  }),
+  scene: PropTypes__default["default"].object,
+  // Parent scene,
+  inViewport: PropTypes__default["default"].bool // {x,y} to scale
+
+});
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 
 var LAYOUT_LERP = 0.1;
 /**
@@ -1397,7 +1709,7 @@ var ScrollDomPortal = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
 
     if (!isOffscreen) {
       if (copyEl.current) {
-        Object.assign(copyEl.current.style, _objectSpread$1(_objectSpread$1({
+        Object.assign(copyEl.current.style, _objectSpread(_objectSpread({
           visibility: ''
         }, style), {}, {
           transform: "translate3d(".concat(lerpX, "px, ").concat(lerpScroll + lerpY, "px, 0)")
@@ -1492,6 +1804,27 @@ var useCanvas = function useCanvas(object) {
   };
 
   return set;
+};
+
+/**
+ * Public interface for ScrollRig
+ */
+
+var useScrollbar = function useScrollbar() {
+  var hasVirtualScrollbar = useCanvasStore(function (state) {
+    return state.hasVirtualScrollbar;
+  });
+  var requestReflow = useCanvasStore(function (state) {
+    return state.requestReflow;
+  });
+  var pageReflowCompleted = useCanvasStore(function (state) {
+    return state.pageReflowCompleted;
+  });
+  return {
+    hasVirtualScrollbar: hasVirtualScrollbar,
+    reflow: requestReflow,
+    reflowCompleted: pageReflowCompleted
+  };
 };
 
 /**
@@ -1635,364 +1968,6 @@ var useImgTagAsTexture = function useImgTagAsTexture(imgEl, opts) {
   return [texture, disposeBitmap];
 };
 
-var _excluded = ["el", "lerp", "lerpOffset", "children", "margin", "visible", "renderOrder", "priority", "debug", "setInViewportProp", "renderOnTop", "scaleMultiplier", "orthographic", "hiddenStyle", "resizeDelay"];
-
-function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
-
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
-/**
- * Generic THREE.js Scene that tracks the dimensions and position of a DOM element while scrolling
- * Scene is rendered into a GL viewport matching the DOM position for better performance
- *
- * Adapted to @react-three/fiber from https://threejsfundamentals.org/threejs/lessons/threejs-multiple-scenes.html
- * @author david@14islands.com
- */
-
-exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
-  var el = _ref.el,
-      lerp = _ref.lerp,
-      _ref$lerpOffset = _ref.lerpOffset,
-      lerpOffset = _ref$lerpOffset === void 0 ? 1 : _ref$lerpOffset,
-      children = _ref.children,
-      _ref$margin = _ref.margin,
-      margin = _ref$margin === void 0 ? 0 : _ref$margin,
-      _ref$visible = _ref.visible,
-      visible = _ref$visible === void 0 ? true : _ref$visible,
-      renderOrder = _ref.renderOrder,
-      _ref$priority = _ref.priority,
-      priority = _ref$priority === void 0 ? config.PRIORITY_VIEWPORTS : _ref$priority,
-      _ref$debug = _ref.debug,
-      debug = _ref$debug === void 0 ? false : _ref$debug,
-      _ref$setInViewportPro = _ref.setInViewportProp,
-      setInViewportProp = _ref$setInViewportPro === void 0 ? false : _ref$setInViewportPro,
-      _ref$renderOnTop = _ref.renderOnTop,
-      renderOnTop = _ref$renderOnTop === void 0 ? false : _ref$renderOnTop,
-      _ref$scaleMultiplier = _ref.scaleMultiplier,
-      scaleMultiplier = _ref$scaleMultiplier === void 0 ? config.scaleMultiplier : _ref$scaleMultiplier,
-      _ref$orthographic = _ref.orthographic,
-      orthographic = _ref$orthographic === void 0 ? false : _ref$orthographic,
-      _ref$hiddenStyle = _ref.hiddenStyle,
-      hiddenStyle = _ref$hiddenStyle === void 0 ? {
-    opacity: 0
-  } : _ref$hiddenStyle,
-      _ref$resizeDelay = _ref.resizeDelay,
-      resizeDelay = _ref$resizeDelay === void 0 ? 0 : _ref$resizeDelay,
-      props = _objectWithoutProperties__default["default"](_ref, _excluded);
-
-  var camera = React.useRef();
-
-  var _useState = React.useState(function () {
-    return new three.Scene();
-  }),
-      _useState2 = _slicedToArray__default["default"](_useState, 1),
-      scene = _useState2[0];
-
-  var _useState3 = React.useState(false),
-      _useState4 = _slicedToArray__default["default"](_useState3, 2),
-      inViewport = _useState4[0],
-      setInViewport = _useState4[1];
-
-  var _useState5 = React.useState(null),
-      _useState6 = _slicedToArray__default["default"](_useState5, 2),
-      scale = _useState6[0],
-      setScale = _useState6[1];
-
-  var _useThree = fiber.useThree(),
-      size = _useThree.size,
-      invalidate = _useThree.invalidate;
-
-  var _useScrollRig = useScrollRig(),
-      renderViewport = _useScrollRig.renderViewport;
-
-  var pageReflowCompleted = useCanvasStore(function (state) {
-    return state.pageReflowCompleted;
-  });
-
-  var _useState7 = React.useState(0),
-      _useState8 = _slicedToArray__default["default"](_useState7, 2),
-      cameraDistance = _useState8[0],
-      setCameraDistance = _useState8[1]; // non-reactive state
-
-
-  var _transient = React.useRef({
-    mounted: false,
-    bounds: {
-      top: 0,
-      left: 0,
-      width: 0,
-      height: 0,
-      inViewport: false,
-      progress: 0,
-      viewport: 0,
-      visibility: 0
-    },
-    prevBounds: {
-      top: 0,
-      left: 0,
-      width: 0,
-      height: 0
-    }
-  }).current; // get initial scrollY and listen for transient updates
-
-  var scrollY = React.useRef(useCanvasStore.getState().scrollY);
-  React.useEffect(function () {
-    return useCanvasStore.subscribe(function (state) {
-      return state.scrollY;
-    }, function (y) {
-      scrollY.current = y;
-      invalidate(); // Trigger render on scroll
-    });
-  }, []);
-  React.useEffect(function () {
-    _transient.mounted = true;
-    return function () {
-      _transient.mounted = false;
-    };
-  }, []); // El is rendered
-
-  React.useLayoutEffect(function () {
-    // hide image - leave in DOM to measure and get events
-    if (!(el !== null && el !== void 0 && el.current)) return;
-
-    if (debug) {
-      el.current.style.opacity = 0.5;
-    } else {
-      Object.assign(el.current.style, _objectSpread({}, hiddenStyle));
-    }
-
-    return function () {
-      if (!(el !== null && el !== void 0 && el.current)) return;
-      Object.keys(hiddenStyle).forEach(function (key) {
-        return el.current.style[key] = '';
-      });
-    };
-  }, [el.current]);
-
-  var updateSizeAndPosition = function updateSizeAndPosition() {
-    if (!el || !el.current) return;
-    var bounds = _transient.bounds,
-        prevBounds = _transient.prevBounds;
-
-    var _el$current$getBoundi = el.current.getBoundingClientRect(),
-        top = _el$current$getBoundi.top,
-        left = _el$current$getBoundi.left,
-        width = _el$current$getBoundi.width,
-        height = _el$current$getBoundi.height; // pixel bounds
-
-
-    bounds.top = top + window.pageYOffset;
-    bounds.left = left;
-    bounds.width = width;
-    bounds.height = height;
-    prevBounds.top = top;
-    var viewportWidth = width * scaleMultiplier;
-    var viewportHeight = height * scaleMultiplier; // scale in viewport units and pixel
-
-    setScale({
-      width: viewportWidth,
-      height: viewportHeight,
-      multiplier: scaleMultiplier,
-      pixelWidth: width,
-      pixelHeight: height,
-      viewportWidth: size.width * scaleMultiplier,
-      viewportHeight: size.height * scaleMultiplier
-    });
-    var cameraDistance = Math.max(viewportWidth, viewportHeight);
-    setCameraDistance(cameraDistance);
-
-    if (camera.current && !orthographic) {
-      camera.current.aspect = (viewportWidth + margin * 2 * scaleMultiplier) / (viewportHeight + margin * 2 * scaleMultiplier);
-      camera.current.fov = 2 * (180 / Math.PI) * Math.atan((viewportHeight + margin * 2 * scaleMultiplier) / (2 * cameraDistance));
-      camera.current.updateProjectionMatrix(); // https://github.com/react-spring/@react-three/fiber/issues/178
-      // Update matrix world since the renderer is a frame late
-
-      camera.current.updateMatrixWorld();
-    }
-
-    invalidate(); // trigger render
-  }; // Find bounding box & scale mesh on resize
-
-
-  React.useLayoutEffect(function () {
-    var timer = setTimeout(function () {
-      updateSizeAndPosition();
-    }, resizeDelay);
-    return function () {
-      clearTimeout(timer);
-    };
-  }, [pageReflowCompleted]); // RENDER FRAME
-
-  fiber.useFrame(function (_ref2, frameDelta) {
-    var gl = _ref2.gl;
-    if (!scene || !scale) return;
-    var bounds = _transient.bounds,
-        prevBounds = _transient.prevBounds; // add scroll value to bounds to get current position
-
-    var initialPos = config.subpixelScrolling ? bounds.top : Math.floor(bounds.top);
-    var topY = initialPos - scrollY.current; // frame delta
-
-    var delta = Math.abs(prevBounds.top - topY); // Lerp the distance to simulate easing
-
-    var lerpTop = _lerp__default["default"](prevBounds.top, topY, (lerp || config.scrollLerp) * lerpOffset, frameDelta);
-
-    var newTop = config.subpixelScrolling ? lerpTop : Math.floor(lerpTop); // Abort if element not in screen
-
-    var isOffscreen = newTop + bounds.height < -100 || newTop > size.height + 100; // store top value for next frame
-
-    bounds.inViewport = !isOffscreen;
-    setInViewportProp && requestIdleCallback$1(function () {
-      return _transient.mounted && setInViewport(!isOffscreen);
-    });
-    prevBounds.top = lerpTop; // hide/show scene
-
-    scene.visible = !isOffscreen && visible; // Render scene to viewport using local camera and limit updates using scissor test
-    // Performance improvement - faster than always rendering full canvas
-
-    if (scene.visible) {
-      var positiveYUpBottom = size.height - (newTop + bounds.height); // inverse Y
-
-      renderViewport({
-        gl: gl,
-        scene: scene,
-        camera: camera.current,
-        left: bounds.left - margin,
-        top: positiveYUpBottom - margin,
-        width: bounds.width + margin * 2,
-        height: bounds.height + margin * 2,
-        renderOnTop: renderOnTop
-      }); // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
-
-      var pxInside = bounds.top - newTop - bounds.top + size.height;
-      bounds.progress = three.MathUtils.mapLinear(pxInside, 0, size.height + bounds.height, 0, 1); // percent of total visible distance
-
-      bounds.visibility = three.MathUtils.mapLinear(pxInside, 0, bounds.height, 0, 1); // percent of item height in view
-
-      bounds.viewport = three.MathUtils.mapLinear(pxInside, 0, size.height, 0, 1); // percent of window height scrolled since visible
-    } // render another frame if delta is large enough
-
-
-    if (!isOffscreen && delta > config.scrollRestDelta) {
-      invalidate();
-    }
-  }, priority);
-  return fiber.createPortal( /*#__PURE__*/React__default["default"].createElement(React__default["default"].Fragment, null, !orthographic && /*#__PURE__*/React__default["default"].createElement("perspectiveCamera", {
-    ref: camera,
-    position: [0, 0, cameraDistance],
-    onUpdate: function onUpdate(self) {
-      return self.updateProjectionMatrix();
-    }
-  }), orthographic && /*#__PURE__*/React__default["default"].createElement("orthographicCamera", {
-    ref: camera,
-    position: [0, 0, cameraDistance],
-    onUpdate: function onUpdate(self) {
-      return self.updateProjectionMatrix();
-    },
-    left: scale.width / -2,
-    right: scale.width / 2,
-    top: scale.height / 2,
-    bottom: scale.height / -2,
-    far: cameraDistance * 2,
-    near: 0.001
-  }), /*#__PURE__*/React__default["default"].createElement("group", {
-    renderOrder: renderOrder
-  }, (!children || debug) && scale && /*#__PURE__*/React__default["default"].createElement(DebugMesh$1, {
-    scale: scale
-  }), children && scene && scale && children(_objectSpread({
-    // inherited props
-    el: el,
-    lerp: lerp || config.scrollLerp,
-    lerpOffset: lerpOffset,
-    margin: margin,
-    renderOrder: renderOrder,
-    // new props
-    scale: scale,
-    state: _transient,
-    // @deprecated
-    scrollState: _transient.bounds,
-    scene: scene,
-    camera: camera.current,
-    inViewport: inViewport,
-    // useFrame render priority (in case children need to run after)
-    priority: config.PRIORITY_VIEWPORTS + renderOrder
-  }, props)))), scene);
-};
-
-exports.ViewportScrollScene = /*#__PURE__*/React__default["default"].memo(exports.ViewportScrollScene);
-exports.ViewportScrollScene.childPropTypes = _objectSpread(_objectSpread({}, exports.ViewportScrollScene.propTypes), {}, {
-  scale: PropTypes__default["default"].shape({
-    width: PropTypes__default["default"].number,
-    height: PropTypes__default["default"].number
-  }),
-  state: PropTypes__default["default"].shape({
-    bounds: PropTypes__default["default"].shape({
-      left: PropTypes__default["default"].number,
-      top: PropTypes__default["default"].number,
-      width: PropTypes__default["default"].number,
-      height: PropTypes__default["default"].number,
-      inViewport: PropTypes__default["default"].bool,
-      progress: PropTypes__default["default"].number
-    })
-  }),
-  scene: PropTypes__default["default"].object,
-  // Parent scene,
-  inViewport: PropTypes__default["default"].bool // {x,y} to scale
-
-});
-
-var useDelayedEffect = function useDelayedEffect(fn, deps) {
-  var ms = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
-  var timer;
-  React.useEffect(function () {
-    timer = setTimeout(fn, ms);
-    return function () {
-      return clearTimeout(timer);
-    };
-  }, deps);
-};
-var useDelayedEffect$1 = useDelayedEffect;
-
-/**
- * Adds THREE.js object to the GlobalCanvas while the component is mounted after initial delay (ms)
- * @param {object} object THREE.js object3d
- */
-
-var useDelayedCanvas = function useDelayedCanvas(object, ms) {
-  var deps = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
-  var key = arguments.length > 3 ? arguments[3] : undefined;
-  var updateCanvas = useCanvasStore(function (state) {
-    return state.updateCanvas;
-  });
-  var renderToCanvas = useCanvasStore(function (state) {
-    return state.renderToCanvas;
-  });
-  var removeFromCanvas = useCanvasStore(function (state) {
-    return state.removeFromCanvas;
-  }); // auto generate uuid v4 key
-
-  var uniqueKey = React.useMemo(function () {
-    return key || three.MathUtils.generateUUID();
-  }, []); // remove on unmount
-
-  React.useLayoutEffect(function () {
-    return function () {
-      return removeFromCanvas(uniqueKey);
-    };
-  }, []);
-  useDelayedEffect$1(function () {
-    renderToCanvas(uniqueKey, object);
-  }, deps, ms); // return function that can set new props on the canvas component
-
-  var set = function set(props) {
-    requestIdleCallback$1(function () {
-      return updateCanvas(uniqueKey, props);
-    }, {
-      timeout: 100
-    });
-  };
-
-  return set;
-};
-
 // if r3f frameloop should be used, pass these props:
 // const R3F_HijackedScrollbar = props => {
 //   return <HijackedScrollbar {...props} useUpdateLoop={addEffect} useRenderLoop={addEffect}  invalidate={invalidate} />
@@ -2031,10 +2006,13 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
     return state.setScrollY;
   });
 
-  var _useWindowSize = windowSize.useWindowSize(),
+  var _useWindowSize = windowSize.useWindowSize({
+    wait: 100
+  }),
       _useWindowSize2 = _slicedToArray__default["default"](_useWindowSize, 2),
       width = _useWindowSize2[0],
-      height = _useWindowSize2[1];
+      height = _useWindowSize2[1]; // run before ResizeManager
+
 
   var ref = React.useRef();
   var y = React.useRef({
@@ -2145,7 +2123,13 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
       window.scrollTo = window.__origScrollTo;
       window.scroll = window.__origScroll;
     };
-  }, [scrollTo]); // disable subpixelScrolling for better visual sync with canvas
+  }, [scrollTo]); // make sure we have correct internal values at mount
+
+  React.useEffect(function () {
+    y.current = window.pageYOffset;
+    y.target = window.pageYOffset;
+    setScrollY(y.target);
+  }, []); // disable subpixelScrolling for better visual sync with canvas
 
   React.useLayoutEffect(function () {
     var ssBefore = config.subpixelScrolling;
@@ -2178,8 +2162,8 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
     // If scrolling manually using keys or drag scrollbars
     if (!scrolling.current) {
       // skip lerp
-      y.current = window.scrollY;
-      y.target = window.scrollY; // set lerp to 1 temporarily so canvas also moves immediately
+      y.current = window.pageYOffset;
+      y.target = window.pageYOffset; // set lerp to 1 temporarily so canvas also moves immediately
 
       config.scrollLerp = 1; // update internal state to we are in sync
 
@@ -2311,33 +2295,388 @@ HijackedScrollbar.propTypes = {
   subpixelScrolling: PropTypes__default["default"].bool
 };
 
-/**
- * Public interface for ScrollRig
- */
+var _excluded = ["disabled", "resizeOnHeight", "children", "scrollToTop"];
 
-var useScrollbar = function useScrollbar() {
-  var hasVirtualScrollbar = useCanvasStore(function (state) {
-    return state.hasVirtualScrollbar;
+var FakeScroller = function FakeScroller(_ref) {
+  var el = _ref.el,
+      _ref$lerp = _ref.lerp,
+      lerp = _ref$lerp === void 0 ? config.scrollLerp : _ref$lerp,
+      _ref$restDelta = _ref.restDelta,
+      restDelta = _ref$restDelta === void 0 ? config.scrollRestDelta : _ref$restDelta,
+      onUpdate = _ref.onUpdate,
+      _ref$threshold = _ref.threshold,
+      threshold = _ref$threshold === void 0 ? 100 : _ref$threshold;
+  var pageReflowRequested = useCanvasStore(function (state) {
+    return state.pageReflowRequested;
   });
+  var triggerReflowCompleted = useCanvasStore(function (state) {
+    return state.triggerReflowCompleted;
+  });
+  var setScrollY = useCanvasStore(function (state) {
+    return state.setScrollY;
+  });
+  var heightEl = React.useRef();
+  var lastFrame = React.useRef(0);
+
+  var _useState = React.useState(),
+      _useState2 = _slicedToArray__default["default"](_useState, 2),
+      fakeHeight = _useState2[0],
+      setFakeHeight = _useState2[1];
+
+  var state = React.useRef({
+    preventPointer: false,
+    total: 0,
+    scroll: {
+      target: 0,
+      current: 0,
+      lerp: lerp,
+      direction: 0,
+      velocity: 0
+    },
+    bounds: {
+      height: window.innerHeight,
+      scrollHeight: 0
+    },
+    isResizing: false,
+    sectionEls: null,
+    sections: null
+  }).current; // ANIMATION LOOP
+
+  var run = function run(ts) {
+    var frameDelta = ts - lastFrame.current;
+    lastFrame.current = ts;
+    state.frame = window.requestAnimationFrame(run);
+    var scroll = state.scroll;
+    scroll.current = _lerp__default["default"](scroll.current, scroll.target, scroll.lerp, frameDelta * 0.001);
+    var delta = scroll.current - scroll.target;
+    scroll.velocity = Math.abs(delta); // TODO fps independent velocity
+
+    scroll.direction = Math.sign(delta);
+    transformSections(); // update callback
+
+    onUpdate && onUpdate(scroll); // stop animation if delta is low
+
+    if (scroll.velocity < restDelta) {
+      window.cancelAnimationFrame(state.frame);
+      state.frame = null; // el.current && el.current.classList.remove('is-scrolling')
+
+      preventPointerEvents(false);
+    }
+  };
+
+  var transformSections = function transformSections() {
+    var total = state.total,
+        isResizing = state.isResizing,
+        scroll = state.scroll,
+        sections = state.sections;
+    var translate = "translate3d(0, ".concat(-scroll.current, "px, 0)");
+    if (!sections) return;
+
+    for (var i = 0; i < total; i++) {
+      var data = sections[i];
+      var _el = data.el,
+          bounds = data.bounds;
+
+      if (isVisible(bounds) || isResizing) {
+        Object.assign(data, {
+          out: false
+        });
+        _el.style.transform = translate;
+      } else if (!data.out) {
+        Object.assign(data, {
+          out: true
+        });
+        _el.style.transform = translate;
+      }
+    }
+  };
+
+  var isVisible = function isVisible(bounds) {
+    var height = state.bounds.height;
+    var current = state.scroll.current;
+    var top = bounds.top,
+        bottom = bounds.bottom;
+    var start = top - current;
+    var end = bottom - current;
+    var isVisible = start < threshold + height && end > -threshold;
+    return isVisible;
+  };
+
+  var getSections = function getSections() {
+    if (!state.sectionEls) return;
+    state.sections = [];
+    state.sectionEls.forEach(function (el) {
+      el.style.transform = 'translate3d(0, 0, 0)'; // FF complains that we exceed the budget for willChange and will ignore the rest
+      // Testing to remove this to see if it speeds up other things
+      // el.style.willChange = 'transform'
+
+      var _el$getBoundingClient = el.getBoundingClientRect(),
+          top = _el$getBoundingClient.top,
+          bottom = _el$getBoundingClient.bottom;
+
+      state.sections.push({
+        el: el,
+        bounds: {
+          top: top,
+          bottom: bottom
+        },
+        out: true
+      });
+    });
+  }; // disable pointer events while scrolling to avoid slow event handlers
+
+
+  var preventPointerEvents = function preventPointerEvents(prevent) {
+    if (el.current) {
+      el.current.style.pointerEvents = prevent ? 'none' : '';
+    }
+
+    state.preventPointer = prevent;
+  };
+
+  var onScroll = function onScroll(val) {
+    // check if use with scroll wrapper or native scroll event
+    state.scroll.target = window.pageYOffset;
+    setScrollY(state.scroll.target); // restart animation loop if needed
+
+    if (!state.frame && !state.isResizing) {
+      state.frame = window.requestAnimationFrame(run);
+    }
+
+    if (!state.preventPointer && state.scroll.velocity > 100) {
+      setTimeout(function () {
+        // el.current && el.current.classList.add('is-scrolling')
+        state.preventPointer = true;
+        preventPointerEvents(true);
+      }, 0);
+    }
+  }; // reset pointer events when moving mouse
+
+
+  var onMouseMove = function onMouseMove() {
+    if (state.preventPointer) {
+      preventPointerEvents(false);
+    }
+  }; // Bind mouse event
+
+
+  React.useEffect(function () {
+    window.addEventListener('mousemove', onMouseMove);
+    return function () {
+      return window.removeEventListener('mousemove', onMouseMove);
+    };
+  }, []); // Bind scroll event
+
+  React.useEffect(function () {
+    window.addEventListener('scroll', onScroll);
+    return function () {
+      return window.removeEventListener('scroll', onScroll);
+    };
+  }, []);
+  React.useEffect(function () {
+    if (el.current) {
+      state.sectionEls = Array.from(el.current.children);
+      state.total = state.sectionEls.length;
+      getSections();
+    } // reset on umount
+
+
+    return function () {
+      var sections = state.sections;
+
+      if (sections) {
+        sections.forEach(function (_ref2) {
+          var el = _ref2.el;
+              _ref2.bounds;
+          el.style.transform = '';
+        });
+        state.sections = null;
+      }
+    };
+  }, [el.current]); // RESIZE calculate fake height and move elemnts into place
+
+  var handleResize = function handleResize() {
+    var total = state.total,
+        bounds = state.bounds,
+        sections = state.sections,
+        scroll = state.scroll;
+    state.isResizing = true;
+    bounds.height = window.innerHeight; // move els back into place and measure their offset
+
+    if (sections) {
+      sections.forEach(function (_ref3) {
+        var el = _ref3.el,
+            bounds = _ref3.bounds;
+        el.style.transform = 'translate3d(0, 0, 0)';
+
+        var _el$getBoundingClient2 = el.getBoundingClientRect(),
+            top = _el$getBoundingClient2.top,
+            bottom = _el$getBoundingClient2.bottom;
+
+        bounds.top = top;
+        bounds.bottom = bottom;
+      });
+    } // set viewport height and fake document height
+
+
+    var _state$sectionEls$get = state.sectionEls[total - 1].getBoundingClientRect(),
+        bottom = _state$sectionEls$get.bottom;
+
+    bounds.scrollHeight = bottom; // update fake height
+
+    setFakeHeight("".concat(bounds.scrollHeight, "px"));
+    setTimeout(function () {
+      // get new scroll position (changes if window height became smaller)
+      scroll.current = window.pageYOffset; // move all items into place
+
+      transformSections(); // notify canvas components to refresh positions
+
+      triggerReflowCompleted();
+      state.isResizing = false;
+    }, 0);
+  };
+
+  React.useEffect(function () {
+    handleResize();
+  }, [pageReflowRequested]);
+  return /*#__PURE__*/React__default["default"].createElement("div", {
+    className: "js-fake-scroll",
+    ref: heightEl,
+    style: {
+      height: fakeHeight
+    }
+  });
+};
+
+/**
+ * Wrapper for virtual scrollbar
+ * @param {*} param0
+ */
+var VirtualScrollbar = function VirtualScrollbar(_ref4) {
+  var disabled = _ref4.disabled,
+      resizeOnHeight = _ref4.resizeOnHeight,
+      children = _ref4.children,
+      _ref4$scrollToTop = _ref4.scrollToTop,
+      scrollToTop = _ref4$scrollToTop === void 0 ? false : _ref4$scrollToTop,
+      rest = _objectWithoutProperties__default["default"](_ref4, _excluded);
+
+  var ref = React.useRef();
+
+  var _useState3 = React.useState(false),
+      _useState4 = _slicedToArray__default["default"](_useState3, 2),
+      active = _useState4[0],
+      setActive = _useState4[1]; // FakeScroller wont trigger resize without touching the store here..
+  // due to code splitting maybe? two instances of the store?
+
+
   var requestReflow = useCanvasStore(function (state) {
     return state.requestReflow;
   });
-  var pageReflowCompleted = useCanvasStore(function (state) {
-    return state.pageReflowCompleted;
-  });
-  return {
-    hasVirtualScrollbar: hasVirtualScrollbar,
-    reflow: requestReflow,
-    reflowCompleted: pageReflowCompleted
+  var setVirtualScrollbar = useCanvasStore(function (state) {
+    return state.setVirtualScrollbar;
+  }); // Optional: scroll to top when scrollbar mounts
+
+  React.useLayoutEffect(function () {
+    if (!scrollToTop) return; // __tl_back_button_pressed is set by `gatsby-plugin-transition-link`
+
+    if (!window.__tl_back_button_pressed) {
+      // make sure we start at top if scrollbar is active (transition)
+      !disabled && window.scrollTo(0, 0);
+    }
+  }, [scrollToTop, disabled]);
+  React.useEffect(function () {
+    document.documentElement.classList.toggle('js-has-virtual-scrollbar', !disabled);
+    setVirtualScrollbar(!disabled); // allow webgl components to find positions first on page load
+
+    var timer = setTimeout(function () {
+      setActive(!disabled); // tell GlobalCanvas that VirtualScrollbar is active
+
+      config.hasVirtualScrollbar = !disabled;
+    }, 0);
+    return function () {
+      clearTimeout(timer);
+      config.hasVirtualScrollbar = false;
+    };
+  }, [disabled]);
+  var activeStyle = {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%' // overflow: 'hidden',  // prevents tabbing to links in Chrome
+
   };
+  var style = active ? activeStyle : {};
+  return /*#__PURE__*/React__default["default"].createElement(React__default["default"].Fragment, null, children({
+    ref: ref,
+    style: style
+  }), active && /*#__PURE__*/React__default["default"].createElement(FakeScroller, _extends__default["default"]({
+    el: ref
+  }, rest)), !config.hasGlobalCanvas && /*#__PURE__*/React__default["default"].createElement(ResizeManager$1, {
+    reflow: requestReflow,
+    resizeOnHeight: resizeOnHeight
+  }));
+};
+
+var useDelayedEffect = function useDelayedEffect(fn, deps) {
+  var ms = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+  var timer;
+  React.useEffect(function () {
+    timer = setTimeout(fn, ms);
+    return function () {
+      return clearTimeout(timer);
+    };
+  }, deps);
+};
+var useDelayedEffect$1 = useDelayedEffect;
+
+/**
+ * Adds THREE.js object to the GlobalCanvas while the component is mounted after initial delay (ms)
+ * @param {object} object THREE.js object3d
+ */
+
+var useDelayedCanvas = function useDelayedCanvas(object, ms) {
+  var deps = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
+  var key = arguments.length > 3 ? arguments[3] : undefined;
+  var updateCanvas = useCanvasStore(function (state) {
+    return state.updateCanvas;
+  });
+  var renderToCanvas = useCanvasStore(function (state) {
+    return state.renderToCanvas;
+  });
+  var removeFromCanvas = useCanvasStore(function (state) {
+    return state.removeFromCanvas;
+  }); // auto generate uuid v4 key
+
+  var uniqueKey = React.useMemo(function () {
+    return key || three.MathUtils.generateUUID();
+  }, []); // remove on unmount
+
+  React.useLayoutEffect(function () {
+    return function () {
+      return removeFromCanvas(uniqueKey);
+    };
+  }, []);
+  useDelayedEffect$1(function () {
+    renderToCanvas(uniqueKey, object);
+  }, deps, ms); // return function that can set new props on the canvas component
+
+  var set = function set(props) {
+    requestIdleCallback$1(function () {
+      return updateCanvas(uniqueKey, props);
+    }, {
+      timeout: 100
+    });
+  };
+
+  return set;
 };
 
 exports.GlobalCanvas = GlobalCanvasIfSupported$1;
 exports.HijackedScrollbar = HijackedScrollbar;
-exports.PerspectiveCameraScene = exports.ViewportScrollScene;
 exports.ScrollDomPortal = ScrollDomPortal;
 exports.SmoothScrollbar = HijackedScrollbar;
-exports.VirtualScrollbar = HijackedScrollbar;
+exports.VirtualScrollbar = VirtualScrollbar;
 exports._config = config;
 exports.useCanvas = useCanvas;
 exports.useCanvasStore = useCanvasStore;
