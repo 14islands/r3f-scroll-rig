@@ -12,7 +12,6 @@ var _slicedToArray = require('@babel/runtime/helpers/slicedToArray');
 var React = require('react');
 var _lerp = require('@14islands/lerp');
 var windowSize = require('@react-hook/window-size');
-var PropTypes = require('prop-types');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -24,7 +23,6 @@ var _extends__default = /*#__PURE__*/_interopDefaultLegacy(_extends);
 var _slicedToArray__default = /*#__PURE__*/_interopDefaultLegacy(_slicedToArray);
 var React__default = /*#__PURE__*/_interopDefaultLegacy(React);
 var _lerp__default = /*#__PURE__*/_interopDefaultLegacy(_lerp);
-var PropTypes__default = /*#__PURE__*/_interopDefaultLegacy(PropTypes);
 
 /**
  * runtime check for requestIdleCallback
@@ -256,17 +254,15 @@ var ResizeManager = function ResizeManager(_ref) {
     var fallbackTimer;
 
     if ('fonts' in document) {
-      document.fonts.onloadingdone = reflow;
+      document.fonts.ready.then(function () {
+        requestIdleCallback$1(reflow);
+      });
     } else {
       fallbackTimer = setTimeout(reflow, 1000);
     }
 
     return function () {
-      if ('fonts' in document) {
-        document.fonts.onloadingdone = null;
-      } else {
-        clearTimeout(fallbackTimer);
-      }
+      return clearTimeout(fallbackTimer);
     };
   }, []);
   return null;
@@ -274,7 +270,7 @@ var ResizeManager = function ResizeManager(_ref) {
 
 var ResizeManager$1 = ResizeManager;
 
-var _excluded = ["disabled", "resizeOnHeight", "children", "scrollToTop"];
+var _excluded = ["disabled", "children", "scrollToTop"];
 
 var FakeScroller = function FakeScroller(_ref) {
   var el = _ref.el,
@@ -533,7 +529,6 @@ var FakeScroller = function FakeScroller(_ref) {
  */
 var VirtualScrollbar = function VirtualScrollbar(_ref4) {
   var disabled = _ref4.disabled,
-      resizeOnHeight = _ref4.resizeOnHeight,
       children = _ref4.children,
       _ref4$scrollToTop = _ref4.scrollToTop,
       scrollToTop = _ref4$scrollToTop === void 0 ? false : _ref4$scrollToTop,
@@ -592,8 +587,7 @@ var VirtualScrollbar = function VirtualScrollbar(_ref4) {
   }), active && /*#__PURE__*/React__default["default"].createElement(FakeScroller, _extends__default["default"]({
     el: ref
   }, rest)), !config$1.hasGlobalCanvas && /*#__PURE__*/React__default["default"].createElement(ResizeManager$1, {
-    reflow: requestReflow,
-    resizeOnHeight: resizeOnHeight
+    reflow: requestReflow
   }));
 };
 
@@ -656,19 +650,7 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
   var lastFrame = React.useRef(0);
   var originalLerp = React.useMemo(function () {
     return lerp || config$1.scrollLerp;
-  }, [lerp]); // reflow on webfont loaded to prevent misalignments
-
-  React.useLayoutEffect(function () {
-    if ('fonts' in document) {
-      document.fonts.onloadingdone = requestReflow;
-    }
-
-    return function () {
-      if ('fonts' in document) {
-        document.fonts.onloadingdone = null;
-      }
-    };
-  }, []);
+  }, [lerp]);
 
   var setScrollPosition = function setScrollPosition() {
     if (!scrolling.current) return;
@@ -874,7 +856,7 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
 
   React.useEffect(function () {
     requestIdleCallback$1(function () {
-      documentHeight.current = document.body.clientHeight - window.innerHeight;
+      documentHeight.current = document.documentElement.scrollHeight - window.innerHeight;
     });
   }, [pageReflowRequested, width, height, location]);
 
@@ -909,19 +891,9 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
   }, [disabled]);
   return /*#__PURE__*/React__default["default"].createElement(React__default["default"].Fragment, null, children({
     ref: ref
+  }), !config$1.hasGlobalCanvas && /*#__PURE__*/React__default["default"].createElement(ResizeManager$1, {
+    reflow: requestReflow
   }));
-};
-HijackedScrollbar.propTypes = {
-  disabled: PropTypes__default["default"].bool,
-  onUpdate: PropTypes__default["default"].func,
-  speed: PropTypes__default["default"].number,
-  lerp: PropTypes__default["default"].number,
-  restDelta: PropTypes__default["default"].number,
-  location: PropTypes__default["default"].any,
-  useUpdateLoop: PropTypes__default["default"].func,
-  useRenderLoop: PropTypes__default["default"].func,
-  invalidate: PropTypes__default["default"].func,
-  subpixelScrolling: PropTypes__default["default"].bool
 };
 
 exports.HijackedScrollbar = HijackedScrollbar;

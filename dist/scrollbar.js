@@ -4,7 +4,6 @@ import _extends from '@babel/runtime/helpers/esm/extends';
 import React, { useRef, useEffect, useState, useLayoutEffect, useMemo, useCallback } from 'react';
 import _lerp from '@14islands/lerp';
 import { useWindowSize } from '@react-hook/window-size';
-import PropTypes from 'prop-types';
 
 /**
  * runtime check for requestIdleCallback
@@ -206,18 +205,14 @@ const ResizeManager = _ref => {
     let fallbackTimer;
 
     if ('fonts' in document) {
-      document.fonts.onloadingdone = reflow;
+      document.fonts.ready.then(() => {
+        requestIdleCallback$1(reflow);
+      });
     } else {
       fallbackTimer = setTimeout(reflow, 1000);
     }
 
-    return () => {
-      if ('fonts' in document) {
-        document.fonts.onloadingdone = null;
-      } else {
-        clearTimeout(fallbackTimer);
-      }
-    };
+    return () => clearTimeout(fallbackTimer);
   }, []);
   return null;
 };
@@ -485,7 +480,6 @@ const FakeScroller = _ref => {
 const VirtualScrollbar = _ref4 => {
   let {
     disabled,
-    resizeOnHeight,
     children,
     scrollToTop = false,
     ...rest
@@ -534,8 +528,7 @@ const VirtualScrollbar = _ref4 => {
   }), active && /*#__PURE__*/React.createElement(FakeScroller, _extends({
     el: ref
   }, rest)), !config$1.hasGlobalCanvas && /*#__PURE__*/React.createElement(ResizeManager$1, {
-    reflow: requestReflow,
-    resizeOnHeight: resizeOnHeight
+    reflow: requestReflow
   }));
 };
 
@@ -588,19 +581,7 @@ const HijackedScrollbar = _ref => {
   const documentHeight = useRef(0);
   const delta = useRef(0);
   const lastFrame = useRef(0);
-  const originalLerp = useMemo(() => lerp || config$1.scrollLerp, [lerp]); // reflow on webfont loaded to prevent misalignments
-
-  useLayoutEffect(() => {
-    if ('fonts' in document) {
-      document.fonts.onloadingdone = requestReflow;
-    }
-
-    return () => {
-      if ('fonts' in document) {
-        document.fonts.onloadingdone = null;
-      }
-    };
-  }, []);
+  const originalLerp = useMemo(() => lerp || config$1.scrollLerp, [lerp]);
 
   const setScrollPosition = () => {
     if (!scrolling.current) return;
@@ -802,7 +783,7 @@ const HijackedScrollbar = _ref => {
 
   useEffect(() => {
     requestIdleCallback$1(() => {
-      documentHeight.current = document.body.clientHeight - window.innerHeight;
+      documentHeight.current = document.documentElement.scrollHeight - window.innerHeight;
     });
   }, [pageReflowRequested, width, height, location]);
 
@@ -837,19 +818,9 @@ const HijackedScrollbar = _ref => {
   }, [disabled]);
   return /*#__PURE__*/React.createElement(React.Fragment, null, children({
     ref
+  }), !config$1.hasGlobalCanvas && /*#__PURE__*/React.createElement(ResizeManager$1, {
+    reflow: requestReflow
   }));
-};
-HijackedScrollbar.propTypes = {
-  disabled: PropTypes.bool,
-  onUpdate: PropTypes.func,
-  speed: PropTypes.number,
-  lerp: PropTypes.number,
-  restDelta: PropTypes.number,
-  location: PropTypes.any,
-  useUpdateLoop: PropTypes.func,
-  useRenderLoop: PropTypes.func,
-  invalidate: PropTypes.func,
-  subpixelScrolling: PropTypes.bool
 };
 
 export { HijackedScrollbar, VirtualScrollbar, useScrollbar };
