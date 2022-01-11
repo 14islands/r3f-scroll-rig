@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useWindowSize } from '@react-hook/window-size'
 
 import config from '../config'
+import requestIdleCallback from '../polyfills/requestIdleCallback'
 
 /**
  * Manages Scroll rig resize events by trigger a reflow instead of individual resize listeners in each component
@@ -32,17 +33,13 @@ const ResizeManager = ({ reflow, resizeOnWebFontLoaded = true }) => {
 
     let fallbackTimer
     if ('fonts' in document) {
-      document.fonts.onloadingdone = reflow
+      document.fonts.ready.then(() => {
+        requestIdleCallback(reflow)
+      })
     } else {
       fallbackTimer = setTimeout(reflow, 1000)
     }
-    return () => {
-      if ('fonts' in document) {
-        document.fonts.onloadingdone = null
-      } else {
-        clearTimeout(fallbackTimer)
-      }
-    }
+    return () => clearTimeout(fallbackTimer)
   }, [])
 
   return null
