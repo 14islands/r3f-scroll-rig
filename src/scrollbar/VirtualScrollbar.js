@@ -240,7 +240,7 @@ FakeScroller.propTypes = {
  * Wrapper for virtual scrollbar
  * @param {*} param0
  */
-const VirtualScrollbar = ({ disabled, resizeOnHeight, children, scrollToTop = false, ...rest }) => {
+const VirtualScrollbar = ({ disabled, children, scrollToTop = false, ...rest }) => {
   const ref = useRef()
   const [active, setActive] = useState(false)
 
@@ -289,7 +289,7 @@ const VirtualScrollbar = ({ disabled, resizeOnHeight, children, scrollToTop = fa
       {/* Always render children to prevent double mount */}
       {children({ ref, style })}
       {active && <FakeScroller el={ref} {...rest} />}
-      {!config.hasGlobalCanvas && <ResizeManager reflow={requestReflow} resizeOnHeight={resizeOnHeight} />}
+      {!config.hasGlobalCanvas && <ResizeManager reflow={requestReflow} />}
     </>
   )
 }

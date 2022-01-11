@@ -6,6 +6,7 @@ import { useWindowSize } from '@react-hook/window-size'
 import config from '../config'
 import useCanvasStore from '../store'
 import requestIdleCallback from '../polyfills/requestIdleCallback'
+import ResizeManager from '../utils/ResizeManager'
 
 // FIXME test on touch devices - handle touchmove/pointermove event
 
@@ -50,18 +51,6 @@ export const HijackedScrollbar = ({
   const lastFrame = useRef(0)
 
   const originalLerp = useMemo(() => lerp || config.scrollLerp, [lerp])
-
-  // reflow on webfont loaded to prevent misalignments
-  useLayoutEffect(() => {
-    if ('fonts' in document) {
-      document.fonts.onloadingdone = requestReflow
-    }
-    return () => {
-      if ('fonts' in document) {
-        document.fonts.onloadingdone = null
-      }
-    }
-  }, [])
 
   const setScrollPosition = () => {
     if (!scrolling.current) return
@@ -258,7 +247,7 @@ export const HijackedScrollbar = ({
   // find available scroll height
   useEffect(() => {
     requestIdleCallback(() => {
-      documentHeight.current = document.body.clientHeight - window.innerHeight
+      documentHeight.current = document.documentElement.scrollHeight - window.innerHeight
     })
   }, [pageReflowRequested, width, height, location])
 
@@ -284,7 +273,12 @@ export const HijackedScrollbar = ({
     }
   }, [disabled])
 
-  return <>{children({ ref })}</>
+  return (
+    <>
+      {children({ ref })}
+      {!config.hasGlobalCanvas && <ResizeManager reflow={requestReflow} />}
+    </>
+  )
 }
 
 HijackedScrollbar.propTypes = {
