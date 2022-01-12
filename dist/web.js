@@ -1808,26 +1808,27 @@ const HijackedScrollbar = _ref => {
   const scrollTo = useCallback(function (newY) {
     let lerp = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : originalLerp;
     config.scrollLerp = lerp;
-    y.target = Math.min(Math.max(newY, 0), documentHeight.current);
+    y.target = Math.min(Math.max(newY, 0), documentHeight.current); // start scrolling
 
     if (!scrolling.current) {
-      scrolling.current = true;
+      scrolling.current = true; // first disable point events
+
+      preventPointerEvents(true); // refresh available scroll distance to avoid glitches
+
+      documentHeight.current = document.documentElement.scrollHeight - window.innerHeight; // start animating scroll
+
       invalidate ? invalidate() : window.requestAnimationFrame(animate);
-      setTimeout(() => {
-        preventPointerEvents(true);
-        preventPointer.current = true;
-      }, 0);
     }
 
     setScrollY(y.target);
   }, []); // disable pointer events while scrolling to avoid slow event handlers
 
   const preventPointerEvents = prevent => {
+    preventPointer.current = prevent;
+
     if (ref.current) {
       ref.current.style.pointerEvents = prevent ? 'none' : '';
     }
-
-    preventPointer.current = prevent;
   }; // reset pointer events when moving mouse
 
 
@@ -1835,6 +1836,14 @@ const HijackedScrollbar = _ref => {
     if (preventPointer.current) {
       preventPointerEvents(false);
     }
+  }, []); // disable subpixelScrolling for better visual sync with canvas
+
+  useLayoutEffect(() => {
+    const ssBefore = config.subpixelScrolling;
+    config.subpixelScrolling = subpixelScrolling;
+    return () => {
+      config.subpixelScrolling = ssBefore;
+    };
   }, []); // override window.scrollTo(0, targetY) with our lerped version
   // Don't use useLayoutEffect as we want the native scrollTo to execute first and set the history position
 
@@ -1856,14 +1865,6 @@ const HijackedScrollbar = _ref => {
     y.current = window.pageYOffset;
     y.target = window.pageYOffset;
     setScrollY(y.target);
-  }, []); // disable subpixelScrolling for better visual sync with canvas
-
-  useLayoutEffect(() => {
-    const ssBefore = config.subpixelScrolling;
-    config.subpixelScrolling = subpixelScrolling;
-    return () => {
-      config.subpixelScrolling = ssBefore;
-    };
   }, []); // Check if we are using an external update loop (like r3f)
   // update scroll target before everything else
 

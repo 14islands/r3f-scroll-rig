@@ -92,13 +92,18 @@ export const HijackedScrollbar = ({
 
     y.target = Math.min(Math.max(newY, 0), documentHeight.current)
 
+    // start scrolling
     if (!scrolling.current) {
       scrolling.current = true
+
+      // first disable point events
+      preventPointerEvents(true)
+
+      // refresh available scroll distance to avoid glitches
+      documentHeight.current = document.documentElement.scrollHeight - window.innerHeight
+
+      // start animating scroll
       invalidate ? invalidate() : window.requestAnimationFrame(animate)
-      setTimeout(() => {
-        preventPointerEvents(true)
-        preventPointer.current = true
-      }, 0)
     }
 
     setScrollY(y.target)
@@ -106,16 +111,25 @@ export const HijackedScrollbar = ({
 
   // disable pointer events while scrolling to avoid slow event handlers
   const preventPointerEvents = (prevent) => {
+    preventPointer.current = prevent
     if (ref.current) {
       ref.current.style.pointerEvents = prevent ? 'none' : ''
     }
-    preventPointer.current = prevent
   }
 
   // reset pointer events when moving mouse
   const onMouseMove = useCallback(() => {
     if (preventPointer.current) {
       preventPointerEvents(false)
+    }
+  }, [])
+
+  // disable subpixelScrolling for better visual sync with canvas
+  useLayoutEffect(() => {
+    const ssBefore = config.subpixelScrolling
+    config.subpixelScrolling = subpixelScrolling
+    return () => {
+      config.subpixelScrolling = ssBefore
     }
   }, [])
 
@@ -137,15 +151,6 @@ export const HijackedScrollbar = ({
     y.current = window.pageYOffset
     y.target = window.pageYOffset
     setScrollY(y.target)
-  }, [])
-
-  // disable subpixelScrolling for better visual sync with canvas
-  useLayoutEffect(() => {
-    const ssBefore = config.subpixelScrolling
-    config.subpixelScrolling = subpixelScrolling
-    return () => {
-      config.subpixelScrolling = ssBefore
-    }
   }, [])
 
   // Check if we are using an external update loop (like r3f)
