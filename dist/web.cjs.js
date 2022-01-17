@@ -1171,6 +1171,8 @@ exports.ScrollScene = function ScrollScene(_ref) {
       bounds.visibility = three.MathUtils.mapLinear(pxInside, 0, scale.pixelHeight, 0, 1); // percent of item height in view
 
       bounds.viewport = three.MathUtils.mapLinear(pxInside, 0, size.height, 0, 1); // percent of window height scrolled since visible
+
+      bounds.deltaY = delta; // scroll delta
     } // render another frame if delta is large enough
 
 
@@ -1461,6 +1463,8 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
       bounds.visibility = three.MathUtils.mapLinear(pxInside, 0, bounds.height, 0, 1); // percent of item height in view
 
       bounds.viewport = three.MathUtils.mapLinear(pxInside, 0, size.height, 0, 1); // percent of window height scrolled since visible
+
+      bounds.deltaY = delta; // scroll delta
     } // render another frame if delta is large enough
 
 
