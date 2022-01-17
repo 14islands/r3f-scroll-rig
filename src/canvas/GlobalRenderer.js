@@ -60,8 +60,12 @@ const GlobalRenderer = ({ children }) => {
           globalRenderQueue.forEach((layer) => {
             camera.layers.enable(layer)
           })
+        } else {
+          camera.layers.enable(0)
         }
-        config.clearDepth && gl.clearDepth() // render as HUD over any other renders
+
+        // render as HUD over any other renders by default
+        config.clearDepth && gl.clearDepth()
         gl.render(scene, camera)
 
         // cleanup for next frame

@@ -710,10 +710,12 @@ var GlobalRenderer = function GlobalRenderer(_ref) {
         globalRenderQueue.forEach(function (layer) {
           camera.layers.enable(layer);
         });
-      }
+      } else {
+        camera.layers.enable(0);
+      } // render as HUD over any other renders by default
 
-      config.clearDepth && gl.clearDepth(); // render as HUD over any other renders
 
+      config.clearDepth && gl.clearDepth();
       gl.render(scene, camera); // cleanup for next frame
 
       useCanvasStore.getState().clearGlobalRenderQueue();
