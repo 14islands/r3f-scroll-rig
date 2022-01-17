@@ -1125,7 +1125,8 @@ exports.ScrollScene = function ScrollScene(_ref) {
     var initialPos = config.subpixelScrolling ? bounds.top - bounds.centerOffset : Math.floor(bounds.top - bounds.centerOffset);
     var y = initialPos - scrollY.current; // frame delta
 
-    var delta = Math.abs(prevBounds.y - y); // Lerp the distance to simulate easing
+    var dY = prevBounds.y - y;
+    var delta = Math.abs(dY); // Lerp the distance to simulate easing
 
     var lerpY = _lerp__default["default"](prevBounds.y, y, (lerp || config.scrollLerp) * lerpOffset, frameDelta);
 
@@ -1172,7 +1173,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
 
       bounds.viewport = three.MathUtils.mapLinear(pxInside, 0, size.height, 0, 1); // percent of window height scrolled since visible
 
-      bounds.deltaY = delta; // scroll delta
+      bounds.deltaY = dY; // scroll delta
     } // render another frame if delta is large enough
 
 
@@ -1427,7 +1428,8 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
     var initialPos = config.subpixelScrolling ? bounds.top : Math.floor(bounds.top);
     var topY = initialPos - scrollY.current; // frame delta
 
-    var delta = Math.abs(prevBounds.top - topY); // Lerp the distance to simulate easing
+    var dY = prevBounds.top - topY;
+    var delta = Math.abs(dY); // Lerp the distance to simulate easing
 
     var lerpTop = _lerp__default["default"](prevBounds.top, topY, (lerp || config.scrollLerp) * lerpOffset, frameDelta);
 
@@ -1464,7 +1466,7 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
 
       bounds.viewport = three.MathUtils.mapLinear(pxInside, 0, size.height, 0, 1); // percent of window height scrolled since visible
 
-      bounds.deltaY = delta; // scroll delta
+      bounds.deltaY = dY; // scroll delta
     } // render another frame if delta is large enough
 
 

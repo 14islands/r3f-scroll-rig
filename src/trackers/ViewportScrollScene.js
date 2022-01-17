@@ -166,7 +166,8 @@ let ViewportScrollScene = ({
     const topY = initialPos - scrollY.current
 
     // frame delta
-    const delta = Math.abs(prevBounds.top - topY)
+    const dY = prevBounds.top - topY
+    const delta = Math.abs(dY)
 
     // Lerp the distance to simulate easing
     const lerpTop = _lerp(prevBounds.top, topY, (lerp || config.scrollLerp) * lerpOffset, frameDelta)
@@ -203,7 +204,7 @@ let ViewportScrollScene = ({
       bounds.progress = MathUtils.mapLinear(pxInside, 0, size.height + bounds.height, 0, 1) // percent of total visible distance
       bounds.visibility = MathUtils.mapLinear(pxInside, 0, bounds.height, 0, 1) // percent of item height in view
       bounds.viewport = MathUtils.mapLinear(pxInside, 0, size.height, 0, 1) // percent of window height scrolled since visible
-      bounds.deltaY = delta // scroll delta
+      bounds.deltaY = dY // scroll delta
     }
 
     // render another frame if delta is large enough

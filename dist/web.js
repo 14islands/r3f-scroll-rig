@@ -958,7 +958,8 @@ let ScrollScene = _ref => {
     const initialPos = config.subpixelScrolling ? bounds.top - bounds.centerOffset : Math.floor(bounds.top - bounds.centerOffset);
     const y = initialPos - scrollY.current; // frame delta
 
-    const delta = Math.abs(prevBounds.y - y); // Lerp the distance to simulate easing
+    const dY = prevBounds.y - y;
+    const delta = Math.abs(dY); // Lerp the distance to simulate easing
 
     const lerpY = _lerp(prevBounds.y, y, (lerp || config.scrollLerp) * lerpOffset, frameDelta);
 
@@ -1003,7 +1004,7 @@ let ScrollScene = _ref => {
 
       bounds.viewport = MathUtils.mapLinear(pxInside, 0, size.height, 0, 1); // percent of window height scrolled since visible
 
-      bounds.deltaY = delta; // scroll delta
+      bounds.deltaY = dY; // scroll delta
     } // render another frame if delta is large enough
 
 
@@ -1229,7 +1230,8 @@ let ViewportScrollScene = _ref => {
     const initialPos = config.subpixelScrolling ? bounds.top : Math.floor(bounds.top);
     const topY = initialPos - scrollY.current; // frame delta
 
-    const delta = Math.abs(prevBounds.top - topY); // Lerp the distance to simulate easing
+    const dY = prevBounds.top - topY;
+    const delta = Math.abs(dY); // Lerp the distance to simulate easing
 
     const lerpTop = _lerp(prevBounds.top, topY, (lerp || config.scrollLerp) * lerpOffset, frameDelta);
 
@@ -1264,7 +1266,7 @@ let ViewportScrollScene = _ref => {
 
       bounds.viewport = MathUtils.mapLinear(pxInside, 0, size.height, 0, 1); // percent of window height scrolled since visible
 
-      bounds.deltaY = delta; // scroll delta
+      bounds.deltaY = dY; // scroll delta
     } // render another frame if delta is large enough
 
 
