@@ -106,7 +106,7 @@ let ScrollScene = ({
       if (!el?.current) return
       Object.keys(hiddenStyle).forEach((key) => (el.current.style[key] = ''))
     }
-  }, [el.current])
+  }, [el])
 
   const updateSizeAndPosition = () => {
     if (!el || !el.current || !scene) {
@@ -155,7 +155,7 @@ let ScrollScene = ({
     return () => {
       clearTimeout(timer)
     }
-  }, [pageReflowCompleted, updateLayout, scene])
+  }, [el, pageReflowCompleted, updateLayout, scene])
 
   // RENDER FRAME
   useFrame(({ gl, camera, clock }, frameDelta) => {

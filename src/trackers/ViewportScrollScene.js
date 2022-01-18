@@ -100,7 +100,7 @@ let ViewportScrollScene = ({
       if (!el?.current) return
       Object.keys(hiddenStyle).forEach((key) => (el.current.style[key] = ''))
     }
-  }, [el.current])
+  }, [el])
 
   const updateSizeAndPosition = () => {
     if (!el || !el.current) return
@@ -154,7 +154,7 @@ let ViewportScrollScene = ({
     return () => {
       clearTimeout(timer)
     }
-  }, [pageReflowCompleted])
+  }, [el, pageReflowCompleted])
 
   // RENDER FRAME
   useFrame(({ gl }, frameDelta) => {
