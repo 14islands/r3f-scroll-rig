@@ -888,7 +888,7 @@ let ScrollScene = _ref => {
       if (!(el !== null && el !== void 0 && el.current)) return;
       Object.keys(hiddenStyle).forEach(key => el.current.style[key] = '');
     };
-  }, [el.current]);
+  }, [el]);
 
   const updateSizeAndPosition = () => {
     if (!el || !el.current || !scene) {
@@ -941,7 +941,7 @@ let ScrollScene = _ref => {
     return () => {
       clearTimeout(timer);
     };
-  }, [pageReflowCompleted, updateLayout, scene]); // RENDER FRAME
+  }, [el, pageReflowCompleted, updateLayout, scene]); // RENDER FRAME
 
   useFrame((_ref2, frameDelta) => {
     let {
@@ -1160,7 +1160,7 @@ let ViewportScrollScene = _ref => {
       if (!(el !== null && el !== void 0 && el.current)) return;
       Object.keys(hiddenStyle).forEach(key => el.current.style[key] = '');
     };
-  }, [el.current]);
+  }, [el]);
 
   const updateSizeAndPosition = () => {
     if (!el || !el.current) return;
@@ -1215,7 +1215,7 @@ let ViewportScrollScene = _ref => {
     return () => {
       clearTimeout(timer);
     };
-  }, [pageReflowCompleted]); // RENDER FRAME
+  }, [el, pageReflowCompleted]); // RENDER FRAME
 
   useFrame((_ref2, frameDelta) => {
     let {

@@ -1060,7 +1060,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
         return el.current.style[key] = '';
       });
     };
-  }, [el.current]);
+  }, [el]);
 
   var updateSizeAndPosition = function updateSizeAndPosition() {
     if (!el || !el.current || !scene) {
@@ -1112,7 +1112,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
     return function () {
       clearTimeout(timer);
     };
-  }, [pageReflowCompleted, updateLayout, scene]); // RENDER FRAME
+  }, [el, pageReflowCompleted, updateLayout, scene]); // RENDER FRAME
 
   fiber.useFrame(function (_ref2, frameDelta) {
     var gl = _ref2.gl,
@@ -1363,7 +1363,7 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
         return el.current.style[key] = '';
       });
     };
-  }, [el.current]);
+  }, [el]);
 
   var updateSizeAndPosition = function updateSizeAndPosition() {
     if (!el || !el.current) return;
@@ -1417,7 +1417,7 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
     return function () {
       clearTimeout(timer);
     };
-  }, [pageReflowCompleted]); // RENDER FRAME
+  }, [el, pageReflowCompleted]); // RENDER FRAME
 
   fiber.useFrame(function (_ref2, frameDelta) {
     var gl = _ref2.gl;

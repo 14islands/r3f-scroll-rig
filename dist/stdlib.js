@@ -4,6 +4,7 @@ import { Color, Vector2, MathUtils } from 'three';
 import { useThree, useFrame } from '@react-three/fiber';
 import { Text } from '@react-three/drei/core/Text';
 import { useScrollRig, useImgTagAsTexture, ScrollScene, _config } from '@14islands/r3f-scroll-rig';
+import lerp from '@14islands/lerp';
 
 /**
  * Returns a WebGL Troika text mesh styled as the source DOM element
@@ -80,15 +81,16 @@ const WebGLText = _ref => {
 
 const WebGLImage = _ref => {
   let {
-    image,
+    el,
     scale,
     scrollState,
     scene,
     vertexShader,
     fragmentShader,
     invalidateFrameLoop = false,
-    widthSegments = 128,
-    heightSegments = 128
+    widthSegments = 14,
+    heightSegments = 14,
+    ...props
   } = _ref;
   const material = useRef();
   const mesh = useRef();
@@ -101,7 +103,7 @@ const WebGLImage = _ref => {
     size
   } = useThree();
   const pixelRatio = useThree(s => s.viewport.dpr);
-  const [texture] = useImgTagAsTexture(image.current);
+  const [texture] = useImgTagAsTexture(el.current);
   const uniforms = useMemo(() => {
     return {
       u_color: {
@@ -125,9 +127,19 @@ const WebGLImage = _ref => {
       u_velocity: {
         value: 0
       },
+      // scroll speed
       u_res: {
         value: new Vector2(size.width, size.height)
       },
+      // screen dimensions
+      u_rect: {
+        value: new Vector2()
+      },
+      // DOM el dimensions
+      u_size: {
+        value: new Vector2()
+      },
+      // Texture dimensions
       u_texture: {
         value: texture
       },
@@ -135,20 +147,24 @@ const WebGLImage = _ref => {
         value: scale.multiplier
       }
     }; // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Preload when texture finished loading
+  }, []); // // Preload when texture finished loading
 
   useEffect(() => {
+    if (!texture) return;
     material.current.uniforms.u_texture.value = texture;
+    material.current.uniforms.u_size.value.set(texture.image.width, texture.image.height);
     preloadScene(scene, camera); // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [texture]);
   useEffect(() => {
     material.current.uniforms.u_res.value.set(size.width, size.height);
-  }, [size]);
-  useFrame(() => {
+    material.current.uniforms.u_rect.value.set(scale.width, scale.height);
+  }, [size, scale]);
+  useFrame((_, delta) => {
     if (!scrollState.inViewport) return;
-    material.current.uniforms.u_time.value += 0.01; // px velocity
-    // material.current.uniforms.u_velocity.value = scrollState.velocity
-    // percent of total visible distance that was scrolled (0 = just outside bottom of screen, 1 = just outside top of screen)
+    material.current.uniforms.u_time.value += delta; // px velocity
+
+    const targetVel = MathUtils.clamp(scrollState.deltaY / 200, -1, 1);
+    material.current.uniforms.u_velocity.value = lerp(material.current.uniforms.u_velocity.value, targetVel, 0.1, delta); // percent of total visible distance that was scrolled (0 = just outside bottom of screen, 1 = just outside top of screen)
 
     material.current.uniforms.u_progress.value = scrollState.progress; // percent of item height in view
 
@@ -157,11 +173,12 @@ const WebGLImage = _ref => {
     material.current.uniforms.u_viewport.value = scrollState.viewport;
     if (invalidateFrameLoop) invalidate();
   });
-  return /*#__PURE__*/React.createElement("mesh", {
-    ref: mesh
-  }, /*#__PURE__*/React.createElement("planeBufferGeometry", {
+  return /*#__PURE__*/React.createElement("mesh", _extends({
+    ref: mesh,
+    scale: [scale.width, scale.height, 1]
+  }, props), /*#__PURE__*/React.createElement("planeBufferGeometry", {
     attach: "geometry",
-    args: [scale.width, scale.height, widthSegments, heightSegments]
+    args: [1, 1, widthSegments, heightSegments]
   }), /*#__PURE__*/React.createElement("shaderMaterial", {
     ref: material,
     attach: "material",

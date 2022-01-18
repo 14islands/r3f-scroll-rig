@@ -10,6 +10,7 @@ var fiber = require('@react-three/fiber');
 var Text = require('@react-three/drei/core/Text');
 var _slicedToArray = require('@babel/runtime/helpers/slicedToArray');
 var r3fScrollRig = require('@14islands/r3f-scroll-rig');
+var lerp = require('@14islands/lerp');
 var _defineProperty = require('@babel/runtime/helpers/defineProperty');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
@@ -18,9 +19,10 @@ var _extends__default = /*#__PURE__*/_interopDefaultLegacy(_extends);
 var _objectWithoutProperties__default = /*#__PURE__*/_interopDefaultLegacy(_objectWithoutProperties);
 var React__default = /*#__PURE__*/_interopDefaultLegacy(React);
 var _slicedToArray__default = /*#__PURE__*/_interopDefaultLegacy(_slicedToArray);
+var lerp__default = /*#__PURE__*/_interopDefaultLegacy(lerp);
 var _defineProperty__default = /*#__PURE__*/_interopDefaultLegacy(_defineProperty);
 
-var _excluded$2 = ["el", "children", "material", "scale", "font", "fontOffsetY", "fontOffsetX", "overrideEmissive", "color"];
+var _excluded$3 = ["el", "children", "material", "scale", "font", "fontOffsetY", "fontOffsetX", "overrideEmissive", "color"];
 /**
  * Returns a WebGL Troika text mesh styled as the source DOM element
  */
@@ -38,7 +40,7 @@ var WebGLText = function WebGLText(_ref) {
       _ref$overrideEmissive = _ref.overrideEmissive,
       overrideEmissive = _ref$overrideEmissive === void 0 ? false : _ref$overrideEmissive,
       color = _ref.color,
-      props = _objectWithoutProperties__default["default"](_ref, _excluded$2);
+      props = _objectWithoutProperties__default["default"](_ref, _excluded$3);
 
   var _useThree = fiber.useThree(),
       size = _useThree.size;
@@ -97,8 +99,10 @@ var WebGLText = function WebGLText(_ref) {
   }, props), children);
 };
 
+var _excluded$2 = ["el", "scale", "scrollState", "scene", "vertexShader", "fragmentShader", "invalidateFrameLoop", "widthSegments", "heightSegments"];
+
 var WebGLImage = function WebGLImage(_ref) {
-  var image = _ref.image,
+  var el = _ref.el,
       scale = _ref.scale,
       scrollState = _ref.scrollState,
       scene = _ref.scene,
@@ -107,9 +111,11 @@ var WebGLImage = function WebGLImage(_ref) {
       _ref$invalidateFrameL = _ref.invalidateFrameLoop,
       invalidateFrameLoop = _ref$invalidateFrameL === void 0 ? false : _ref$invalidateFrameL,
       _ref$widthSegments = _ref.widthSegments,
-      widthSegments = _ref$widthSegments === void 0 ? 128 : _ref$widthSegments,
+      widthSegments = _ref$widthSegments === void 0 ? 14 : _ref$widthSegments,
       _ref$heightSegments = _ref.heightSegments,
-      heightSegments = _ref$heightSegments === void 0 ? 128 : _ref$heightSegments;
+      heightSegments = _ref$heightSegments === void 0 ? 14 : _ref$heightSegments,
+      props = _objectWithoutProperties__default["default"](_ref, _excluded$2);
+
   var material = React.useRef();
   var mesh = React.useRef();
 
@@ -125,7 +131,7 @@ var WebGLImage = function WebGLImage(_ref) {
     return s.viewport.dpr;
   });
 
-  var _useImgTagAsTexture = r3fScrollRig.useImgTagAsTexture(image.current),
+  var _useImgTagAsTexture = r3fScrollRig.useImgTagAsTexture(el.current),
       _useImgTagAsTexture2 = _slicedToArray__default["default"](_useImgTagAsTexture, 1),
       texture = _useImgTagAsTexture2[0];
 
@@ -152,9 +158,19 @@ var WebGLImage = function WebGLImage(_ref) {
       u_velocity: {
         value: 0
       },
+      // scroll speed
       u_res: {
         value: new three.Vector2(size.width, size.height)
       },
+      // screen dimensions
+      u_rect: {
+        value: new three.Vector2()
+      },
+      // DOM el dimensions
+      u_size: {
+        value: new three.Vector2()
+      },
+      // Texture dimensions
       u_texture: {
         value: texture
       },
@@ -162,20 +178,24 @@ var WebGLImage = function WebGLImage(_ref) {
         value: scale.multiplier
       }
     }; // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Preload when texture finished loading
+  }, []); // // Preload when texture finished loading
 
   React.useEffect(function () {
+    if (!texture) return;
     material.current.uniforms.u_texture.value = texture;
+    material.current.uniforms.u_size.value.set(texture.image.width, texture.image.height);
     preloadScene(scene, camera); // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [texture]);
   React.useEffect(function () {
     material.current.uniforms.u_res.value.set(size.width, size.height);
-  }, [size]);
-  fiber.useFrame(function () {
+    material.current.uniforms.u_rect.value.set(scale.width, scale.height);
+  }, [size, scale]);
+  fiber.useFrame(function (_, delta) {
     if (!scrollState.inViewport) return;
-    material.current.uniforms.u_time.value += 0.01; // px velocity
-    // material.current.uniforms.u_velocity.value = scrollState.velocity
-    // percent of total visible distance that was scrolled (0 = just outside bottom of screen, 1 = just outside top of screen)
+    material.current.uniforms.u_time.value += delta; // px velocity
+
+    var targetVel = three.MathUtils.clamp(scrollState.deltaY / 200, -1, 1);
+    material.current.uniforms.u_velocity.value = lerp__default["default"](material.current.uniforms.u_velocity.value, targetVel, 0.1, delta); // percent of total visible distance that was scrolled (0 = just outside bottom of screen, 1 = just outside top of screen)
 
     material.current.uniforms.u_progress.value = scrollState.progress; // percent of item height in view
 
@@ -184,11 +204,12 @@ var WebGLImage = function WebGLImage(_ref) {
     material.current.uniforms.u_viewport.value = scrollState.viewport;
     if (invalidateFrameLoop) invalidate();
   });
-  return /*#__PURE__*/React__default["default"].createElement("mesh", {
-    ref: mesh
-  }, /*#__PURE__*/React__default["default"].createElement("planeBufferGeometry", {
+  return /*#__PURE__*/React__default["default"].createElement("mesh", _extends__default["default"]({
+    ref: mesh,
+    scale: [scale.width, scale.height, 1]
+  }, props), /*#__PURE__*/React__default["default"].createElement("planeBufferGeometry", {
     attach: "geometry",
-    args: [scale.width, scale.height, widthSegments, heightSegments]
+    args: [1, 1, widthSegments, heightSegments]
   }), /*#__PURE__*/React__default["default"].createElement("shaderMaterial", {
     ref: material,
     attach: "material",
