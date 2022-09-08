@@ -6,8 +6,8 @@ import queryString from 'query-string'
 
 import { useCanvasStore } from '../store'
 import config from '../config'
-import { Stats } from '../utils/Stats'
-import StatsDebug from '../utils/StatsDebug'
+// import { Stats } from '../utils/Stats'
+// import StatsDebug from '../utils/StatsDebug'
 import ResizeManager from '../utils/ResizeManager'
 import PerspectiveCamera from '../cameras/PerspectiveCamera'
 import OrthographicCamera from '../cameras/OrthographicCamera'
@@ -25,6 +25,7 @@ const GlobalCanvas = ({
   config: confOverrides,
   camera,
   fallback = null,
+  scrollLerp,
   ...props
 }) => {
   const requestReflow = useCanvasStore((state) => state.requestReflow)
@@ -44,6 +45,10 @@ const GlobalCanvas = ({
     // show debug statements
     if (typeof qs.debug !== 'undefined') {
       config.debug = true
+    }
+
+    if (scrollLerp) {
+      config.scrollLerp = scrollLerp
     }
   }, [confOverrides])
 
@@ -89,8 +94,8 @@ const GlobalCanvas = ({
       {!orthographic && <PerspectiveCamera makeDefault={true} {...camera} />}
       {orthographic && <OrthographicCamera makeDefault={true} {...camera} />}
 
-      {config.debug && <StatsDebug />}
-      {config.fps && <Stats />}
+      {/* {config.debug && <StatsDebug />} */}
+      {/* {config.fps && <Stats />} */}
 
       <ResizeManager reflow={requestReflow} />
 

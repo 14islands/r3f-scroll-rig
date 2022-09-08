@@ -7,6 +7,7 @@ export { ScrollDomPortal } from './trackers/ScrollDomPortal'
 export { useScrollRig } from './hooks/useScrollRig'
 export { useCanvas } from './hooks/useCanvas'
 export { useScrollbar } from './scrollbar/useScrollbar'
+export { useElementTracker } from './trackers/useElementTracker'
 
 // TODO: move to stdlib
 export { useImgTagAsTexture, useTextureLoader } from './hooks/useImgTagAsTexture'

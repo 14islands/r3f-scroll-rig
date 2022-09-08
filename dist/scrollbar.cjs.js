@@ -86,7 +86,7 @@ var useCanvasStore = create__default["default"](middleware.subscribeWithSelector
     // //////////////////////////////////////////////////////////////////////////
     globalRenderQueue: false,
     clearGlobalRenderQueue: function clearGlobalRenderQueue() {
-      return set(function (state) {
+      return set(function () {
         return {
           globalRenderQueue: false
         };
@@ -95,7 +95,7 @@ var useCanvasStore = create__default["default"](middleware.subscribeWithSelector
     // true if WebGL initialized without errors
     isCanvasAvailable: true,
     setCanvasAvailable: function setCanvasAvailable(isCanvasAvailable) {
-      return set(function (state) {
+      return set(function () {
         return {
           isCanvasAvailable: isCanvasAvailable
         };
@@ -104,7 +104,7 @@ var useCanvasStore = create__default["default"](middleware.subscribeWithSelector
     // true if <VirtualScrollbar> is currently enabled
     hasVirtualScrollbar: false,
     setVirtualScrollbar: function setVirtualScrollbar(hasVirtualScrollbar) {
-      return set(function (state) {
+      return set(function () {
         return {
           hasVirtualScrollbar: hasVirtualScrollbar
         };
@@ -118,14 +118,26 @@ var useCanvasStore = create__default["default"](middleware.subscribeWithSelector
       return set(function (_ref) {
         var canvasChildren = _ref.canvasChildren;
 
-        var obj = _objectSpread(_objectSpread({}, canvasChildren), {}, _defineProperty__default["default"]({}, key, {
-          mesh: mesh,
-          props: props
-        }));
+        // check if already mounted
+        if (Object.getOwnPropertyDescriptor(canvasChildren, key)) {
+          // increase usage count
+          canvasChildren[key].instances += 1;
+          canvasChildren[key].props.inactive = false;
+          return {
+            canvasChildren: canvasChildren
+          };
+        } else {
+          // otherwise mount it
+          var obj = _objectSpread(_objectSpread({}, canvasChildren), {}, _defineProperty__default["default"]({}, key, {
+            mesh: mesh,
+            props: props,
+            instances: 1
+          }));
 
-        return {
-          canvasChildren: obj
-        };
+          return {
+            canvasChildren: obj
+          };
+        }
       });
     },
     // pass new props to a canvas component
@@ -135,12 +147,15 @@ var useCanvasStore = create__default["default"](middleware.subscribeWithSelector
         if (!canvasChildren[key]) return;
         var _canvasChildren$key = canvasChildren[key],
             mesh = _canvasChildren$key.mesh,
-            props = _canvasChildren$key.props;
+            props = _canvasChildren$key.props,
+            instances = _canvasChildren$key.instances;
 
         var obj = _objectSpread(_objectSpread({}, canvasChildren), {}, _defineProperty__default["default"]({}, key, {
           mesh: mesh,
-          props: _objectSpread(_objectSpread({}, props), newProps)
-        }));
+          props: _objectSpread(_objectSpread({}, props), newProps),
+          instances: instances
+        })); // console.log('updateCanvas', key, { ...props, ...newProps })
+
 
         return {
           canvasChildren: obj
@@ -149,16 +164,38 @@ var useCanvasStore = create__default["default"](middleware.subscribeWithSelector
     },
     // remove component from canvas
     removeFromCanvas: function removeFromCanvas(key) {
+      var dispose = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
       return set(function (_ref3) {
+        var _canvasChildren$key2;
+
         var canvasChildren = _ref3.canvasChildren;
 
-        canvasChildren[key];
-            var obj = _objectWithoutProperties__default["default"](canvasChildren, [key].map(_toPropertyKey)); // make a separate copy of the obj and omit
+        // check if remove or reduce instances
+        if (((_canvasChildren$key2 = canvasChildren[key]) === null || _canvasChildren$key2 === void 0 ? void 0 : _canvasChildren$key2.instances) > 1) {
+          // reduce usage count
+          canvasChildren[key].instances -= 1;
+          return {
+            canvasChildren: canvasChildren
+          };
+        } else {
+          if (dispose) {
+            // unmount since no longer used
+            canvasChildren[key];
+                var obj = _objectWithoutProperties__default["default"](canvasChildren, [key].map(_toPropertyKey)); // make a separate copy of the obj and omit
 
 
-        return {
-          canvasChildren: obj
-        };
+            return {
+              canvasChildren: obj
+            };
+          } else {
+            // or tell it to "act" hidden
+            canvasChildren[key].instances = 0;
+            canvasChildren[key].props.inactive = true;
+            return {
+              canvasChildren: canvasChildren
+            };
+          }
+        }
       });
     },
     // Used to ask components to re-calculate their positions after a layout reflow
@@ -185,12 +222,15 @@ var useCanvasStore = create__default["default"](middleware.subscribeWithSelector
     // keep track of scroll position
     scrollY: 0,
     setScrollY: function setScrollY(scrollY) {
-      return set(function (state) {
+      return set(function () {
         return {
           scrollY: scrollY
         };
       });
-    }
+    },
+    scrollX: 0,
+    // TODO: setScrollX to support horizontal scroll
+    scrollLerp: 0.14
   };
 }));
 var useCanvasStore$1 = useCanvasStore;
@@ -628,6 +668,9 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
   var setScrollY = useCanvasStore$1(function (state) {
     return state.setScrollY;
   });
+  var scrollLerp = useCanvasStore$1(function (state) {
+    return state.scrollLerp;
+  });
 
   var _useWindowSize = windowSize.useWindowSize({
     wait: 100
@@ -649,7 +692,7 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
   var delta = React.useRef(0);
   var lastFrame = React.useRef(0);
   var originalLerp = React.useMemo(function () {
-    return lerp || config$1.scrollLerp;
+    return lerp || scrollLerp;
   }, [lerp]);
 
   var setScrollPosition = function setScrollPosition() {
@@ -677,8 +720,9 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
 
     delta.current = Math.abs(y.current - newTarget);
     y.current = newTarget; // round for scrollbar
+    // roundedY.current = config.subpixelScrolling ? y.current : Math.floor(y.current)
 
-    roundedY.current = config$1.subpixelScrolling ? y.current : Math.floor(y.current);
+    roundedY.current = y.current;
 
     if (!useRenderLoop) {
       setScrollPosition();
@@ -686,7 +730,7 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
   };
 
   var scrollTo = React.useCallback(function (newY) {
-    var lerp = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : originalLerp;
+    var lerp = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
     config$1.scrollLerp = lerp;
     y.target = Math.min(Math.max(newY, 0), documentHeight.current); // start scrolling
 
@@ -739,9 +783,12 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
       return scrollTo(y, lerp);
     };
 
+    console.log('HijackedScrollbar.MOUNT', window.pageYOffset);
     return function () {
       window.scrollTo = window.__origScrollTo;
       window.scroll = window.__origScroll;
+      config$1.scrollLerp = originalLerp;
+      console.log('HijackedScrollbar.UNMOUNT', originalLerp);
     };
   }, [scrollTo]); // make sure we have correct internal values at mount
 
@@ -863,7 +910,7 @@ var HijackedScrollbar = function HijackedScrollbar(_ref) {
 
   var onWheelEvent = function onWheelEvent(e) {
     e.preventDefault();
-    scrollTo(y.target + e.deltaY * speed);
+    scrollTo(y.target + e.deltaY * speed, originalLerp);
   };
 
   React.useEffect(function () {

@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { extend } from '@react-three/fiber'
-import { shaderMaterial } from '@react-three/drei/core/shaderMaterial'
+import { shaderMaterial } from '@react-three/drei/core/shaderMaterial.js'
 import { Color } from 'three'
 
 const DebugMaterial = shaderMaterial(
@@ -20,7 +20,7 @@ const DebugMaterial = shaderMaterial(
     void main() {
       gl_FragColor.rgba = vec4(color, opacity);
     }
-  `,
+  `
 )
 extend({ DebugMaterial })
 

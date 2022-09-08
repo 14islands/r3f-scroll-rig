@@ -5,7 +5,7 @@ import { requestIdleCallback } from '../polyfills/requestIdleCallback'
 
 const StatsDebug = ({ render = true, memory = true }) => {
   const stats = useRef({ calls: 0, triangles: 0, geometries: 0, textures: 0 }).current
-  useFrame(({ gl, clock }) => {
+  useFrame(({ gl }) => {
     gl.info.autoReset = false
     const _calls = gl.info.render.calls
     const _triangles = gl.info.render.triangles

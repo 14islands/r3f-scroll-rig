@@ -28,7 +28,7 @@ const GlobalRenderer = ({ children }) => {
   }, [children, canvasChildren])
 
   // PRELOAD RENDER LOOP
-  useFrame(({ camera, scene }) => {
+  useFrame(() => {
     if (!config.preloadQueue.length) return
     gl.autoClear = false
     // Render preload frames first and clear directly
@@ -74,13 +74,13 @@ const GlobalRenderer = ({ children }) => {
         gl.autoClear = true
       }
     },
-    config.globalRender ? config.PRIORITY_GLOBAL : undefined,
+    config.globalRender ? config.PRIORITY_GLOBAL : undefined
   ) // Take over rendering
 
   config.debug && console.log('GlobalRenderer', Object.keys(canvasChildren).length)
   return (
     <>
-      {Object.keys(canvasChildren).map((key, i) => {
+      {Object.keys(canvasChildren).map((key) => {
         const { mesh, props } = canvasChildren[key]
 
         if (typeof mesh === 'function') {

@@ -49,7 +49,6 @@ var WebGLText = function WebGLText(_ref) {
     if (!el.current) return {};
     var cs = window.getComputedStyle(el.current); // font size relative letter spacing
 
-    // font size relative letter spacing
     var letterSpacing = (parseFloat(cs.letterSpacing) || 0) / parseFloat(cs.fontSize);
     var lineHeight = (parseFloat(cs.lineHeight) || 0) / parseFloat(cs.fontSize);
     var textColor = new three.Color(color || cs.color).convertSRGBToLinear();

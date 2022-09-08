@@ -71,9 +71,9 @@ let ViewportScrollScene = ({
         (y) => {
           scrollY.current = y
           invalidate() // Trigger render on scroll
-        },
+        }
       ),
-    [],
+    []
   )
 
   useEffect(() => {
@@ -263,7 +263,7 @@ let ViewportScrollScene = ({
           })}
       </group>
     </>,
-    scene,
+    scene
   )
 }
 

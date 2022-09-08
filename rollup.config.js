@@ -18,7 +18,7 @@ const getBabelOptions = ({ useESModules }, targets) => ({
   presets: [
     ['@babel/preset-env', { loose: false, modules: false, targets }],
     '@babel/preset-react',
-    // '@babel/preset-typescript',
+    '@babel/preset-typescript',
   ],
   plugins: [
     ['@babel/plugin-proposal-class-properties', { loose: false }],

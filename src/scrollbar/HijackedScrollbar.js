@@ -39,6 +39,7 @@ export const HijackedScrollbar = ({
   const requestReflow = useCanvasStore((state) => state.requestReflow)
   const pageReflowRequested = useCanvasStore((state) => state.pageReflowRequested)
   const setScrollY = useCanvasStore((state) => state.setScrollY)
+  const scrollLerp = useCanvasStore((state) => state.scrollLerp)
   const [width, height] = useWindowSize({ wait: 100 }) // run before ResizeManager
 
   const ref = useRef()
@@ -50,7 +51,7 @@ export const HijackedScrollbar = ({
   const delta = useRef(0)
   const lastFrame = useRef(0)
 
-  const originalLerp = useMemo(() => lerp || config.scrollLerp, [lerp])
+  const originalLerp = useMemo(() => lerp || scrollLerp, [lerp])
 
   const setScrollPosition = () => {
     if (!scrolling.current) return
@@ -80,14 +81,15 @@ export const HijackedScrollbar = ({
     y.current = newTarget
 
     // round for scrollbar
-    roundedY.current = config.subpixelScrolling ? y.current : Math.floor(y.current)
+    // roundedY.current = config.subpixelScrolling ? y.current : Math.floor(y.current)
+    roundedY.current = y.current
 
     if (!useRenderLoop) {
       setScrollPosition()
     }
   }
 
-  const scrollTo = useCallback((newY, lerp = originalLerp) => {
+  const scrollTo = useCallback((newY, lerp = 1) => {
     config.scrollLerp = lerp
 
     y.target = Math.min(Math.max(newY, 0), documentHeight.current)
@@ -140,9 +142,13 @@ export const HijackedScrollbar = ({
     window.__origScroll = window.__origScroll || window.scroll
     window.scrollTo = (x, y, lerp) => scrollTo(y, lerp)
     window.scroll = (x, y, lerp) => scrollTo(y, lerp)
+    console.log('HijackedScrollbar.MOUNT', window.pageYOffset)
+
     return () => {
       window.scrollTo = window.__origScrollTo
       window.scroll = window.__origScroll
+      config.scrollLerp = originalLerp
+      console.log('HijackedScrollbar.UNMOUNT', originalLerp)
     }
   }, [scrollTo])
 
@@ -258,7 +264,7 @@ export const HijackedScrollbar = ({
 
   const onWheelEvent = (e) => {
     e.preventDefault()
-    scrollTo(y.target + e.deltaY * speed)
+    scrollTo(y.target + e.deltaY * speed, originalLerp)
   }
 
   useEffect(() => {

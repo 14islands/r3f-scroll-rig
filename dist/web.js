@@ -1,17 +1,16 @@
 import _extends from '@babel/runtime/helpers/esm/extends';
-import React, { useState, useEffect, useRef, forwardRef, useMemo, useLayoutEffect, useCallback, Fragment, Suspense } from 'react';
-import { addEffect, addAfterEffect, useFrame, invalidate, useThree, Canvas, extend, createPortal } from '@react-three/fiber';
+import React, { useRef, useEffect, forwardRef, useMemo, useLayoutEffect, useCallback, Fragment, Suspense, useState, startTransition } from 'react';
+import { invalidate, useThree, useFrame, Canvas, extend, createPortal } from '@react-three/fiber';
 import { ResizeObserver } from '@juggle/resize-observer';
 import queryString from 'query-string';
 import create from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
-import StatsImpl from 'three/examples/js/libs/stats.min';
 import { useWindowSize, useWindowHeight } from '@react-hook/window-size';
 import mergeRefs from 'react-merge-refs';
-import { Vector2, Color, Scene, MathUtils, ImageBitmapLoader, TextureLoader, CanvasTexture, sRGBEncoding, LinearFilter, RGBFormat, RGBAFormat } from 'three';
+import { Vector2, Color, MathUtils, Scene, ImageBitmapLoader, TextureLoader, CanvasTexture, sRGBEncoding, LinearFilter, RGBFormat, RGBAFormat } from 'three';
 import PropTypes from 'prop-types';
 import _lerp from '@14islands/lerp';
-import { shaderMaterial } from '@react-three/drei/core/shaderMaterial';
+import { shaderMaterial } from '@react-three/drei/core/shaderMaterial.js';
 import ReactDOM from 'react-dom';
 
 /**
@@ -73,17 +72,17 @@ const useCanvasStore = create(subscribeWithSelector(set => ({
   // GLOBAL ScrollRig STATE
   // //////////////////////////////////////////////////////////////////////////
   globalRenderQueue: false,
-  clearGlobalRenderQueue: () => set(state => ({
+  clearGlobalRenderQueue: () => set(() => ({
     globalRenderQueue: false
   })),
   // true if WebGL initialized without errors
   isCanvasAvailable: true,
-  setCanvasAvailable: isCanvasAvailable => set(state => ({
+  setCanvasAvailable: isCanvasAvailable => set(() => ({
     isCanvasAvailable
   })),
   // true if <VirtualScrollbar> is currently enabled
   hasVirtualScrollbar: false,
-  setVirtualScrollbar: hasVirtualScrollbar => set(state => ({
+  setVirtualScrollbar: hasVirtualScrollbar => set(() => ({
     hasVirtualScrollbar
   })),
   // map of all components to render on the global canvas
@@ -95,15 +94,28 @@ const useCanvasStore = create(subscribeWithSelector(set => ({
       let {
         canvasChildren
       } = _ref;
-      const obj = { ...canvasChildren,
-        [key]: {
-          mesh,
-          props
-        }
-      };
-      return {
-        canvasChildren: obj
-      };
+
+      // check if already mounted
+      if (Object.getOwnPropertyDescriptor(canvasChildren, key)) {
+        // increase usage count
+        canvasChildren[key].instances += 1;
+        canvasChildren[key].props.inactive = false;
+        return {
+          canvasChildren
+        };
+      } else {
+        // otherwise mount it
+        const obj = { ...canvasChildren,
+          [key]: {
+            mesh,
+            props,
+            instances: 1
+          }
+        };
+        return {
+          canvasChildren: obj
+        };
+      }
     });
   },
   // pass new props to a canvas component
@@ -115,7 +127,8 @@ const useCanvasStore = create(subscribeWithSelector(set => ({
     const {
       [key]: {
         mesh,
-        props
+        props,
+        instances
       }
     } = canvasChildren;
     const obj = { ...canvasChildren,
@@ -123,27 +136,54 @@ const useCanvasStore = create(subscribeWithSelector(set => ({
         mesh,
         props: { ...props,
           ...newProps
-        }
+        },
+        instances
       }
-    };
-    return {
-      canvasChildren: obj
-    };
-  }),
-  // remove component from canvas
-  removeFromCanvas: key => set(_ref3 => {
-    let {
-      canvasChildren
-    } = _ref3;
-    const {
-      [key]: omit,
-      ...obj
-    } = canvasChildren; // make a separate copy of the obj and omit
+    }; // console.log('updateCanvas', key, { ...props, ...newProps })
 
     return {
       canvasChildren: obj
     };
   }),
+  // remove component from canvas
+  removeFromCanvas: function (key) {
+    let dispose = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+    return set(_ref3 => {
+      var _canvasChildren$key;
+
+      let {
+        canvasChildren
+      } = _ref3;
+
+      // check if remove or reduce instances
+      if (((_canvasChildren$key = canvasChildren[key]) === null || _canvasChildren$key === void 0 ? void 0 : _canvasChildren$key.instances) > 1) {
+        // reduce usage count
+        canvasChildren[key].instances -= 1;
+        return {
+          canvasChildren
+        };
+      } else {
+        if (dispose) {
+          // unmount since no longer used
+          const {
+            [key]: _omit,
+            ...obj
+          } = canvasChildren; // make a separate copy of the obj and omit
+
+          return {
+            canvasChildren: obj
+          };
+        } else {
+          // or tell it to "act" hidden
+          canvasChildren[key].instances = 0;
+          canvasChildren[key].props.inactive = true;
+          return {
+            canvasChildren
+          };
+        }
+      }
+    });
+  },
   // Used to ask components to re-calculate their positions after a layout reflow
   pageReflowRequested: 0,
   pageReflowCompleted: 0,
@@ -165,82 +205,13 @@ const useCanvasStore = create(subscribeWithSelector(set => ({
   },
   // keep track of scroll position
   scrollY: 0,
-  setScrollY: scrollY => set(state => ({
+  setScrollY: scrollY => set(() => ({
     scrollY
-  }))
+  })),
+  scrollX: 0,
+  // TODO: setScrollX to support horizontal scroll
+  scrollLerp: 0.14
 })));
-
-/* Copied from drei - no need to import just for this */
-
-function Stats(_ref) {
-  let {
-    showPanel = 0,
-    className,
-    parent
-  } = _ref;
-  const [stats] = useState(new StatsImpl());
-  useEffect(() => {
-    if (stats) {
-      const node = parent && parent.current || document.body;
-      stats.showPanel(showPanel);
-      node.appendChild(stats.dom);
-      if (className) stats.dom.classList.add(className);
-      const begin = addEffect(() => stats.begin());
-      const end = addAfterEffect(() => stats.end());
-      return () => {
-        node.removeChild(stats.dom);
-        begin();
-        end();
-      };
-    }
-  }, [parent, stats, className, showPanel]);
-  return null;
-}
-
-const StatsDebug = _ref => {
-  let {
-    render = true,
-    memory = true
-  } = _ref;
-  const stats = useRef({
-    calls: 0,
-    triangles: 0,
-    geometries: 0,
-    textures: 0
-  }).current;
-  useFrame(_ref2 => {
-    let {
-      gl,
-      clock
-    } = _ref2;
-    gl.info.autoReset = false;
-    const _calls = gl.info.render.calls;
-    const _triangles = gl.info.render.triangles;
-    const _geometries = gl.info.memory.geometries;
-    const _textures = gl.info.memory.textures;
-
-    if (render) {
-      if (_calls !== stats.calls || _triangles !== stats.triangles) {
-        requestIdleCallback(() => console.info('Draw calls: ', _calls, ' Triangles: ', _triangles));
-        stats.calls = _calls;
-        stats.triangles = _triangles;
-      }
-    }
-
-    if (memory) {
-      if (_geometries !== stats.geometries || _textures !== stats.textures) {
-        requestIdleCallback(() => console.info('Geometries: ', _geometries, 'Textures: ', _textures));
-        stats.geometries = _geometries;
-        stats.textures = _textures;
-      }
-    }
-
-    gl.info.reset();
-  });
-  return null;
-};
-
-var StatsDebug$1 = StatsDebug;
 
 /**
  * Manages Scroll rig resize events by trigger a reflow instead of individual resize listeners in each component
@@ -551,7 +522,7 @@ const GlobalRenderer = _ref => {
     }
   }, [children, canvasChildren]); // PRELOAD RENDER LOOP
 
-  useFrame(_ref2 => {
+  useFrame(() => {
     if (!config.preloadQueue.length) return;
     gl.autoClear = false; // Render preload frames first and clear directly
 
@@ -566,11 +537,11 @@ const GlobalRenderer = _ref => {
     invalidate();
   }, config.PRIORITY_PRELOAD); // GLOBAL RENDER LOOP
 
-  useFrame(_ref3 => {
+  useFrame(_ref2 => {
     let {
       camera,
       scene
-    } = _ref3;
+    } = _ref2;
     const globalRenderQueue = useCanvasStore.getState().globalRenderQueue; // Render if requested or if always on
 
     if (config.globalRender && (frameloop === 'always' || globalRenderQueue)) {
@@ -599,7 +570,7 @@ const GlobalRenderer = _ref => {
   }, config.globalRender ? config.PRIORITY_GLOBAL : undefined); // Take over rendering
 
   config.debug && console.log('GlobalRenderer', Object.keys(canvasChildren).length);
-  return /*#__PURE__*/React.createElement(React.Fragment, null, Object.keys(canvasChildren).map((key, i) => {
+  return /*#__PURE__*/React.createElement(React.Fragment, null, Object.keys(canvasChildren).map(key => {
     const {
       mesh,
       props
@@ -667,6 +638,7 @@ const GlobalCanvas = _ref => {
     config: confOverrides,
     camera,
     fallback = null,
+    scrollLerp,
     ...props
   } = _ref;
   const requestReflow = useCanvasStore(state => state.requestReflow); // override config
@@ -683,6 +655,10 @@ const GlobalCanvas = _ref => {
 
     if (typeof qs.debug !== 'undefined') {
       config.debug = true;
+    }
+
+    if (scrollLerp) {
+      config.scrollLerp = scrollLerp;
     }
   }, [confOverrides]);
   const CanvasElement = as;
@@ -727,7 +703,7 @@ const GlobalCanvas = _ref => {
     makeDefault: true
   }, camera)), orthographic && /*#__PURE__*/React.createElement(OrthographicCamera$1, _extends({
     makeDefault: true
-  }, camera)), config.debug && /*#__PURE__*/React.createElement(StatsDebug$1, null), config.fps && /*#__PURE__*/React.createElement(Stats, null), /*#__PURE__*/React.createElement(ResizeManager$1, {
+  }, camera)), /*#__PURE__*/React.createElement(ResizeManager$1, {
     reflow: requestReflow
   }), /*#__PURE__*/React.createElement(DefaultScrollTracker$1, null));
 };
@@ -791,6 +767,149 @@ const DebugMesh = _ref => {
 };
 var DebugMesh$1 = DebugMesh;
 
+function isElementProps(obj) {
+  return typeof obj === 'object' && 'element' in obj;
+}
+
+const defaultArgs = {
+  lerp: undefined,
+  inViewportMargin: 0.33,
+  onPositionChange: () => {}
+};
+/**
+ * Returns the current Scene position of the DOM element
+ * based on initial getBoundingClientRect and scroll delta from start
+ */
+
+function useElementTracker(args) {
+  let deps = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+  const size = useThree(s => s.size);
+  const [inViewport, setInViewport] = useState(false);
+  useEffect(() => useCanvasStore.subscribe(state => state.scrollY, y => {
+    // TODO move to scrollbars?
+    invalidate(); // Trigger render on scroll
+  }), []);
+  const {
+    element,
+    lerp,
+    inViewportMargin,
+    onPositionChange
+  } = isElementProps(args) ? { ...defaultArgs,
+    ...args
+  } : { ...defaultArgs,
+    element: args
+  };
+  const scrollMargin = size.height * inViewportMargin; // cache the return object
+
+  const position = useRef({
+    x: 0,
+    // bounds?.x * config.scaleMultiplier, // lerp position
+    y: 0,
+    // -1 * bounds?.y * config.scaleMultiplier, // lerp position
+    top: 0,
+    left: 0,
+    positiveYUpBottom: 0,
+    realX: 0,
+    // bounds?.x * config.scaleMultiplier, // exact position
+    realY: 0 //-1 * bounds?.y * config.scaleMultiplier, // exact position
+
+  }).current; // DOM rect bounds
+
+  const bounds = useMemo(() => {
+    var _element$current;
+
+    const {
+      top,
+      left,
+      width,
+      height
+    } = ((_element$current = element.current) === null || _element$current === void 0 ? void 0 : _element$current.getBoundingClientRect()) || {}; // Offset to Threejs scene which has 0,0 in the center of the screen
+
+    const sceneOffset = {
+      x: size.width * 0.5 - width * 0.5,
+      y: size.height * 0.5 - height * 0.5
+    };
+    const bounds = {
+      top: top + window.pageYOffset,
+      left: left + window.pageXOffset,
+      width,
+      height,
+      sceneOffset,
+      x: left + window.pageXOffset - sceneOffset.x,
+      // 0 middle of screen
+      y: top + window.pageYOffset - sceneOffset.y // 0 middle of screen
+
+    }; // update position
+    // position.x = bounds?.x * config.scaleMultiplier // lerp position
+    // position.y = -1 * bounds?.y * config.scaleMultiplier // lerp position
+
+    position.top = position.y + bounds.sceneOffset.y;
+    position.left = position.x + bounds.sceneOffset.x;
+    position.positiveYUpBottom = 0;
+    position.realX = ((bounds === null || bounds === void 0 ? void 0 : bounds.x) - useCanvasStore.getState().scrollX) * config.scaleMultiplier; // exact position
+
+    position.realY = -1 * ((bounds === null || bounds === void 0 ? void 0 : bounds.y) - useCanvasStore.getState().scrollY) * config.scaleMultiplier; // exact position
+
+    return bounds;
+  }, [element, size, ...deps]); // scale in viewport units and pixel
+
+  const scale = useMemo(() => {
+    return [(bounds === null || bounds === void 0 ? void 0 : bounds.width) * config.scaleMultiplier, (bounds === null || bounds === void 0 ? void 0 : bounds.height) * config.scaleMultiplier, 1];
+  }, [element, size, ...deps]);
+  const scrollState = useRef({
+    inViewport: false,
+    progress: -1,
+    visibility: -1,
+    viewport: -1,
+    deltaY: 0
+  }).current;
+  useFrame((_, frameDelta) => {
+    if (!element.current) return;
+    position.realY = -1 * (bounds.y - useCanvasStore.getState().scrollY) * config.scaleMultiplier;
+    position.realX = (bounds.x - useCanvasStore.getState().scrollX) * config.scaleMultiplier; // frame delta
+
+    const dY = position.y - position.realY;
+    const delta = Math.abs(dY); // lerp Y
+
+    position.y = _lerp(position.y, position.realY, lerp || config.scrollLerp, frameDelta);
+    position.top = position.y + bounds.sceneOffset.y; // lerp X
+
+    position.x = _lerp(position.x, position.realX, lerp || config.scrollLerp, frameDelta);
+    position.left = position.x + bounds.sceneOffset.x;
+    position.positiveYUpBottom = size.height * 0.5 - (position.y + bounds.height * 0.5); // inverse Y
+    // Scroll State stuff
+
+    scrollState.inViewport = position.realY + size.height * 0.5 + bounds.height * 0.5 > 0 - scrollMargin && position.realY + size.height * 0.5 - bounds.height * 0.5 < size.height + scrollMargin; // set inViewport state using a transition to avoid lagging
+
+    if (scrollState.inViewport && !inViewport) startTransition(() => setInViewport(true));else if (!scrollState.inViewport && inViewport) startTransition(() => setInViewport(false)); // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
+
+    const pxInside = bounds.top + position.y - bounds.top + size.height - bounds.sceneOffset.y;
+    scrollState.progress = MathUtils.mapLinear(pxInside, 0, size.height + bounds.height, 0, 1); // percent of total visible distance
+
+    scrollState.visibility = MathUtils.mapLinear(pxInside, 0, bounds.height, 0, 1); // percent of item height in view
+
+    scrollState.viewport = MathUtils.mapLinear(pxInside, 0, size.height, 0, 1); // percent of window height scrolled since visible
+
+    scrollState.deltaY = dY; // scroll delta
+    // render another frame if delta is large enough
+
+    if (scrollState.inViewport && delta > config.scrollRestDelta) {
+      invalidate();
+      onPositionChange();
+    }
+  });
+  return {
+    bounds,
+    // HTML bounds
+    scale,
+    // Scene scale - includes z-axis so it can be spread onto mesh directly
+    getScrollState: () => scrollState,
+    getPosition: () => position,
+    // get current Scene position with scroll taken into account
+    inViewport
+  };
+}
+
 /**
  * Generic THREE.js Scene that tracks the dimensions and position of a DOM element while scrolling
  * Scene is positioned and scaled exactly above DOM element
@@ -814,7 +933,6 @@ let ScrollScene = _ref => {
     visible = true,
     scissor = false,
     debug = false,
-    setInViewportProp = false,
     updateLayout = 0,
     positionFixed = false,
     hiddenStyle = {
@@ -824,6 +942,7 @@ let ScrollScene = _ref => {
     as = 'scene',
     autoRender = true,
     hideOffscreen = true,
+    position = null,
     ...props
   } = _ref;
   const inlineSceneRef = useCallback(node => {
@@ -833,7 +952,6 @@ let ScrollScene = _ref => {
   }, []);
   const [scene, setScene] = useState(scissor ? new Scene() : null);
   const [inViewport, setInViewport] = useState(false);
-  const [scale, setScale] = useState(null);
   const {
     size,
     invalidate
@@ -842,24 +960,18 @@ let ScrollScene = _ref => {
     requestRender,
     renderScissor
   } = useScrollRig();
-  const pageReflowCompleted = useCanvasStore(state => state.pageReflowCompleted); // get initial scrollY and listen for transient updates
-
-  const scrollY = useRef(useCanvasStore.getState().scrollY);
-  useEffect(() => useCanvasStore.subscribe(state => state.scrollY, y => {
-    scrollY.current = y;
-    invalidate(); // Trigger render on scroll
-  }), []); // non-reactive state
+  const pageReflowCompleted = useCanvasStore(state => state.pageReflowCompleted);
+  const {
+    bounds,
+    scale,
+    getPosition,
+    getScrollState
+  } = useElementTracker(el, [pageReflowCompleted, updateLayout, scene]); // non-reactive state
 
   const transient = useRef({
     mounted: false,
     isFirstRender: true,
-    bounds: {
-      top: 0,
-      left: 0,
-      width: 0,
-      height: 0,
-      centerOffset: -1,
-      x: 0,
+    scrollState: {
       inViewport: false,
       progress: 0,
       viewport: 0,
@@ -884,6 +996,7 @@ let ScrollScene = _ref => {
       });
     }
 
+    transient.isFirstRender = true;
     return () => {
       if (!(el !== null && el !== void 0 && el.current)) return;
       Object.keys(hiddenStyle).forEach(key => el.current.style[key] = '');
@@ -896,37 +1009,14 @@ let ScrollScene = _ref => {
     }
 
     const {
-      bounds,
       prevBounds
-    } = transient;
-    const {
-      top,
-      left,
-      width,
-      height
-    } = el.current.getBoundingClientRect(); // pixel bounds
+    } = transient; // place horizontally
 
-    bounds.top = top + window.pageYOffset;
-    bounds.left = left;
-    bounds.width = width;
-    bounds.height = height;
-    bounds.centerOffset = size.height * 0.5 - height * 0.5; // scale in viewport units and pixel
-
-    setScale({
-      width: width * config.scaleMultiplier,
-      height: height * config.scaleMultiplier,
-      multiplier: config.scaleMultiplier,
-      pixelWidth: width,
-      pixelHeight: height,
-      viewportWidth: size.width * config.scaleMultiplier,
-      viewportHeight: size.height * config.scaleMultiplier
-    }); // place horizontally
-
-    bounds.x = left - size.width * 0.5 + width * 0.5;
-    scene.position.x = bounds.x * config.scaleMultiplier; // prevents ghost lerp on first render
+    console.log('getPosition().x', getPosition().x, bounds.left, bounds.sceneOffset);
+    scene.position.x = getPosition().x; // prevents ghost lerp on first render
 
     if (transient.isFirstRender) {
-      prevBounds.y = top - bounds.centerOffset;
+      prevBounds.y = bounds.y;
       transient.isFirstRender = false;
     }
 
@@ -935,52 +1025,36 @@ let ScrollScene = _ref => {
 
 
   useLayoutEffect(() => {
-    const timer = setTimeout(() => {
-      updateSizeAndPosition();
-    }, resizeDelay);
-    return () => {
-      clearTimeout(timer);
-    };
+    // const timer = setTimeout(() => {
+    updateSizeAndPosition(); // }, resizeDelay)
+    // return () => {
+    //   clearTimeout(timer)
+    // }
   }, [el, pageReflowCompleted, updateLayout, scene]); // RENDER FRAME
 
-  useFrame((_ref2, frameDelta) => {
+  useFrame(_ref2 => {
     let {
       gl,
-      camera,
-      clock
+      camera
     } = _ref2;
     if (!scene || !scale) return;
     const {
-      bounds,
-      prevBounds
-    } = transient; // Find new Y based on cached position and scroll
+      x,
+      y,
+      positiveYUpBottom
+    } = getPosition();
+    const {
+      inViewport
+    } = getScrollState(); // hide/show scene
 
-    const initialPos = config.subpixelScrolling ? bounds.top - bounds.centerOffset : Math.floor(bounds.top - bounds.centerOffset);
-    const y = initialPos - scrollY.current; // frame delta
-
-    const dY = prevBounds.y - y;
-    const delta = Math.abs(dY); // Lerp the distance to simulate easing
-
-    const lerpY = _lerp(prevBounds.y, y, (lerp || config.scrollLerp) * lerpOffset, frameDelta);
-
-    const newY = config.subpixelScrolling ? lerpY : Math.floor(lerpY); // Abort if element not in screen
-
-    const scrollMargin = inViewportMargin || size.height * 0.33;
-    const isOffscreen = hideOffscreen && (newY + size.height * 0.5 + scale.pixelHeight * 0.5 < -scrollMargin || newY + size.height * 0.5 - scale.pixelHeight * 0.5 > size.height + scrollMargin); // store top value for next frame
-
-    bounds.inViewport = !isOffscreen;
-    setInViewportProp && requestIdleCallback$1(() => transient.mounted && setInViewport(!isOffscreen));
-    prevBounds.y = lerpY; // hide/show scene
-
-    scene.visible = !isOffscreen && visible;
+    scene.visible = hideOffscreen ? inViewport && visible : visible;
 
     if (scene.visible) {
       // move scene
       if (!positionFixed) {
-        scene.position.y = -newY * config.scaleMultiplier;
+        scene.position.y = -y;
+        scene.position.x = x;
       }
-
-      const positiveYUpBottom = size.height * 0.5 - (newY + scale.pixelHeight * 0.5); // inverse Y
 
       if (scissor) {
         autoRender && renderScissor({
@@ -994,22 +1068,7 @@ let ScrollScene = _ref => {
         });
       } else {
         autoRender && requestRender();
-      } // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
-
-
-      const pxInside = bounds.top - newY - bounds.top + size.height - bounds.centerOffset;
-      bounds.progress = MathUtils.mapLinear(pxInside, 0, size.height + scale.pixelHeight, 0, 1); // percent of total visible distance
-
-      bounds.visibility = MathUtils.mapLinear(pxInside, 0, scale.pixelHeight, 0, 1); // percent of item height in view
-
-      bounds.viewport = MathUtils.mapLinear(pxInside, 0, size.height, 0, 1); // percent of window height scrolled since visible
-
-      bounds.deltaY = dY; // scroll delta
-    } // render another frame if delta is large enough
-
-
-    if (!isOffscreen && delta > config.scrollRestDelta) {
-      invalidate();
+      }
     }
   }, priority);
   const content = /*#__PURE__*/React.createElement("group", {
@@ -1025,9 +1084,13 @@ let ScrollScene = _ref => {
     renderOrder,
     // new props
     scale,
+    scaleObj: {
+      width: scale[0],
+      height: scale[1]
+    },
     state: transient,
     // @deprecated
-    scrollState: transient.bounds,
+    scrollState: getScrollState(),
     scene,
     inViewport,
     // useFrame render priority (in case children need to run after)
@@ -1038,7 +1101,8 @@ let ScrollScene = _ref => {
 
   const InlineElement = as;
   return scissor ? createPortal(content, scene) : /*#__PURE__*/React.createElement(InlineElement, {
-    ref: inlineSceneRef
+    ref: inlineSceneRef,
+    position: position
   }, content);
 };
 
@@ -1567,27 +1631,39 @@ ScrollDomPortal.propTypes = {
  * @param {object} object THREE.js object3d
  */
 
-const useCanvas = function (object) {
-  let deps = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
-  let key = arguments.length > 2 ? arguments[2] : undefined;
+function useCanvas(object, deps, _ref) {
+  let {
+    key,
+    dispose = true
+  } = _ref;
   const updateCanvas = useCanvasStore(state => state.updateCanvas);
   const renderToCanvas = useCanvasStore(state => state.renderToCanvas);
   const removeFromCanvas = useCanvasStore(state => state.removeFromCanvas); // auto generate uuid v4 key
 
-  const uniqueKey = useMemo(() => key || MathUtils.generateUUID(), []);
+  const uniqueKey = useMemo(() => key || MathUtils.generateUUID(), []); // render to canvas if not mounted already
+
   useLayoutEffect(() => {
-    renderToCanvas(uniqueKey, object);
-    return () => removeFromCanvas(uniqueKey);
-  }, deps); // return function that can set new props on the canvas component
-
-  const set = props => {
-    requestIdleCallback$1(() => updateCanvas(uniqueKey, props), {
-      timeout: 100
+    renderToCanvas(uniqueKey, object, {
+      inactive: false
     });
-  };
+  }, [uniqueKey]); // remove from canvas if no usage (after render so new users have time to register)
 
+  useEffect(() => {
+    return () => {
+      removeFromCanvas(uniqueKey, dispose);
+    };
+  }, [uniqueKey]); // return function that can set new props on the canvas component
+
+  const set = useCallback(props => {
+    updateCanvas(uniqueKey, props);
+  }, [updateCanvas, uniqueKey]); // auto update props when deps change
+
+  useEffect(() => {
+    console.log('useCanvas', 'SET', deps);
+    set(deps);
+  }, [...Object.values(deps)]);
   return set;
-};
+}
 
 /**
  * Public interface for ScrollRig
@@ -1763,6 +1839,7 @@ const HijackedScrollbar = _ref => {
   const requestReflow = useCanvasStore(state => state.requestReflow);
   const pageReflowRequested = useCanvasStore(state => state.pageReflowRequested);
   const setScrollY = useCanvasStore(state => state.setScrollY);
+  const scrollLerp = useCanvasStore(state => state.scrollLerp);
   const [width, height] = useWindowSize({
     wait: 100
   }); // run before ResizeManager
@@ -1778,7 +1855,7 @@ const HijackedScrollbar = _ref => {
   const documentHeight = useRef(0);
   const delta = useRef(0);
   const lastFrame = useRef(0);
-  const originalLerp = useMemo(() => lerp || config.scrollLerp, [lerp]);
+  const originalLerp = useMemo(() => lerp || scrollLerp, [lerp]);
 
   const setScrollPosition = () => {
     if (!scrolling.current) return;
@@ -1805,8 +1882,9 @@ const HijackedScrollbar = _ref => {
 
     delta.current = Math.abs(y.current - newTarget);
     y.current = newTarget; // round for scrollbar
+    // roundedY.current = config.subpixelScrolling ? y.current : Math.floor(y.current)
 
-    roundedY.current = config.subpixelScrolling ? y.current : Math.floor(y.current);
+    roundedY.current = y.current;
 
     if (!useRenderLoop) {
       setScrollPosition();
@@ -1814,7 +1892,7 @@ const HijackedScrollbar = _ref => {
   };
 
   const scrollTo = useCallback(function (newY) {
-    let lerp = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : originalLerp;
+    let lerp = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
     config.scrollLerp = lerp;
     y.target = Math.min(Math.max(newY, 0), documentHeight.current); // start scrolling
 
@@ -1863,9 +1941,12 @@ const HijackedScrollbar = _ref => {
 
     window.scroll = (x, y, lerp) => scrollTo(y, lerp);
 
+    console.log('HijackedScrollbar.MOUNT', window.pageYOffset);
     return () => {
       window.scrollTo = window.__origScrollTo;
       window.scroll = window.__origScroll;
+      config.scrollLerp = originalLerp;
+      console.log('HijackedScrollbar.UNMOUNT', originalLerp);
     };
   }, [scrollTo]); // make sure we have correct internal values at mount
 
@@ -1987,7 +2068,7 @@ const HijackedScrollbar = _ref => {
 
   const onWheelEvent = e => {
     e.preventDefault();
-    scrollTo(y.target + e.deltaY * speed);
+    scrollTo(y.target + e.deltaY * speed, originalLerp);
   };
 
   useEffect(() => {
@@ -2374,4 +2455,4 @@ const useDelayedCanvas = function (object, ms) {
   return set;
 };
 
-export { GlobalCanvasIfSupported$1 as GlobalCanvas, HijackedScrollbar, ScrollDomPortal, ScrollScene, HijackedScrollbar as SmoothScrollbar, ViewportScrollScene, VirtualScrollbar, config as _config, useCanvas, useCanvasStore, useDelayedCanvas, useImgTagAsTexture, useScrollRig, useScrollbar, useTextureLoader };
+export { GlobalCanvasIfSupported$1 as GlobalCanvas, HijackedScrollbar, ScrollDomPortal, ScrollScene, HijackedScrollbar as SmoothScrollbar, ViewportScrollScene, VirtualScrollbar, config as _config, useCanvas, useCanvasStore, useDelayedCanvas, useElementTracker, useImgTagAsTexture, useScrollRig, useScrollbar, useTextureLoader };

@@ -1,5 +1,16 @@
 # Changelog
 
+TODO
+
+- update to r3f8
+
+- make useImgTagAsTexture suspend
+
+- use loader to show cover when loading + on history nav
+- ScrollScene visible=false still triggers raycast - how to avoid?
+- Make subpixelScrolling=true default in scrollbar?
+- higher scrolldelta causing scrollbar jumps when going slow
+
 ## v6.0.0
 
 - Updated to R3F v6 api.
