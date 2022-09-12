@@ -1,5 +1,4 @@
 import create from 'zustand'
-import { requestIdleCallback } from './polyfills/requestIdleCallback'
 import { subscribeWithSelector } from 'zustand/middleware'
 
 import config from './config'
@@ -77,26 +76,28 @@ const useCanvasStore = create(
       }),
 
     // Used to ask components to re-calculate their positions after a layout reflow
-    pageReflowRequested: 0,
-    pageReflowCompleted: 0,
+    pageReflow: 0,
     requestReflow: () => {
       config.debug && console.log('ScrollRig', 'reflow() requested')
       set((state) => {
-        requestIdleCallback(state.triggerReflowCompleted, { timeout: 100 })
-        return { pageReflowRequested: state.pageReflowRequested + 1 }
+        return { pageReflow: state.pageReflow + 1 }
       })
     },
-    triggerReflowCompleted: () => {
-      set((state) => ({ pageReflowCompleted: state.pageReflowCompleted + 1 }))
+
+    // keep track of scrollbar
+    scroll: {
+      y: 0,
+      x: 0,
+      limit: 0,
+      velocity: 0,
+      progress: 0,
+      direction: '',
     },
-
-    // keep track of scroll position
-    scrollY: 0,
-    setScrollY: (scrollY) => set(() => ({ scrollY })),
-    scrollX: 0,
-    // TODO: setScrollX to support horizontal scroll
-
-    scrollLerp: 0.14,
+    scrollTo: null, // (target) => window.scrollTo(0, target),
+    setScrollTo: (fn) => {
+      console.log('setScrollTo', fn)
+      set(() => ({ setScrollTo: fn }))
+    },
   }))
 )
 

@@ -36,7 +36,6 @@ function useCanvas(object: Object3D, deps, { key, dispose = true }) {
 
   // auto update props when deps change
   useEffect(() => {
-    console.log('useCanvas', 'SET', deps)
     set(deps)
   }, [...Object.values(deps)])
 

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { useThree } from '@react-three/fiber'
 import mergeRefs from 'react-merge-refs'
 
-import useScrollRig from '../hooks/useScrollRig'
+import useCanvasStore from '../store'
 import config from '../config'
 
 export const OrthographicCamera = forwardRef(
@@ -11,13 +11,13 @@ export const OrthographicCamera = forwardRef(
     const set = useThree((state) => state.set)
     const camera = useThree((state) => state.camera)
     const size = useThree((state) => state.size)
-    const { reflowCompleted } = useScrollRig()
+    const pageReflow = useCanvasStore((state) => state.pageReflow)
 
     const distance = useMemo(() => {
       const width = size.width * scaleMultiplier
       const height = size.height * scaleMultiplier
       return Math.max(width, height)
-    }, [size, reflowCompleted, scaleMultiplier])
+    }, [size, pageReflow, scaleMultiplier])
 
     const cameraRef = useRef()
     useLayoutEffect(() => {
@@ -50,7 +50,7 @@ export const OrthographicCamera = forwardRef(
         {...props}
       />
     )
-  },
+  }
 )
 
 OrthographicCamera.propTypes = {

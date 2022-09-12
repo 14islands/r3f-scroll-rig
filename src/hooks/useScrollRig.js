@@ -11,7 +11,6 @@ export const useScrollRig = () => {
   const isCanvasAvailable = useCanvasStore((state) => state.isCanvasAvailable)
   const hasVirtualScrollbar = useCanvasStore((state) => state.hasVirtualScrollbar)
   const requestReflow = useCanvasStore((state) => state.requestReflow)
-  const pageReflowCompleted = useCanvasStore((state) => state.pageReflowCompleted)
 
   useEffect(() => {
     if (config.debug) {
@@ -28,7 +27,6 @@ export const useScrollRig = () => {
     renderScissor,
     renderViewport,
     reflow: requestReflow,
-    reflowCompleted: pageReflowCompleted,
   }
 }
 

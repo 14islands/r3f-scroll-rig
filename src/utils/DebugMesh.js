@@ -25,9 +25,9 @@ const DebugMaterial = shaderMaterial(
 extend({ DebugMaterial })
 
 export const DebugMesh = ({ scale }) => (
-  <mesh>
-    <planeBufferGeometry attach="geometry" args={[scale.width, scale.height, 1, 1]} />
-    <debugMaterial color="hotpink" attach="material" transparent opacity={0.5} />
+  <mesh scale={scale}>
+    <planeBufferGeometry />
+    <debugMaterial color="hotpink" transparent opacity={0.5} />
   </mesh>
 )
 

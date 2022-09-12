@@ -68,11 +68,10 @@ const GlobalRenderer = ({ children }) => {
         config.clearDepth && gl.clearDepth()
         gl.render(scene, camera)
 
-        // cleanup for next frame
-        useCanvasStore.getState().clearGlobalRenderQueue()
-
         gl.autoClear = true
       }
+      // cleanup for next frame
+      useCanvasStore.getState().clearGlobalRenderQueue()
     },
     config.globalRender ? config.PRIORITY_GLOBAL : undefined
   ) // Take over rendering
