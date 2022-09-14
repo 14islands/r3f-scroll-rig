@@ -1,1 +1,1 @@
-export * from "./examples/src/components/stdlib/index"
+export * from "../examples/src/components/stdlib/index"

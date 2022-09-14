@@ -2,7 +2,6 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var _extends = require('@babel/runtime/helpers/extends');
 var _defineProperty = require('@babel/runtime/helpers/defineProperty');
 var _objectWithoutProperties = require('@babel/runtime/helpers/objectWithoutProperties');
 var React = require('react');
@@ -13,45 +12,25 @@ var _typeof = require('@babel/runtime/helpers/typeof');
 var create = require('zustand');
 var middleware = require('zustand/middleware');
 var mergeRefs = require('react-merge-refs');
-var _toConsumableArray = require('@babel/runtime/helpers/toConsumableArray');
+var jsxRuntime = require('react/jsx-runtime');
 var three = require('three');
+var _toConsumableArray = require('@babel/runtime/helpers/toConsumableArray');
 var _classCallCheck = require('@babel/runtime/helpers/classCallCheck');
 var _createClass = require('@babel/runtime/helpers/createClass');
 var _inherits = require('@babel/runtime/helpers/inherits');
 var _possibleConstructorReturn = require('@babel/runtime/helpers/possibleConstructorReturn');
 var _getPrototypeOf = require('@babel/runtime/helpers/getPrototypeOf');
 var _slicedToArray = require('@babel/runtime/helpers/slicedToArray');
-require('@14islands/lerp');
 var shaderMaterial_js = require('@react-three/drei/core/shaderMaterial.js');
+var reactIntersectionObserver = require('react-intersection-observer');
 var debounce = require('debounce');
 var Lenis = require('@studio-freight/lenis');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
-function _interopNamespace(e) {
-  if (e && e.__esModule) return e;
-  var n = Object.create(null);
-  if (e) {
-    Object.keys(e).forEach(function (k) {
-      if (k !== 'default') {
-        var d = Object.getOwnPropertyDescriptor(e, k);
-        Object.defineProperty(n, k, d.get ? d : {
-          enumerable: true,
-          get: function () { return e[k]; }
-        });
-      }
-    });
-  }
-  n["default"] = e;
-  return Object.freeze(n);
-}
-
-var _extends__default = /*#__PURE__*/_interopDefaultLegacy(_extends);
 var _defineProperty__default = /*#__PURE__*/_interopDefaultLegacy(_defineProperty);
 var _objectWithoutProperties__default = /*#__PURE__*/_interopDefaultLegacy(_objectWithoutProperties);
 var React__default = /*#__PURE__*/_interopDefaultLegacy(React);
-var React__namespace = /*#__PURE__*/_interopNamespace(React);
-var queryString__default = /*#__PURE__*/_interopDefaultLegacy(queryString);
 var _typeof__default = /*#__PURE__*/_interopDefaultLegacy(_typeof);
 var create__default = /*#__PURE__*/_interopDefaultLegacy(create);
 var mergeRefs__default = /*#__PURE__*/_interopDefaultLegacy(mergeRefs);
@@ -62,50 +41,39 @@ var _inherits__default = /*#__PURE__*/_interopDefaultLegacy(_inherits);
 var _possibleConstructorReturn__default = /*#__PURE__*/_interopDefaultLegacy(_possibleConstructorReturn);
 var _getPrototypeOf__default = /*#__PURE__*/_interopDefaultLegacy(_getPrototypeOf);
 var _slicedToArray__default = /*#__PURE__*/_interopDefaultLegacy(_slicedToArray);
-var debounce__default = /*#__PURE__*/_interopDefaultLegacy(debounce);
 var Lenis__default = /*#__PURE__*/_interopDefaultLegacy(Lenis);
 
 // Transient shared state for canvas components
 // usContext() causes re-rendering which can drop frames
 var config = {
-  debug: false,
-  fps: false,
-  autoPixelRatio: true,
-  // use PerformanceMonitor
-  // Global lerp settings
-  scrollLerp: 0.14,
-  // Linear interpolation - high performance easing
-  scrollRestDelta: 0.014,
-  // min delta to trigger animation frame on scroll
-  subpixelScrolling: true,
   // Execution order for useFrames (highest = last render)
   PRIORITY_PRELOAD: 0,
   PRIORITY_SCISSORS: 1,
   PRIORITY_VIEWPORTS: 1,
   PRIORITY_GLOBAL: 1000,
-  // Scaling
-  scaleMultiplier: 1,
-  // scale pixels vs viewport units (1:1 by default)
+  DEFAULT_SCALE_MULTIPLIER: 1,
   // Global rendering props
-  globalRender: true,
-  preloadQueue: [],
-  hasGlobalCanvas: false,
-  disableAutoClear: true,
-  clearDepth: true
+  preloadQueue: []
 };
 
 function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return _typeof__default["default"](key) === "symbol" ? key : String(key); }
 
 function _toPrimitive(input, hint) { if (_typeof__default["default"](input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (_typeof__default["default"](res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 
-function ownKeys$8(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+function ownKeys$b(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
-function _objectSpread$8(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$8(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$8(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+function _objectSpread$b(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$b(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$b(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 var useCanvasStore = create__default["default"](middleware.subscribeWithSelector(function (set) {
   return {
     // //////////////////////////////////////////////////////////////////////////
     // GLOBAL ScrollRig STATE
     // //////////////////////////////////////////////////////////////////////////
+    debug: false,
+    scaleMultiplier: config.DEFAULT_SCALE_MULTIPLIER,
+    globalRender: true,
+    globalPriority: config.PRIORITY_GLOBAL,
+    globalAutoClear: false,
+    globalClearDepth: true,
     globalRenderQueue: false,
     clearGlobalRenderQueue: function clearGlobalRenderQueue() {
       return set(function () {
@@ -150,7 +118,7 @@ var useCanvasStore = create__default["default"](middleware.subscribeWithSelector
           };
         } else {
           // otherwise mount it
-          var obj = _objectSpread$8(_objectSpread$8({}, canvasChildren), {}, _defineProperty__default["default"]({}, key, {
+          var obj = _objectSpread$b(_objectSpread$b({}, canvasChildren), {}, _defineProperty__default["default"]({}, key, {
             mesh: mesh,
             props: props,
             instances: 1
@@ -172,9 +140,9 @@ var useCanvasStore = create__default["default"](middleware.subscribeWithSelector
             props = _canvasChildren$key.props,
             instances = _canvasChildren$key.instances;
 
-        var obj = _objectSpread$8(_objectSpread$8({}, canvasChildren), {}, _defineProperty__default["default"]({}, key, {
+        var obj = _objectSpread$b(_objectSpread$b({}, canvasChildren), {}, _defineProperty__default["default"]({}, key, {
           mesh: mesh,
-          props: _objectSpread$8(_objectSpread$8({}, props), newProps),
+          props: _objectSpread$b(_objectSpread$b({}, props), newProps),
           instances: instances
         })); // console.log('updateCanvas', key, { ...props, ...newProps })
 
@@ -223,7 +191,6 @@ var useCanvasStore = create__default["default"](middleware.subscribeWithSelector
     // Used to ask components to re-calculate their positions after a layout reflow
     pageReflow: 0,
     requestReflow: function requestReflow() {
-      config.debug && console.log('ScrollRig', 'reflow() requested');
       set(function (state) {
         return {
           pageReflow: state.pageReflow + 1
@@ -239,15 +206,8 @@ var useCanvasStore = create__default["default"](middleware.subscribeWithSelector
       progress: 0,
       direction: ''
     },
-    scrollTo: null,
-    // (target) => window.scrollTo(0, target),
-    setScrollTo: function setScrollTo(fn) {
-      console.log('setScrollTo', fn);
-      set(function () {
-        return {
-          setScrollTo: fn
-        };
-      });
+    scrollTo: function scrollTo(target) {
+      return window.scrollTo(0, target);
     }
   };
 }));
@@ -291,12 +251,14 @@ var ResizeManager = function ResizeManager() {
 
 var ResizeManager$1 = ResizeManager;
 
-var _excluded$6 = ["makeDefault", "scaleMultiplier"];
+var _excluded$6 = ["makeDefault"];
+
+function ownKeys$a(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread$a(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$a(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$a(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 var PerspectiveCamera = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
   var _ref$makeDefault = _ref.makeDefault,
       makeDefault = _ref$makeDefault === void 0 ? false : _ref$makeDefault,
-      _ref$scaleMultiplier = _ref.scaleMultiplier,
-      scaleMultiplier = _ref$scaleMultiplier === void 0 ? config.scaleMultiplier : _ref$scaleMultiplier,
       props = _objectWithoutProperties__default["default"](_ref, _excluded$6);
 
   var set = fiber.useThree(function (state) {
@@ -310,6 +272,9 @@ var PerspectiveCamera = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
   });
   var pageReflow = useCanvasStore(function (state) {
     return state.pageReflow;
+  });
+  var scaleMultiplier = useCanvasStore(function (state) {
+    return state.scaleMultiplier;
   });
   var distance = React.useMemo(function () {
     var width = size.width * scaleMultiplier;
@@ -327,7 +292,7 @@ var PerspectiveCamera = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
     // Update matrix world since the renderer is a frame late
 
     cameraRef.current.updateMatrixWorld();
-  }, [distance, size]);
+  }, [distance, size, scaleMultiplier]);
   React.useLayoutEffect(function () {
     if (makeDefault && cameraRef.current) {
       var oldCam = camera;
@@ -341,7 +306,7 @@ var PerspectiveCamera = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
       };
     }
   }, [camera, cameraRef, makeDefault, set]);
-  return /*#__PURE__*/React__default["default"].createElement("perspectiveCamera", _extends__default["default"]({
+  return /*#__PURE__*/jsxRuntime.jsx("perspectiveCamera", _objectSpread$a({
     ref: mergeRefs__default["default"]([cameraRef, ref]),
     position: [0, 0, distance],
     onUpdate: function onUpdate(self) {
@@ -354,12 +319,14 @@ var PerspectiveCamera = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
 PerspectiveCamera.displayName = 'PerspectiveCamera';
 var PerspectiveCamera$1 = PerspectiveCamera;
 
-var _excluded$5 = ["makeDefault", "scaleMultiplier"];
+var _excluded$5 = ["makeDefault"];
+
+function ownKeys$9(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread$9(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$9(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$9(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 var OrthographicCamera = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
   var _ref$makeDefault = _ref.makeDefault,
       makeDefault = _ref$makeDefault === void 0 ? false : _ref$makeDefault,
-      _ref$scaleMultiplier = _ref.scaleMultiplier,
-      scaleMultiplier = _ref$scaleMultiplier === void 0 ? config.scaleMultiplier : _ref$scaleMultiplier,
       props = _objectWithoutProperties__default["default"](_ref, _excluded$5);
 
   var set = fiber.useThree(function (state) {
@@ -373,6 +340,9 @@ var OrthographicCamera = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
   });
   var pageReflow = useCanvasStore(function (state) {
     return state.pageReflow;
+  });
+  var scaleMultiplier = useCanvasStore(function (state) {
+    return state.scaleMultiplier;
   });
   var distance = React.useMemo(function () {
     var width = size.width * scaleMultiplier;
@@ -400,7 +370,7 @@ var OrthographicCamera = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
       };
     }
   }, [camera, cameraRef, makeDefault, set]);
-  return /*#__PURE__*/React__default["default"].createElement("orthographicCamera", _extends__default["default"]({
+  return /*#__PURE__*/jsxRuntime.jsx("orthographicCamera", _objectSpread$9({
     left: size.width * scaleMultiplier / -2,
     right: size.width * scaleMultiplier / 2,
     top: size.height * scaleMultiplier / 2,
@@ -528,32 +498,46 @@ var useScrollRig = function useScrollRig() {
   var requestReflow = useCanvasStore(function (state) {
     return state.requestReflow;
   });
+  var debug = useCanvasStore(function (state) {
+    return state.debug;
+  });
+  var scaleMultiplier = useCanvasStore(function (state) {
+    return state.scaleMultiplier;
+  });
   React.useEffect(function () {
-    if (config.debug) {
-      window._scrollRig = window._scrollRig || {};
+    if (debug) {
+      // @ts-ignore
+      window._scrollRig = window._scrollRig || {}; // @ts-ignore
+
       window._scrollRig.reflow = requestReflow;
     }
   }, []);
   return {
+    // boolean state
+    debug: debug,
     isCanvasAvailable: isCanvasAvailable,
     hasVirtualScrollbar: hasVirtualScrollbar,
+    // scale
+    scaleMultiplier: scaleMultiplier,
+    // render API
     preloadScene: preloadScene,
     requestRender: requestRender,
     renderScissor: renderScissor,
     renderViewport: renderViewport,
+    // recalc all tracker positions
     reflow: requestReflow
   };
 };
 
-function ownKeys$7(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+function ownKeys$8(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
-function _objectSpread$7(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$7(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$7(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+function _objectSpread$8(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$8(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$8(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+var col = new three.Color();
 /**
  * Global render loop to avoid double renders on the same frame
  */
 
-var GlobalRenderer = function GlobalRenderer(_ref) {
-  var children = _ref.children;
+var GlobalRenderer = function GlobalRenderer() {
   var gl = fiber.useThree(function (s) {
     return s.gl;
   });
@@ -563,17 +547,36 @@ var GlobalRenderer = function GlobalRenderer(_ref) {
   var canvasChildren = useCanvasStore(function (state) {
     return state.canvasChildren;
   });
-  var scrollRig = useScrollRig();
+  var globalRender = useCanvasStore(function (state) {
+    return state.globalRender;
+  });
+  var globalClearDepth = useCanvasStore(function (state) {
+    return state.globalClearDepth;
+  });
+  var globalAutoClear = useCanvasStore(function (state) {
+    return state.globalAutoClear;
+  });
+  var globalPriority = useCanvasStore(function (state) {
+    return state.globalPriority;
+  });
+
+  var _useScrollRig = useScrollRig(),
+      debug = _useScrollRig.debug,
+      requestRender = _useScrollRig.requestRender; // https://threejs.org/docs/#api/en/renderers/WebGLRenderer.debug
+
+
   React.useLayoutEffect(function () {
-    gl.debug.checkShaderErrors = config.debug;
-  }, []);
+    gl.debug.checkShaderErrors = debug;
+  }, [debug]);
   React.useEffect(function () {
     // clear canvas automatically if all children were removed
-    if (!children && !Object.keys(canvasChildren).length) {
-      config.debug && console.log('GlobalRenderer', 'auto clear empty canvas');
-      gl.clear();
+    if (!Object.keys(canvasChildren).length) {
+      debug && console.log('GlobalRenderer', 'auto clear empty canvas');
+      gl.getClearColor(col);
+      gl.setClearColor(col, gl.getClearAlpha());
+      gl.clear(true, true);
     }
-  }, [children, canvasChildren]); // PRELOAD RENDER LOOP
+  }, [canvasChildren]); // PRELOAD RENDER LOOP
 
   fiber.useFrame(function () {
     if (!config.preloadQueue.length) return;
@@ -587,21 +590,20 @@ var GlobalRenderer = function GlobalRenderer(_ref) {
     config.preloadQueue = [];
     gl.autoClear = true; // trigger new frame to get correct visual state after all preloads
 
-    config.debug && console.log('GlobalRenderer', 'preload complete. trigger global render');
-    scrollRig.requestRender();
+    debug && console.log('GlobalRenderer', 'preload complete. trigger global render');
+    requestRender();
     fiber.invalidate();
-  }, config.PRIORITY_PRELOAD); // GLOBAL RENDER LOOP
+  }, globalRender ? config.PRIORITY_PRELOAD : -1 //negative priority doesn't take over render loop
+  ); // GLOBAL RENDER LOOP
 
-  fiber.useFrame(function (_ref2) {
-    var camera = _ref2.camera,
-        scene = _ref2.scene;
+  fiber.useFrame(function (_ref) {
+    var camera = _ref.camera,
+        scene = _ref.scene;
     var globalRenderQueue = useCanvasStore.getState().globalRenderQueue; // Render if requested or if always on
 
-    if (config.globalRender && (frameloop === 'always' || globalRenderQueue)) {
-      if (config.disableAutoClear) {
-        gl.autoClear = false; // will fail in VR
-      } // render default layer, scene, camera
-
+    if (globalRender && (frameloop === 'always' || globalRenderQueue)) {
+      gl.autoClear = globalAutoClear; // false will fail in Oculus Quest VR
+      // render default layer, scene, camera
 
       camera.layers.disableAll();
 
@@ -614,33 +616,35 @@ var GlobalRenderer = function GlobalRenderer(_ref) {
       } // render as HUD over any other renders by default
 
 
-      config.clearDepth && gl.clearDepth();
+      globalClearDepth && gl.clearDepth();
       gl.render(scene, camera);
       gl.autoClear = true;
     } // cleanup for next frame
 
 
     useCanvasStore.getState().clearGlobalRenderQueue();
-  }, config.globalRender ? config.PRIORITY_GLOBAL : undefined); // Take over rendering
+  }, globalRender ? globalPriority : undefined); // Take over rendering
 
-  config.debug && console.log('GlobalRenderer', Object.keys(canvasChildren).length);
-  return /*#__PURE__*/React__default["default"].createElement(React__default["default"].Fragment, null, Object.keys(canvasChildren).map(function (key) {
-    var _canvasChildren$key = canvasChildren[key],
-        mesh = _canvasChildren$key.mesh,
-        props = _canvasChildren$key.props;
+  debug && console.log('GlobalRenderer', Object.keys(canvasChildren).length);
+  return /*#__PURE__*/jsxRuntime.jsx(jsxRuntime.Fragment, {
+    children: Object.keys(canvasChildren).map(function (key) {
+      var _canvasChildren$key = canvasChildren[key],
+          mesh = _canvasChildren$key.mesh,
+          props = _canvasChildren$key.props;
 
-    if (typeof mesh === 'function') {
-      return /*#__PURE__*/React__default["default"].createElement(React.Fragment, {
+      if (typeof mesh === 'function') {
+        return /*#__PURE__*/jsxRuntime.jsx(React.Fragment, {
+          children: mesh(_objectSpread$8(_objectSpread$8({
+            key: key
+          }, scrollRig), props))
+        }, key);
+      }
+
+      return /*#__PURE__*/React__default["default"].cloneElement(mesh, _objectSpread$8({
         key: key
-      }, mesh(_objectSpread$7(_objectSpread$7({
-        key: key
-      }, scrollRig), props)));
-    }
-
-    return /*#__PURE__*/React__default["default"].cloneElement(mesh, _objectSpread$7({
-      key: key
-    }, props));
-  }), children);
+      }, props));
+    })
+  });
 };
 
 var GlobalRenderer$1 = GlobalRenderer;
@@ -696,12 +700,12 @@ var CanvasErrorBoundary = /*#__PURE__*/function (_React$Component) {
 
 var CanvasErrorBoundary$1 = CanvasErrorBoundary;
 
-var _excluded$4 = ["as", "children", "gl", "style", "orthographic", "config", "camera"],
-    _excluded2 = ["onError"];
+var _excluded$4 = ["as", "children", "gl", "style", "orthographic", "camera", "debug", "scaleMultiplier", "globalRender", "globalPriority", "globalAutoClear", "globalClearDepth"],
+    _excluded2 = ["children", "onError"];
 
-function ownKeys$6(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+function ownKeys$7(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
-function _objectSpread$6(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$6(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$6(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+function _objectSpread$7(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$7(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$7(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 
 var GlobalCanvas = function GlobalCanvas(_ref) {
   var _ref$as = _ref.as,
@@ -710,27 +714,47 @@ var GlobalCanvas = function GlobalCanvas(_ref) {
       gl = _ref.gl,
       style = _ref.style,
       orthographic = _ref.orthographic,
-      confOverrides = _ref.config,
       camera = _ref.camera,
+      debug = _ref.debug,
+      _ref$scaleMultiplier = _ref.scaleMultiplier,
+      scaleMultiplier = _ref$scaleMultiplier === void 0 ? config.DEFAULT_SCALE_MULTIPLIER : _ref$scaleMultiplier,
+      _ref$globalRender = _ref.globalRender,
+      globalRender = _ref$globalRender === void 0 ? true : _ref$globalRender,
+      _ref$globalPriority = _ref.globalPriority,
+      globalPriority = _ref$globalPriority === void 0 ? config.PRIORITY_GLOBAL : _ref$globalPriority,
+      _ref$globalAutoClear = _ref.globalAutoClear,
+      globalAutoClear = _ref$globalAutoClear === void 0 ? false : _ref$globalAutoClear,
+      _ref$globalClearDepth = _ref.globalClearDepth,
+      globalClearDepth = _ref$globalClearDepth === void 0 ? true : _ref$globalClearDepth,
       props = _objectWithoutProperties__default["default"](_ref, _excluded$4);
 
-  // override config
-  React.useMemo(function () {
-    Object.assign(config, confOverrides); // Querystring overrides
+  // enable debug mode
+  React.useLayoutEffect(function () {
+    // Querystring overrides
+    var qs = queryString.parse(window.location.search); // show debug statements
 
-    var qs = queryString__default["default"].parse(window.location.search); // show debug statements
-
-    if (typeof qs.debug !== 'undefined') {
-      config.debug = true;
+    if (debug || typeof qs.debug !== 'undefined') {
+      useCanvasStore.setState({
+        debug: true
+      });
     }
-  }, [confOverrides]);
+  }, [debug]); // update state
+
+  React.useLayoutEffect(function () {
+    useCanvasStore.setState({
+      scaleMultiplier: scaleMultiplier,
+      globalRender: globalRender,
+      globalPriority: globalPriority,
+      globalAutoClear: globalAutoClear,
+      globalClearDepth: globalClearDepth
+    });
+  }, [scaleMultiplier, globalPriority, globalRender, globalAutoClear, globalClearDepth]);
   var CanvasElement = as;
-  return /*#__PURE__*/React__default["default"].createElement(CanvasElement, _extends__default["default"]({
-    className: "ScrollRigCanvas" // use our own default camera
-    ,
+  return /*#__PURE__*/jsxRuntime.jsxs(CanvasElement // use our own default camera
+  , _objectSpread$7(_objectSpread$7({
     camera: null // Some sane defaults
     ,
-    gl: _objectSpread$6({
+    gl: _objectSpread$7({
       // https://blog.tojicode.com/2013/12/failifmajorperformancecaveat-with-great.html
       failIfMajorPerformanceCaveat: true
     }, gl) // polyfill old iOS safari
@@ -741,7 +765,7 @@ var GlobalCanvas = function GlobalCanvas(_ref) {
       polyfill: resizeObserver.ResizeObserver
     } // default styles
     ,
-    style: _objectSpread$6({
+    style: _objectSpread$7({
       position: 'fixed',
       top: 0,
       left: 0,
@@ -749,15 +773,18 @@ var GlobalCanvas = function GlobalCanvas(_ref) {
       height: '100vh'
     }, style) // allow to override anything of the above
 
-  }, props), children, /*#__PURE__*/React__default["default"].createElement(GlobalRenderer$1, null), !orthographic && /*#__PURE__*/React__default["default"].createElement(PerspectiveCamera$1, _extends__default["default"]({
-    makeDefault: true
-  }, camera)), orthographic && /*#__PURE__*/React__default["default"].createElement(OrthographicCamera$1, _extends__default["default"]({
-    makeDefault: true
-  }, camera)), /*#__PURE__*/React__default["default"].createElement(ResizeManager$1, null));
+  }, props), {}, {
+    children: [children, /*#__PURE__*/jsxRuntime.jsx(GlobalRenderer$1, {}), !orthographic && /*#__PURE__*/jsxRuntime.jsx(PerspectiveCamera$1, _objectSpread$7({
+      makeDefault: true
+    }, camera)), orthographic && /*#__PURE__*/jsxRuntime.jsx(OrthographicCamera$1, _objectSpread$7({
+      makeDefault: true
+    }, camera)), /*#__PURE__*/jsxRuntime.jsx(ResizeManager$1, {})]
+  }));
 };
 
 var GlobalCanvasIfSupported = function GlobalCanvasIfSupported(_ref2) {
-  var _onError = _ref2.onError,
+  var children = _ref2.children,
+      _onError = _ref2.onError,
       props = _objectWithoutProperties__default["default"](_ref2, _excluded2);
 
   var setCanvasAvailable = useCanvasStore(function (state) {
@@ -766,16 +793,23 @@ var GlobalCanvasIfSupported = function GlobalCanvasIfSupported(_ref2) {
   React.useLayoutEffect(function () {
     document.documentElement.classList.add('js-has-global-canvas');
   }, []);
-  return /*#__PURE__*/React__default["default"].createElement(CanvasErrorBoundary$1, {
-    onError: function onError(err) {
-      _onError && _onError(err);
-      setCanvasAvailable(false);
-      /* WebGL failed to init */
+  return (
+    /*#__PURE__*/
+    // @ts-ignore
+    jsxRuntime.jsx(CanvasErrorBoundary$1, {
+      onError: function onError(err) {
+        _onError && _onError(err);
+        setCanvasAvailable(false);
+        /* WebGL failed to init */
 
-      document.documentElement.classList.remove('js-has-global-canvas');
-      document.documentElement.classList.add('js-global-canvas-error');
-    }
-  }, /*#__PURE__*/React__default["default"].createElement(GlobalCanvas, props));
+        document.documentElement.classList.remove('js-has-global-canvas');
+        document.documentElement.classList.add('js-global-canvas-error');
+      },
+      children: /*#__PURE__*/jsxRuntime.jsx(GlobalCanvas, _objectSpread$7(_objectSpread$7({}, props), {}, {
+        children: children
+      }))
+    })
+  );
 };
 
 var GlobalCanvasIfSupported$1 = GlobalCanvasIfSupported;
@@ -791,13 +825,14 @@ fiber.extend({
 });
 var DebugMesh = function DebugMesh(_ref) {
   var scale = _ref.scale;
-  return /*#__PURE__*/React__default["default"].createElement("mesh", {
-    scale: scale
-  }, /*#__PURE__*/React__default["default"].createElement("planeBufferGeometry", null), /*#__PURE__*/React__default["default"].createElement("debugMaterial", {
-    color: "hotpink",
-    transparent: true,
-    opacity: 0.5
-  }));
+  return /*#__PURE__*/jsxRuntime.jsxs("mesh", {
+    scale: scale,
+    children: [/*#__PURE__*/jsxRuntime.jsx("planeBufferGeometry", {}), /*#__PURE__*/jsxRuntime.jsx("debugMaterial", {
+      color: "hotpink",
+      transparent: true,
+      opacity: 0.5
+    })]
+  });
 };
 var DebugMesh$1 = DebugMesh;
 
@@ -822,16 +857,16 @@ var useScrollbar = function useScrollbar() {
   };
 };
 
-function ownKeys$5(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+function ownKeys$6(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
-function _objectSpread$5(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$5(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$5(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+function _objectSpread$6(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$6(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$6(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 
 function isElementProps(obj) {
   return _typeof__default["default"](obj) === 'object' && 'track' in obj;
 }
 
 var defaultArgs = {
-  inViewportMargin: 0.33
+  rootMargin: '50%'
 };
 /**
  * Returns the current Scene position of the DOM element
@@ -844,21 +879,30 @@ function useTracker(args) {
     return s.size;
   });
 
-  var _useState = React.useState(false),
-      _useState2 = _slicedToArray__default["default"](_useState, 2),
-      inViewport = _useState2[0],
-      setInViewport = _useState2[1];
-
   var _useScrollbar = useScrollbar(),
       scroll = _useScrollbar.scroll;
 
-  var _ref = isElementProps(args) ? _objectSpread$5(_objectSpread$5({}, defaultArgs), args) : _objectSpread$5(_objectSpread$5({}, defaultArgs), {}, {
+  var scaleMultiplier = useCanvasStore(function (state) {
+    return state.scaleMultiplier;
+  });
+
+  var _ref = isElementProps(args) ? _objectSpread$6(_objectSpread$6({}, defaultArgs), args) : _objectSpread$6(_objectSpread$6({}, defaultArgs), {}, {
     track: args
   }),
       track = _ref.track,
-      inViewportMargin = _ref.inViewportMargin;
+      rootMargin = _ref.rootMargin; // const scrollMargin = typeof rootMargin === 'number' ? size.height * inViewportMargin : rootMargin
+  // check if element is in viewport
 
-  var scrollMargin = size.height * inViewportMargin; // cache the return object
+
+  var _useInView = reactIntersectionObserver.useInView({
+    rootMargin: rootMargin
+  }),
+      ref = _useInView.ref,
+      inViewport = _useInView.inView;
+
+  React.useLayoutEffect(function () {
+    ref(track.current);
+  }, []); // cache the return object
 
   var position = React.useRef({
     x: 0,
@@ -868,7 +912,16 @@ function useTracker(args) {
     top: 0,
     left: 0,
     positiveYUpBottom: 0
-  }).current; // DOM rect bounds
+  }).current;
+  var scrollState = React.useRef({
+    inViewport: false,
+    progress: -1,
+    visibility: -1,
+    viewport: -1
+  }).current;
+  React.useLayoutEffect(function () {
+    scrollState.inViewport = inViewport;
+  }, [inViewport]); // DOM rect bounds
 
   var bounds = React.useMemo(function () {
     var _track$current;
@@ -900,53 +953,34 @@ function useTracker(args) {
 
     }; // update position
 
-    position.x = ((bounds === null || bounds === void 0 ? void 0 : bounds.x) - window.scrollX) * config.scaleMultiplier; // exact position
+    position.x = ((bounds === null || bounds === void 0 ? void 0 : bounds.x) - window.scrollX) * scaleMultiplier; // exact position
 
-    position.y = -1 * ((bounds === null || bounds === void 0 ? void 0 : bounds.y) - window.scrollY) * config.scaleMultiplier; // exact position
+    position.y = -1 * ((bounds === null || bounds === void 0 ? void 0 : bounds.y) - window.scrollY) * scaleMultiplier; // exact position
 
     position.top = position.y + bounds.sceneOffset.y;
     position.left = position.x + bounds.sceneOffset.x;
     position.positiveYUpBottom = 0;
     return bounds;
-  }, [track, size].concat(_toConsumableArray__default["default"](deps))); // scale in viewport units and pixel
+  }, [track, size, scaleMultiplier].concat(_toConsumableArray__default["default"](deps))); // scale in viewport units and pixel
 
   var scale = React.useMemo(function () {
-    return [(bounds === null || bounds === void 0 ? void 0 : bounds.width) * config.scaleMultiplier, (bounds === null || bounds === void 0 ? void 0 : bounds.height) * config.scaleMultiplier, 1];
+    return [(bounds === null || bounds === void 0 ? void 0 : bounds.width) * scaleMultiplier, (bounds === null || bounds === void 0 ? void 0 : bounds.height) * scaleMultiplier, 1];
   }, [track, size].concat(_toConsumableArray__default["default"](deps)));
-  var scrollState = React.useRef({
-    inViewport: false,
-    progress: -1,
-    visibility: -1,
-    viewport: -1
-  }).current;
   var update = React.useCallback(function () {
-    if (!track.current) return;
-    position.x = (bounds.x - scroll.x) * config.scaleMultiplier;
-    position.y = -1 * (bounds.y - scroll.y) * config.scaleMultiplier;
+    if (!track.current || !scrollState.inViewport) return;
+    position.x = (bounds.x - scroll.x) * scaleMultiplier;
+    position.y = -1 * (bounds.y - scroll.y) * scaleMultiplier;
     position.top = position.y + bounds.sceneOffset.y;
     position.left = position.x + bounds.sceneOffset.x;
-    position.positiveYUpBottom = size.height * 0.5 + (position.y / config.scaleMultiplier - bounds.height * 0.5); // inverse Y
-    // viewportscene
-    // const positiveYUpBottom = size.height - (newTop / config.scaleMultiplier + bounds.height) // inverse Y
-    // Scroll State stuff
+    position.positiveYUpBottom = size.height * 0.5 + (position.y / scaleMultiplier - bounds.height * 0.5); // inverse Y
+    // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
 
-    scrollState.inViewport = position.y + size.height * 0.5 + bounds.height * 0.5 > 0 - scrollMargin && position.y + size.height * 0.5 - bounds.height * 0.5 < size.height + scrollMargin; // set inViewport state using a transition to avoid lagging
+    var pxInside = bounds.top + position.y - bounds.top + size.height - bounds.sceneOffset.y;
+    scrollState.progress = three.MathUtils.clamp(three.MathUtils.mapLinear(pxInside, 0, size.height + bounds.height, 0, 1), 0, 1); // percent of total visible distance
 
-    if (scrollState.inViewport && !inViewport) React.startTransition(function () {
-      return setInViewport(true);
-    });else if (!scrollState.inViewport && inViewport) React.startTransition(function () {
-      return setInViewport(false);
-    });
+    scrollState.visibility = three.MathUtils.clamp(three.MathUtils.mapLinear(pxInside, 0, bounds.height, 0, 1), 0, 1); // percent of item height in view
 
-    if (scrollState.inViewport) {
-      // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
-      var pxInside = bounds.top + position.y - bounds.top + size.height - bounds.sceneOffset.y;
-      scrollState.progress = three.MathUtils.mapLinear(pxInside, 0, size.height + bounds.height, 0, 1); // percent of total visible distance
-
-      scrollState.visibility = three.MathUtils.mapLinear(pxInside, 0, bounds.height, 0, 1); // percent of item height in view
-
-      scrollState.viewport = three.MathUtils.mapLinear(pxInside, 0, size.height, 0, 1); // percent of window height scrolled since visible
-    }
+    scrollState.viewport = three.MathUtils.clamp(three.MathUtils.mapLinear(pxInside, 0, size.height, 0, 1), 0, 1); // percent of window height scrolled since visible
   }, [bounds, track, size]);
   return {
     bounds: bounds,
@@ -962,43 +996,28 @@ function useTracker(args) {
   };
 }
 
-var _excluded$3 = ["track", "children", "margin", "inViewportMargin", "visible", "scissor", "debug", "positionFixed", "hiddenStyle", "as", "autoRender", "hideOffscreen", "renderOrder", "priority"];
+var _excluded$3 = ["track", "children", "margin", "inViewportMargin", "visible", "hideOffscreen", "scissor", "debug", "as", "renderOrder", "priority"];
 
-function ownKeys$4(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+function ownKeys$5(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
-function _objectSpread$4(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$4(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$4(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
-/**
- * Generic THREE.js Scene that tracks the dimensions and position of a DOM element while scrolling
- * Scene is positioned and scaled exactly above DOM element
- *
- * @author david@14islands.com
- */
+function _objectSpread$5(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$5(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$5(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 
 exports.ScrollScene = function ScrollScene(_ref) {
   var track = _ref.track,
       children = _ref.children,
       _ref$margin = _ref.margin,
       margin = _ref$margin === void 0 ? 0 : _ref$margin,
-      _ref$inViewportMargin = _ref.inViewportMargin,
-      inViewportMargin = _ref$inViewportMargin === void 0 ? 0 : _ref$inViewportMargin,
+      inViewportMargin = _ref.inViewportMargin,
       _ref$visible = _ref.visible,
       visible = _ref$visible === void 0 ? true : _ref$visible,
+      _ref$hideOffscreen = _ref.hideOffscreen,
+      hideOffscreen = _ref$hideOffscreen === void 0 ? true : _ref$hideOffscreen,
       _ref$scissor = _ref.scissor,
       scissor = _ref$scissor === void 0 ? false : _ref$scissor,
       _ref$debug = _ref.debug,
       debug = _ref$debug === void 0 ? false : _ref$debug,
-      _ref$positionFixed = _ref.positionFixed,
-      positionFixed = _ref$positionFixed === void 0 ? false : _ref$positionFixed,
-      _ref$hiddenStyle = _ref.hiddenStyle,
-      hiddenStyle = _ref$hiddenStyle === void 0 ? {
-    opacity: 0
-  } : _ref$hiddenStyle,
       _ref$as = _ref.as,
       as = _ref$as === void 0 ? 'scene' : _ref$as,
-      _ref$autoRender = _ref.autoRender,
-      autoRender = _ref$autoRender === void 0 ? true : _ref$autoRender,
-      _ref$hideOffscreen = _ref.hideOffscreen,
-      hideOffscreen = _ref$hideOffscreen === void 0 ? true : _ref$hideOffscreen,
       _ref$renderOrder = _ref.renderOrder,
       renderOrder = _ref$renderOrder === void 0 ? 1 : _ref$renderOrder,
       _ref$priority = _ref.priority,
@@ -1023,36 +1042,25 @@ exports.ScrollScene = function ScrollScene(_ref) {
   var pageReflow = useCanvasStore(function (state) {
     return state.pageReflow;
   });
+  var globalRender = useCanvasStore(function (state) {
+    return state.globalRender;
+  });
 
   var _useTracker = useTracker({
     track: track,
-    inViewportMargin: inViewportMargin
+    rootMargin: inViewportMargin
   }, [pageReflow, scene]),
       update = _useTracker.update,
       bounds = _useTracker.bounds,
       scale = _useTracker.scale,
       position = _useTracker.position,
       scrollState = _useTracker.scrollState,
-      inViewport = _useTracker.inViewport;
+      inViewport = _useTracker.inViewport; // Hide scene when outside of viewport if `hideOffscreen` or set to `visible` prop
 
-  console.log('ScrollScene', bounds, scale, position, scrollState, inViewport);
+
   React.useLayoutEffect(function () {
-    // hide image - leave in DOM to measure and get events
-    if (!(track !== null && track !== void 0 && track.current)) return;
-
-    if (debug) {
-      track.current.style.opacity = 0.5;
-    } else {
-      Object.assign(track.current.style, _objectSpread$4({}, hiddenStyle));
-    }
-
-    return function () {
-      if (!(track !== null && track !== void 0 && track.current)) return;
-      Object.keys(hiddenStyle).forEach(function (key) {
-        return track.current.style[key] = '';
-      });
-    };
-  }, [track]); // RENDER FRAME
+    if (scene) scene.visible = hideOffscreen ? inViewport && visible : visible;
+  }, [scene, inViewport, hideOffscreen, visible]); // RENDER FRAME
 
   fiber.useFrame(function (_ref2) {
     var gl = _ref2.gl,
@@ -1060,96 +1068,77 @@ exports.ScrollScene = function ScrollScene(_ref) {
     if (!scene || !scale) return; // update element tracker
 
     update();
-    var x = position.x,
-        y = position.y,
-        positiveYUpBottom = position.positiveYUpBottom;
-    var inViewport = scrollState.inViewport; // hide/show scene
-
-    scene.visible = hideOffscreen ? inViewport && visible : visible;
 
     if (scene.visible) {
       // move scene
-      if (!positionFixed) {
-        scene.position.y = y;
-        scene.position.x = x;
-      }
+      scene.position.y = position.y;
+      scene.position.x = position.x;
 
       if (scissor) {
-        autoRender && renderScissor({
+        renderScissor({
           gl: gl,
           scene: scene,
           camera: camera,
           left: bounds.left - margin,
-          top: positiveYUpBottom - margin,
+          top: position.positiveYUpBottom - margin,
           width: bounds.width + margin * 2,
           height: bounds.height + margin * 2
         });
       } else {
-        autoRender && requestRender();
+        requestRender();
       }
     }
-  }, priority);
-  var content = /*#__PURE__*/React__default["default"].createElement("group", {
-    renderOrder: renderOrder
-  }, (!children || debug) && scale && /*#__PURE__*/React__default["default"].createElement(DebugMesh$1, {
-    scale: scale
-  }), children && scene && scale && children(_objectSpread$4({
-    // inherited props
-    track: track,
-    margin: margin,
+  }, globalRender ? priority : undefined);
+
+  var content = /*#__PURE__*/jsxRuntime.jsxs("group", {
     renderOrder: renderOrder,
-    // new props
-    scale: scale,
-    // array
-    scaleObj: {
-      width: scale[0],
-      height: scale[1]
-    },
-    scrollState: scrollState,
-    scene: scene,
-    inViewport: inViewport,
-    // useFrame render priority (in case children need to run after)
-    priority: priority + renderOrder
-  }, props))); // portal if scissor or inline nested scene
+    children: [(!children || debug) && scale && /*#__PURE__*/jsxRuntime.jsx(DebugMesh$1, {
+      scale: scale
+    }), children && scene && scale && children(_objectSpread$5({
+      // inherited props
+      track: track,
+      margin: margin,
+      renderOrder: renderOrder,
+      // new props
+      scale: scale,
+      scrollState: scrollState,
+      inViewport: inViewport,
+      scene: scene,
+      // useFrame render priority (in case children need to run after)
+      priority: priority + renderOrder
+    }, props))]
+  }); // portal if scissor or inline nested scene
+
 
   var InlineElement = as;
-  return scissor ? fiber.createPortal(content, scene) : /*#__PURE__*/React__default["default"].createElement(InlineElement, {
-    ref: inlineSceneRef
-  }, content);
+  return scissor ? fiber.createPortal(content, scene) : /*#__PURE__*/jsxRuntime.jsx(InlineElement, {
+    ref: inlineSceneRef,
+    children: content
+  });
 };
 
 exports.ScrollScene = /*#__PURE__*/React__default["default"].memo(exports.ScrollScene);
 
-var _excluded$2 = ["track", "children", "margin", "inViewportMargin", "visible", "debug", "orthographic", "hiddenStyle", "renderOrder", "priority"];
+var _excluded$2 = ["track", "children", "margin", "inViewportMargin", "visible", "hideOffscreen", "debug", "orthographic", "renderOrder", "priority"];
 
-function ownKeys$3(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+function ownKeys$4(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
-function _objectSpread$3(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$3(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$3(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
-/**
- * Generic THREE.js Scene that tracks the dimensions and position of a DOM element while scrolling
- * Scene is rendered into a GL viewport matching the DOM position for better performance
- *
- * Adapted to @react-three/fiber from https://threejsfundamentals.org/threejs/lessons/threejs-multiple-scenes.html
- * @author david@14islands.com
- */
+function _objectSpread$4(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$4(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$4(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 
 exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
   var track = _ref.track,
       children = _ref.children,
       _ref$margin = _ref.margin,
       margin = _ref$margin === void 0 ? 0 : _ref$margin,
-      _ref$inViewportMargin = _ref.inViewportMargin,
-      inViewportMargin = _ref$inViewportMargin === void 0 ? 0 : _ref$inViewportMargin,
+      inViewportMargin = _ref.inViewportMargin,
       _ref$visible = _ref.visible,
       visible = _ref$visible === void 0 ? true : _ref$visible,
+      _ref$hideOffscreen = _ref.hideOffscreen,
+      hideOffscreen = _ref$hideOffscreen === void 0 ? true : _ref$hideOffscreen,
       _ref$debug = _ref.debug,
       debug = _ref$debug === void 0 ? false : _ref$debug,
       _ref$orthographic = _ref.orthographic,
       orthographic = _ref$orthographic === void 0 ? false : _ref$orthographic,
-      _ref$hiddenStyle = _ref.hiddenStyle,
-      hiddenStyle = _ref$hiddenStyle === void 0 ? {
-    opacity: 0
-  } : _ref$hiddenStyle,
       _ref$renderOrder = _ref.renderOrder,
       renderOrder = _ref$renderOrder === void 0 ? 1 : _ref$renderOrder,
       _ref$priority = _ref.priority,
@@ -1162,10 +1151,9 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
     return new three.Scene();
   }),
       _useState2 = _slicedToArray__default["default"](_useState, 1),
-      scene = _useState2[0];
+      scene = _useState2[0]; // const get = useThree((state) => state.get)
+  // const setEvents = useThree((state) => state.setEvents)
 
-  var _useThree = fiber.useThree(),
-      invalidate = _useThree.invalidate;
 
   var _useScrollRig = useScrollRig(),
       renderViewport = _useScrollRig.renderViewport;
@@ -1176,51 +1164,41 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
   var pageReflow = useCanvasStore(function (state) {
     return state.pageReflow;
   });
+  var scaleMultiplier = useCanvasStore(function (state) {
+    return state.scaleMultiplier;
+  });
 
   var _useTracker = useTracker({
     track: track,
-    inViewportMargin: inViewportMargin
+    rootMargin: inViewportMargin
   }, [pageReflow, scene]),
       update = _useTracker.update,
       bounds = _useTracker.bounds,
       scale = _useTracker.scale,
       position = _useTracker.position,
       scrollState = _useTracker.scrollState,
-      inViewport = _useTracker.inViewport;
+      inViewport = _useTracker.inViewport; // Hide scene when outside of viewport if `hideOffscreen` or set to `visible` prop
+
+
+  React.useLayoutEffect(function () {
+    scene.visible = hideOffscreen ? inViewport && visible : visible;
+  }, [inViewport, hideOffscreen, visible]);
 
   var _useState3 = React.useState(0),
       _useState4 = _slicedToArray__default["default"](_useState3, 2),
       cameraDistance = _useState4[0],
-      setCameraDistance = _useState4[1]; // El is rendered
+      setCameraDistance = _useState4[1]; // Find bounding box & scale mesh on resize
 
 
   React.useLayoutEffect(function () {
-    // hide image - leave in DOM to measure and get events
-    if (!(track !== null && track !== void 0 && track.current)) return;
-
-    if (debug) {
-      track.current.style.opacity = 0.5;
-    } else {
-      Object.assign(track.current.style, _objectSpread$3({}, hiddenStyle));
-    }
-
-    return function () {
-      if (!(track !== null && track !== void 0 && track.current)) return;
-      Object.keys(hiddenStyle).forEach(function (key) {
-        return track.current.style[key] = '';
-      });
-    };
-  }, [track]); // Find bounding box & scale mesh on resize
-
-  React.useLayoutEffect(function () {
-    var viewportWidth = bounds.width * config.scaleMultiplier;
-    var viewportHeight = bounds.height * config.scaleMultiplier;
-    var cameraDistance = Math.max(viewportWidth, viewportHeight) * config.scaleMultiplier;
+    var viewportWidth = bounds.width * scaleMultiplier;
+    var viewportHeight = bounds.height * scaleMultiplier;
+    var cameraDistance = Math.max(viewportWidth, viewportHeight);
     setCameraDistance(cameraDistance); // Calculate FOV to match the DOM bounds for this camera distance
 
     if (camera.current && !orthographic) {
-      camera.current.aspect = (viewportWidth + margin * 2 * config.scaleMultiplier) / (viewportHeight + margin * 2 * config.scaleMultiplier);
-      camera.current.fov = 2 * (180 / Math.PI) * Math.atan((viewportHeight + margin * 2 * config.scaleMultiplier) / (2 * cameraDistance));
+      camera.current.aspect = (viewportWidth + margin * 2 * scaleMultiplier) / (viewportHeight + margin * 2 * scaleMultiplier);
+      camera.current.fov = 2 * (180 / Math.PI) * Math.atan((viewportHeight + margin * 2 * scaleMultiplier) / (2 * cameraDistance));
       camera.current.updateProjectionMatrix(); // https://github.com/react-spring/@react-three/fiber/issues/178
       // Update matrix world since the renderer is a frame late
 
@@ -1228,29 +1206,38 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
     } // trigger a frame
 
 
-    invalidate();
-  }, [track, pageReflow, bounds]);
+    fiber.invalidate();
+  }, [track, pageReflow, bounds, scaleMultiplier]);
   var compute = React__default["default"].useCallback(function (event, state) {
+    // limit events to DOM element bounds
     if (track.current && event.target === track.current) {
       var width = bounds.width,
           height = bounds.height,
           left = bounds.left,
           top = bounds.top;
-      var x = event.clientX - left + scroll.x;
-      var y = event.clientY - top + scroll.y;
-      state.pointer.set(x / width * 2 - 1, -(y / height) * 2 + 1);
+      var mWidth = width + margin * 2;
+      var mHeight = height + margin * 2;
+      var x = event.clientX - left + margin + scroll.x;
+      var y = event.clientY - top + margin + scroll.y;
+      state.pointer.set(x / mWidth * 2 - 1, -(y / mHeight) * 2 + 1);
       state.raycaster.setFromCamera(state.pointer, camera.current);
     }
-  }, [bounds, position]); // RENDER FRAME
+  }, [bounds, position]); // Not needed?
+  // from: https://github.com/pmndrs/drei/blob/d22fe0f58fd596c7bfb60a7a543cf6c80da87624/src/web/View.tsx#L80
+  // but seems to work without it
+  // useEffect(() => {
+  //   // Connect the event layer to the tracking element
+  //   const old = get().events.connected
+  //   setEvents({ connected: track.current })
+  //   return () => setEvents({ connected: old })
+  // }, [])
+  // RENDER FRAME
 
   fiber.useFrame(function (_ref2) {
     var gl = _ref2.gl;
     if (!scene || !scale) return; // update element tracker
 
-    update();
-    var inViewport = scrollState.inViewport; // hide/show scene
-
-    scene.visible = inViewport && visible; // Render scene to viewport using local camera and limit updates using scissor test
+    update(); // Render scene to viewport using local camera and limit updates using scissor test
     // Performance improvement - faster than always rendering full canvas
 
     if (scene.visible) {
@@ -1265,42 +1252,45 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
       });
     }
   }, priority);
-  return bounds && fiber.createPortal( /*#__PURE__*/React__default["default"].createElement(React__default["default"].Fragment, null, !orthographic && /*#__PURE__*/React__default["default"].createElement("perspectiveCamera", {
-    ref: camera,
-    position: [0, 0, cameraDistance],
-    onUpdate: function onUpdate(self) {
-      return self.updateProjectionMatrix();
-    }
-  }), orthographic && /*#__PURE__*/React__default["default"].createElement("orthographicCamera", {
-    ref: camera,
-    position: [0, 0, cameraDistance],
-    onUpdate: function onUpdate(self) {
-      return self.updateProjectionMatrix();
-    },
-    left: scale.width / -2,
-    right: scale.width / 2,
-    top: scale.height / 2,
-    bottom: scale.height / -2,
-    far: cameraDistance * 2,
-    near: 0.001
-  }), /*#__PURE__*/React__default["default"].createElement("group", {
-    renderOrder: renderOrder
-  }, (!children || debug) && scale && /*#__PURE__*/React__default["default"].createElement(DebugMesh$1, {
-    scale: scale
-  }), children && scene && scale && children(_objectSpread$3({
-    // inherited props
-    track: track,
-    margin: margin,
-    renderOrder: renderOrder,
-    // new props
-    scale: scale,
-    scrollState: scrollState,
-    scene: scene,
-    camera: camera.current,
-    inViewport: inViewport,
-    // useFrame render priority (in case children need to run after)
-    priority: priority + renderOrder
-  }, props)))), scene, {
+  return bounds && fiber.createPortal( /*#__PURE__*/jsxRuntime.jsxs(jsxRuntime.Fragment, {
+    children: [!orthographic && /*#__PURE__*/jsxRuntime.jsx("perspectiveCamera", {
+      ref: camera,
+      position: [0, 0, cameraDistance],
+      onUpdate: function onUpdate(self) {
+        return self.updateProjectionMatrix();
+      }
+    }), orthographic && /*#__PURE__*/jsxRuntime.jsx("orthographicCamera", {
+      ref: camera,
+      position: [0, 0, cameraDistance],
+      onUpdate: function onUpdate(self) {
+        return self.updateProjectionMatrix();
+      },
+      left: scale.width / -2,
+      right: scale.width / 2,
+      top: scale.height / 2,
+      bottom: scale.height / -2,
+      far: cameraDistance * 2,
+      near: 0.001
+    }), /*#__PURE__*/jsxRuntime.jsxs("group", {
+      renderOrder: renderOrder,
+      children: [(!children || debug) && scale && /*#__PURE__*/jsxRuntime.jsx(DebugMesh$1, {
+        scale: scale
+      }), children && scene && scale && children(_objectSpread$4({
+        // inherited props
+        track: track,
+        margin: margin,
+        renderOrder: renderOrder,
+        // new props
+        scale: scale,
+        scrollState: scrollState,
+        inViewport: inViewport,
+        scene: scene,
+        camera: camera.current,
+        // useFrame render priority (in case children need to run after)
+        priority: priority + renderOrder
+      }, props))]
+    })]
+  }), scene, {
     events: {
       compute: compute,
       priority: priority
@@ -1361,22 +1351,86 @@ function useCanvas(object, deps, _ref) {
 
 var _excluded$1 = ["children", "id"];
 
-function ownKeys$2(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+function ownKeys$3(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
-function _objectSpread$2(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$2(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$2(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+function _objectSpread$3(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$3(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$3(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 var UseCanvas = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
   var children = _ref.children,
       id = _ref.id,
       props = _objectWithoutProperties__default["default"](_ref, _excluded$1);
 
   // auto update canvas with all props
-  useCanvas(children, _objectSpread$2(_objectSpread$2({}, props), {}, {
+  useCanvas(children, _objectSpread$3(_objectSpread$3({}, props), {}, {
     ref: ref
   }), {
     key: id
   });
   return null;
 });
+
+function ownKeys$2(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread$2(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$2(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$2(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+function useHideElementWhileMounted(el) {
+  var deps = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+
+  var _ref = arguments.length > 2 ? arguments[2] : undefined,
+      debug = _ref.debug,
+      _ref$style = _ref.style,
+      style = _ref$style === void 0 ? {
+    opacity: '0'
+  } : _ref$style,
+      className = _ref.className;
+
+  // Hide DOM element
+  React.useLayoutEffect(function () {
+    // hide image - leave in DOM to measure and get events
+    if (!(el !== null && el !== void 0 && el.current)) return;
+
+    if (debug) {
+      el.current.style.opacity = '0.5';
+    } else {
+      className && el.current.classList.add(className);
+      Object.assign(el.current.style, _objectSpread$2({}, style));
+    }
+
+    return function () {
+      if (!(el !== null && el !== void 0 && el.current)) return; // @ts-ignore
+
+      Object.keys(style).forEach(function (key) {
+        return el.current.style[key] = '';
+      });
+      className && el.current.classList.remove(className);
+    };
+  }, deps);
+}
+
+/**
+ * Purpose: Hide tracked DOM elements on mount if GlobalCanvas is in use
+ *
+ * Creates an HTMLElement ref and applies CSS styles and/or a classname while the the component is mounted
+ */
+
+function useCanvasRef() {
+  var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+      style = _ref.style,
+      className = _ref.className;
+
+  var isCanvasAvailable = useCanvasStore(function (s) {
+    return s.isCanvasAvailable;
+  });
+  var debug = useCanvasStore(function (s) {
+    return s.debug;
+  });
+  var ref = React.useRef(null); // Apply hidden styles/classname to DOM element
+
+  useHideElementWhileMounted(ref, [isCanvasAvailable], {
+    debug: debug,
+    style: style,
+    className: className
+  });
+  return ref;
+}
 
 /**
  *  Reasons for why this exists:
@@ -1543,7 +1597,8 @@ function LenisScrollbar(_ref, ref) {
       config = _ref.config,
       props = _objectWithoutProperties__default["default"](_ref, _excluded);
 
-  var lenisImpl = React.useRef();
+  var lenisImpl = React.useRef(); // Expose lenis imperative API
+
   React.useImperativeHandle(ref, function () {
     return {
       start: function start() {
@@ -1556,35 +1611,36 @@ function LenisScrollbar(_ref, ref) {
 
         return (_lenisImpl$current2 = lenisImpl.current) === null || _lenisImpl$current2 === void 0 ? void 0 : _lenisImpl$current2.stop();
       },
-      onScroll: function onScroll(cb) {
+      on: function on(event, cb) {
         var _lenisImpl$current3;
 
-        return (_lenisImpl$current3 = lenisImpl.current) === null || _lenisImpl$current3 === void 0 ? void 0 : _lenisImpl$current3.on('scroll', cb);
+        return (_lenisImpl$current3 = lenisImpl.current) === null || _lenisImpl$current3 === void 0 ? void 0 : _lenisImpl$current3.on(event, cb);
       },
       scrollTo: function scrollTo(target, props) {
         var _lenisImpl$current4;
 
         return (_lenisImpl$current4 = lenisImpl.current) === null || _lenisImpl$current4 === void 0 ? void 0 : _lenisImpl$current4.scrollTo(target, props);
+      },
+      raf: function raf(time) {
+        var _lenisImpl$current5;
+
+        return (_lenisImpl$current5 = lenisImpl.current) === null || _lenisImpl$current5 === void 0 ? void 0 : _lenisImpl$current5.raf(time);
       }
     };
   });
-  React.useEffect(function () {
+  React.useEffect(function initLenis() {
     var lenis = lenisImpl.current = new Lenis__default["default"](_objectSpread$1({
       duration: duration,
       easing: easing,
       smooth: smooth,
       direction: direction
-    }, config)); // let r3f drive the frameloop
-
-    var removeEffect = fiber.addEffect(function (time) {
-      return lenis.raf(time);
-    }); // cleanup on unmount
+    }, config)); // cleanup on unmount
 
     return function () {
-      removeEffect();
       lenis.destroy();
     };
-  }, [smooth]);
+  }, [duration, easing, smooth, direction, config]); // Support a render function as child
+
   return children && children(props);
 }
 var LenisScrollbar$1 = /*#__PURE__*/React.forwardRef(LenisScrollbar);
@@ -1593,7 +1649,7 @@ function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (O
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 var SmoothScrollbar = function SmoothScrollbar(_ref) {
-  var children = _ref.children,
+  var _children = _ref.children,
       _ref$smooth = _ref.smooth,
       smooth = _ref$smooth === void 0 ? true : _ref$smooth,
       _ref$paused = _ref.paused,
@@ -1626,10 +1682,16 @@ var SmoothScrollbar = function SmoothScrollbar(_ref) {
     preventPointerEvents(false);
   }, []);
   React.useEffect(function () {
-    var _lenis$current, _lenis$current2;
+    var _lenis$current2, _lenis$current3;
 
-    // update global scroll store
-    (_lenis$current = lenis.current) === null || _lenis$current === void 0 ? void 0 : _lenis$current.onScroll(function (_ref2) {
+    // let r3f drive the frameloop
+    var removeEffect = fiber.addEffect(function (time) {
+      var _lenis$current;
+
+      return (_lenis$current = lenis.current) === null || _lenis$current === void 0 ? void 0 : _lenis$current.raf(time);
+    }); // update global scroll store
+
+    (_lenis$current2 = lenis.current) === null || _lenis$current2 === void 0 ? void 0 : _lenis$current2.on('scroll', function (_ref2) {
       var scroll = _ref2.scroll,
           limit = _ref2.limit,
           velocity = _ref2.velocity,
@@ -1642,7 +1704,7 @@ var SmoothScrollbar = function SmoothScrollbar(_ref) {
       scrollState.direction = direction;
       scrollState.progress = progress; // disable pointer logic
 
-      var disablePointer = debounce__default["default"](function () {
+      var disablePointer = debounce.debounce(function () {
         return preventPointerEvents(true);
       }, 100, true);
 
@@ -1651,19 +1713,29 @@ var SmoothScrollbar = function SmoothScrollbar(_ref) {
       } else {
         preventPointerEvents(false);
       }
-    }); // expose scrollTo function
+
+      fiber.invalidate();
+    }); // expose global scrollTo function
+    // @ts-ignore
 
     useCanvasStore.setState({
-      scrollTo: (_lenis$current2 = lenis.current) === null || _lenis$current2 === void 0 ? void 0 : _lenis$current2.scrollTo
-    });
-    window.addEventListener('pointermove', onMouseMove);
-    return function () {
-      window.removeEventListener('pointermove', onMouseMove);
-    };
-  }, [smooth]);
-  React.useEffect(function () {
+      scrollTo: (_lenis$current3 = lenis.current) === null || _lenis$current3 === void 0 ? void 0 : _lenis$current3.scrollTo
+    }); // Set active
+
     document.documentElement.classList.toggle('js-has-smooth-scrollbar', smooth);
-    setVirtualScrollbar(smooth);
+    setVirtualScrollbar(smooth); // make sure R3F loop is invalidated when scrolling
+
+    var invalidateOnWheelEvent = function invalidateOnWheelEvent() {
+      return fiber.invalidate();
+    };
+
+    window.addEventListener('pointermove', onMouseMove);
+    window.addEventListener('wheel', invalidateOnWheelEvent);
+    return function () {
+      removeEffect();
+      window.removeEventListener('pointermove', onMouseMove);
+      window.removeEventListener('wheel', invalidateOnWheelEvent);
+    };
   }, [smooth]);
   React.useLayoutEffect(function () {
     if ('scrollRestoration' in window.history) {
@@ -1671,72 +1743,19 @@ var SmoothScrollbar = function SmoothScrollbar(_ref) {
     }
   }, []);
   React.useEffect(function () {
-    var _lenis$current3, _lenis$current4;
+    var _lenis$current4, _lenis$current5;
 
-    paused ? (_lenis$current3 = lenis.current) === null || _lenis$current3 === void 0 ? void 0 : _lenis$current3.stop() : (_lenis$current4 = lenis.current) === null || _lenis$current4 === void 0 ? void 0 : _lenis$current4.start();
+    paused ? (_lenis$current4 = lenis.current) === null || _lenis$current4 === void 0 ? void 0 : _lenis$current4.stop() : (_lenis$current5 = lenis.current) === null || _lenis$current5 === void 0 ? void 0 : _lenis$current5.start();
   }, [paused]);
-  return /*#__PURE__*/React__namespace.createElement(LenisScrollbar$1, {
+  return /*#__PURE__*/jsxRuntime.jsx(LenisScrollbar$1, {
     ref: lenis,
-    smooth: smooth
-  }, function (bind) {
-    return children(_objectSpread(_objectSpread({}, bind), {}, {
-      ref: ref
-    }));
+    smooth: smooth,
+    children: function children(bind) {
+      return _children(_objectSpread(_objectSpread({}, bind), {}, {
+        ref: ref
+      }));
+    }
   });
-};
-
-var useDelayedEffect = function useDelayedEffect(fn, deps) {
-  var ms = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
-  var timer;
-  React.useEffect(function () {
-    timer = setTimeout(fn, ms);
-    return function () {
-      return clearTimeout(timer);
-    };
-  }, deps);
-};
-var useDelayedEffect$1 = useDelayedEffect;
-
-/**
- * Adds THREE.js object to the GlobalCanvas while the component is mounted after initial delay (ms)
- * @param {object} object THREE.js object3d
- */
-
-var useDelayedCanvas = function useDelayedCanvas(object, ms) {
-  var deps = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
-  var key = arguments.length > 3 ? arguments[3] : undefined;
-  var updateCanvas = useCanvasStore(function (state) {
-    return state.updateCanvas;
-  });
-  var renderToCanvas = useCanvasStore(function (state) {
-    return state.renderToCanvas;
-  });
-  var removeFromCanvas = useCanvasStore(function (state) {
-    return state.removeFromCanvas;
-  }); // auto generate uuid v4 key
-
-  var uniqueKey = React.useMemo(function () {
-    return key || three.MathUtils.generateUUID();
-  }, []); // remove on unmount
-
-  React.useLayoutEffect(function () {
-    return function () {
-      return removeFromCanvas(uniqueKey);
-    };
-  }, []);
-  useDelayedEffect$1(function () {
-    renderToCanvas(uniqueKey, object);
-  }, deps, ms); // return function that can set new props on the canvas component
-
-  var set = function set(props) {
-    requestIdleCallback$1(function () {
-      return updateCanvas(uniqueKey, props);
-    }, {
-      timeout: 100
-    });
-  };
-
-  return set;
 };
 
 exports.GlobalCanvas = GlobalCanvasIfSupported$1;
@@ -1744,8 +1763,8 @@ exports.SmoothScrollbar = SmoothScrollbar;
 exports.UseCanvas = UseCanvas;
 exports._config = config;
 exports.useCanvas = useCanvas;
+exports.useCanvasRef = useCanvasRef;
 exports.useCanvasStore = useCanvasStore;
-exports.useDelayedCanvas = useDelayedCanvas;
 exports.useImgTagAsTexture = useImgTagAsTexture;
 exports.useScrollRig = useScrollRig;
 exports.useScrollbar = useScrollbar;

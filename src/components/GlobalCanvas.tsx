@@ -1,37 +1,72 @@
-import React, { useLayoutEffect, useMemo } from 'react'
-import PropTypes from 'prop-types'
-import { Canvas } from '@react-three/fiber'
+import { useLayoutEffect } from 'react'
+import { Canvas, Props } from '@react-three/fiber'
 import { ResizeObserver } from '@juggle/resize-observer'
-import queryString from 'query-string'
-
+import { parse } from 'query-string'
 import { useCanvasStore } from '../store'
-import config from '../config'
-import ResizeManager from '../utils/ResizeManager'
-import PerspectiveCamera from '../cameras/PerspectiveCamera'
-import OrthographicCamera from '../cameras/OrthographicCamera'
+import ResizeManager from './ResizeManager'
+import PerspectiveCamera from './PerspectiveCamera'
+import OrthographicCamera from './OrthographicCamera'
 
 import GlobalRenderer from './GlobalRenderer'
 import CanvasErrorBoundary from './CanvasErrorBoundary'
 
-const GlobalCanvas = ({ as = Canvas, children, gl, style, orthographic, config: confOverrides, camera, ...props }) => {
-  // override config
-  useMemo(() => {
-    Object.assign(config, confOverrides)
+import config from '../config'
 
+interface IGlobalCanvas extends Props {
+  as?: any
+  orthographic?: boolean
+  onError?: (props: any) => void
+  camera?: any
+  // state
+  debug?: boolean
+  scaleMultiplier?: number
+  globalRender?: boolean
+  globalPriority?: number
+  globalAutoClear?: boolean
+  globalClearDepth?: boolean
+}
+
+const GlobalCanvas = ({
+  as = Canvas,
+  children,
+  gl,
+  style,
+  orthographic,
+  camera,
+  debug,
+  scaleMultiplier = config.DEFAULT_SCALE_MULTIPLIER,
+  globalRender = true,
+  globalPriority = config.PRIORITY_GLOBAL,
+  globalAutoClear = false, // don't clear viewports
+  globalClearDepth = true,
+  ...props
+}: Omit<IGlobalCanvas, 'onError'>) => {
+  // enable debug mode
+  useLayoutEffect(() => {
     // Querystring overrides
-    const qs = queryString.parse(window.location.search)
+    const qs = parse(window.location.search)
 
     // show debug statements
-    if (typeof qs.debug !== 'undefined') {
-      config.debug = true
+    if (debug || typeof qs.debug !== 'undefined') {
+      useCanvasStore.setState({ debug: true })
     }
-  }, [confOverrides])
+  }, [debug])
+
+  // update state
+  useLayoutEffect(() => {
+    useCanvasStore.setState({
+      scaleMultiplier,
+      globalRender,
+      globalPriority,
+      globalAutoClear,
+      globalClearDepth,
+    })
+  }, [scaleMultiplier, globalPriority, globalRender, globalAutoClear, globalClearDepth])
 
   const CanvasElement = as
 
   return (
     <CanvasElement
-      className="ScrollRigCanvas"
       // use our own default camera
       camera={null}
       // Some sane defaults
@@ -57,7 +92,9 @@ const GlobalCanvas = ({ as = Canvas, children, gl, style, orthographic, config: 
       {children}
       <GlobalRenderer />
 
+      {/* @ts-ignore */}
       {!orthographic && <PerspectiveCamera makeDefault={true} {...camera} />}
+      {/* @ts-ignore */}
       {orthographic && <OrthographicCamera makeDefault={true} {...camera} />}
 
       <ResizeManager />
@@ -65,17 +102,7 @@ const GlobalCanvas = ({ as = Canvas, children, gl, style, orthographic, config: 
   )
 }
 
-GlobalCanvas.propTypes = {
-  gl: PropTypes.object,
-  orthographic: PropTypes.bool,
-  style: PropTypes.object,
-  config: PropTypes.bool, // scrollrig config overrides
-  as: PropTypes.any, // renders as @react-three/fiber Canvas by default
-  camera: PropTypes.object,
-  fallback: PropTypes.element,
-}
-
-const GlobalCanvasIfSupported = ({ onError, ...props }) => {
+const GlobalCanvasIfSupported = ({ children, onError, ...props }: IGlobalCanvas) => {
   const setCanvasAvailable = useCanvasStore((state) => state.setCanvasAvailable)
 
   useLayoutEffect(() => {
@@ -83,6 +110,7 @@ const GlobalCanvasIfSupported = ({ onError, ...props }) => {
   }, [])
 
   return (
+    // @ts-ignore
     <CanvasErrorBoundary
       onError={(err) => {
         onError && onError(err)
@@ -91,13 +119,9 @@ const GlobalCanvasIfSupported = ({ onError, ...props }) => {
         document.documentElement.classList.add('js-global-canvas-error')
       }}
     >
-      <GlobalCanvas {...props} />
+      <GlobalCanvas {...props}>{children}</GlobalCanvas>
     </CanvasErrorBoundary>
   )
-}
-
-GlobalCanvasIfSupported.propTypes = {
-  onError: PropTypes.func,
 }
 
 export default GlobalCanvasIfSupported

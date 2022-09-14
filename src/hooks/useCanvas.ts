@@ -1,12 +1,12 @@
-import { useEffect, useLayoutEffect, useMemo, useCallback } from 'react'
-import { Object3D, MathUtils } from 'three'
+import { useEffect, useLayoutEffect, useMemo, useCallback, ReactElement } from 'react'
+import { MathUtils } from 'three'
 import { useCanvasStore } from '../store'
 
 /**
  * Adds THREE.js object to the GlobalCanvas while the component is mounted
  * @param {object} object THREE.js object3d
  */
-function useCanvas(object: Object3D, deps, { key, dispose = true }) {
+function useCanvas(object: ReactElement, deps: any, { key, dispose = true }: { key?: string; dispose?: boolean }) {
   const updateCanvas = useCanvasStore((state) => state.updateCanvas)
   const renderToCanvas = useCanvasStore((state) => state.renderToCanvas)
   const removeFromCanvas = useCanvasStore((state) => state.removeFromCanvas)

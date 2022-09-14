@@ -1,8 +1,9 @@
-import { useMemo, useRef, useState, startTransition, useCallback } from 'react'
+import { useMemo, useRef, useCallback, useLayoutEffect } from 'react'
 import { useThree } from '@react-three/fiber'
 import { MathUtils } from 'three'
+import { useInView } from 'react-intersection-observer'
 
-import config from '../config'
+import { useCanvasStore } from '../store'
 import { useScrollbar } from '../scrollbar/useScrollbar'
 
 import type { ElementTrackerProps, ElementTracker, ScrollPosition, ScrollState, PropsOrElement } from './useTracker.d'
@@ -11,7 +12,7 @@ function isElementProps(obj: any): obj is ElementTrackerProps {
   return typeof obj === 'object' && 'track' in obj
 }
 
-const defaultArgs = { inViewportMargin: 0.33 }
+const defaultArgs = { rootMargin: '50%' }
 
 /**
  * Returns the current Scene position of the DOM element
@@ -19,13 +20,18 @@ const defaultArgs = { inViewportMargin: 0.33 }
  */
 function useTracker(args: PropsOrElement, deps: any[] = []): ElementTracker {
   const size = useThree((s) => s.size)
-  const [inViewport, setInViewport] = useState(false)
   const { scroll } = useScrollbar()
+  const scaleMultiplier = useCanvasStore((state) => state.scaleMultiplier)
 
-  const { track, inViewportMargin } = isElementProps(args)
-    ? { ...defaultArgs, ...args }
-    : { ...defaultArgs, track: args }
-  const scrollMargin = size.height * inViewportMargin
+  const { track, rootMargin } = isElementProps(args) ? { ...defaultArgs, ...args } : { ...defaultArgs, track: args }
+  // const scrollMargin = typeof rootMargin === 'number' ? size.height * inViewportMargin : rootMargin
+
+  // check if element is in viewport
+  const { ref, inView: inViewport } = useInView({ rootMargin })
+
+  useLayoutEffect(() => {
+    ref(track.current)
+  }, [])
 
   // cache the return object
   const position: ScrollPosition = useRef({
@@ -35,6 +41,17 @@ function useTracker(args: PropsOrElement, deps: any[] = []): ElementTracker {
     left: 0,
     positiveYUpBottom: 0,
   }).current
+
+  const scrollState: ScrollState = useRef({
+    inViewport: false,
+    progress: -1,
+    visibility: -1,
+    viewport: -1,
+  }).current
+
+  useLayoutEffect(() => {
+    scrollState.inViewport = inViewport
+  }, [inViewport])
 
   // DOM rect bounds
   const bounds = useMemo(() => {
@@ -55,56 +72,35 @@ function useTracker(args: PropsOrElement, deps: any[] = []): ElementTracker {
     }
 
     // update position
-    position.x = (bounds?.x - window.scrollX) * config.scaleMultiplier // exact position
-    position.y = -1 * (bounds?.y - window.scrollY) * config.scaleMultiplier // exact position
+    position.x = (bounds?.x - window.scrollX) * scaleMultiplier // exact position
+    position.y = -1 * (bounds?.y - window.scrollY) * scaleMultiplier // exact position
 
     position.top = position.y + bounds.sceneOffset.y
     position.left = position.x + bounds.sceneOffset.x
     position.positiveYUpBottom = 0
 
     return bounds
-  }, [track, size, ...deps])
+  }, [track, size, scaleMultiplier, ...deps])
 
   // scale in viewport units and pixel
   const scale = useMemo(() => {
-    return [bounds?.width * config.scaleMultiplier, bounds?.height * config.scaleMultiplier, 1]
+    return [bounds?.width * scaleMultiplier, bounds?.height * scaleMultiplier, 1]
   }, [track, size, ...deps]) as [width: number, height: number, depth: number]
 
-  const scrollState: ScrollState = useRef({
-    inViewport: false,
-    progress: -1,
-    visibility: -1,
-    viewport: -1,
-  }).current
-
   const update = useCallback(() => {
-    if (!track.current) return
+    if (!track.current || !scrollState.inViewport) return
 
-    position.x = (bounds.x - scroll.x) * config.scaleMultiplier
-    position.y = -1 * (bounds.y - scroll.y) * config.scaleMultiplier
+    position.x = (bounds.x - scroll.x) * scaleMultiplier
+    position.y = -1 * (bounds.y - scroll.y) * scaleMultiplier
     position.top = position.y + bounds.sceneOffset.y
     position.left = position.x + bounds.sceneOffset.x
-    position.positiveYUpBottom = size.height * 0.5 + (position.y / config.scaleMultiplier - bounds.height * 0.5) // inverse Y
+    position.positiveYUpBottom = size.height * 0.5 + (position.y / scaleMultiplier - bounds.height * 0.5) // inverse Y
 
-    // viewportscene
-    // const positiveYUpBottom = size.height - (newTop / config.scaleMultiplier + bounds.height) // inverse Y
-
-    // Scroll State stuff
-    scrollState.inViewport =
-      position.y + size.height * 0.5 + bounds.height * 0.5 > 0 - scrollMargin &&
-      position.y + size.height * 0.5 - bounds.height * 0.5 < size.height + scrollMargin
-
-    // set inViewport state using a transition to avoid lagging
-    if (scrollState.inViewport && !inViewport) startTransition(() => setInViewport(true))
-    else if (!scrollState.inViewport && inViewport) startTransition(() => setInViewport(false))
-
-    if (scrollState.inViewport) {
-      // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
-      const pxInside = bounds.top + position.y - bounds.top + size.height - bounds.sceneOffset.y
-      scrollState.progress = MathUtils.mapLinear(pxInside, 0, size.height + bounds.height, 0, 1) // percent of total visible distance
-      scrollState.visibility = MathUtils.mapLinear(pxInside, 0, bounds.height, 0, 1) // percent of item height in view
-      scrollState.viewport = MathUtils.mapLinear(pxInside, 0, size.height, 0, 1) // percent of window height scrolled since visible
-    }
+    // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
+    const pxInside = bounds.top + position.y - bounds.top + size.height - bounds.sceneOffset.y
+    scrollState.progress = MathUtils.clamp(MathUtils.mapLinear(pxInside, 0, size.height + bounds.height, 0, 1), 0, 1) // percent of total visible distance
+    scrollState.visibility = MathUtils.clamp(MathUtils.mapLinear(pxInside, 0, bounds.height, 0, 1), 0, 1) // percent of item height in view
+    scrollState.viewport = MathUtils.clamp(MathUtils.mapLinear(pxInside, 0, size.height, 0, 1), 0, 1) // percent of window height scrolled since visible
   }, [bounds, track, size])
 
   return {

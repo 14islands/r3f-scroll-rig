@@ -2,31 +2,29 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var _extends = require('@babel/runtime/helpers/extends');
+var _defineProperty = require('@babel/runtime/helpers/defineProperty');
 var _objectWithoutProperties = require('@babel/runtime/helpers/objectWithoutProperties');
-var React = require('react');
+var react = require('react');
 var three = require('three');
 var fiber = require('@react-three/fiber');
 var Text = require('@react-three/drei/core/Text');
+var jsxRuntime = require('react/jsx-runtime');
 var _slicedToArray = require('@babel/runtime/helpers/slicedToArray');
 var r3fScrollRig = require('@14islands/r3f-scroll-rig');
 var lerp = require('@14islands/lerp');
-var _defineProperty = require('@babel/runtime/helpers/defineProperty');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
-var _extends__default = /*#__PURE__*/_interopDefaultLegacy(_extends);
+var _defineProperty__default = /*#__PURE__*/_interopDefaultLegacy(_defineProperty);
 var _objectWithoutProperties__default = /*#__PURE__*/_interopDefaultLegacy(_objectWithoutProperties);
-var React__default = /*#__PURE__*/_interopDefaultLegacy(React);
 var _slicedToArray__default = /*#__PURE__*/_interopDefaultLegacy(_slicedToArray);
 var lerp__default = /*#__PURE__*/_interopDefaultLegacy(lerp);
-var _defineProperty__default = /*#__PURE__*/_interopDefaultLegacy(_defineProperty);
 
 var _excluded$3 = ["el", "children", "material", "scale", "font", "fontOffsetY", "fontOffsetX", "overrideEmissive", "color"];
-/**
- * Returns a WebGL Troika text mesh styled as the source DOM element
- */
 
+function ownKeys$3(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread$3(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$3(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$3(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 var WebGLText = function WebGLText(_ref) {
   var el = _ref.el,
       children = _ref.children,
@@ -45,7 +43,7 @@ var WebGLText = function WebGLText(_ref) {
   var _useThree = fiber.useThree(),
       size = _useThree.size;
 
-  var _useMemo = React.useMemo(function () {
+  var _useMemo = react.useMemo(function () {
     if (!el.current) return {};
     var cs = window.getComputedStyle(el.current); // font size relative letter spacing
 
@@ -67,7 +65,7 @@ var WebGLText = function WebGLText(_ref) {
       letterSpacing = _useMemo.letterSpacing; // recalc on resize
 
 
-  React.useEffect(function () {
+  react.useEffect(function () {
     if (material && overrideEmissive) {
       material.emissive = color;
     }
@@ -81,7 +79,7 @@ var WebGLText = function WebGLText(_ref) {
   }
 
   var yOffset = scale ? scale.height * 0.5 : size.height * 0.5;
-  return /*#__PURE__*/React__default["default"].createElement(Text.Text, _extends__default["default"]({
+  return /*#__PURE__*/jsxRuntime.jsx(Text.Text, _objectSpread$3(_objectSpread$3({
     fontSize: fontSize,
     maxWidth: scale ? scale.width : size.width,
     lineHeight: lineHeight,
@@ -95,10 +93,16 @@ var WebGLText = function WebGLText(_ref) {
     position: [xOffset + fontSize * fontOffsetX, yOffset + fontSize * fontOffsetY, 0] // font specific
     ,
     material: material
-  }, props), children);
+  }, props), {}, {
+    children: children
+  }));
 };
 
 var _excluded$2 = ["el", "scale", "scrollState", "scene", "vertexShader", "fragmentShader", "invalidateFrameLoop", "widthSegments", "heightSegments"];
+
+function ownKeys$2(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread$2(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$2(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$2(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 
 var WebGLImage = function WebGLImage(_ref) {
   var el = _ref.el,
@@ -115,8 +119,8 @@ var WebGLImage = function WebGLImage(_ref) {
       heightSegments = _ref$heightSegments === void 0 ? 14 : _ref$heightSegments,
       props = _objectWithoutProperties__default["default"](_ref, _excluded$2);
 
-  var material = React.useRef();
-  var mesh = React.useRef();
+  var material = react.useRef();
+  var mesh = react.useRef();
 
   var _useScrollRig = r3fScrollRig.useScrollRig(),
       preloadScene = _useScrollRig.preloadScene;
@@ -134,7 +138,7 @@ var WebGLImage = function WebGLImage(_ref) {
       _useImgTagAsTexture2 = _slicedToArray__default["default"](_useImgTagAsTexture, 1),
       texture = _useImgTagAsTexture2[0];
 
-  var uniforms = React.useMemo(function () {
+  var uniforms = react.useMemo(function () {
     return {
       u_color: {
         value: new three.Color('black')
@@ -179,13 +183,13 @@ var WebGLImage = function WebGLImage(_ref) {
     }; // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // // Preload when texture finished loading
 
-  React.useEffect(function () {
+  react.useEffect(function () {
     if (!texture) return;
     material.current.uniforms.u_texture.value = texture;
     material.current.uniforms.u_size.value.set(texture.image.width, texture.image.height);
     preloadScene(scene, camera); // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [texture]);
-  React.useEffect(function () {
+  react.useEffect(function () {
     material.current.uniforms.u_res.value.set(size.width, size.height);
     material.current.uniforms.u_rect.value.set(scale.width, scale.height);
   }, [size, scale]);
@@ -203,56 +207,65 @@ var WebGLImage = function WebGLImage(_ref) {
     material.current.uniforms.u_viewport.value = scrollState.viewport;
     if (invalidateFrameLoop) invalidate();
   });
-  return /*#__PURE__*/React__default["default"].createElement("mesh", _extends__default["default"]({
+  return /*#__PURE__*/jsxRuntime.jsxs("mesh", _objectSpread$2(_objectSpread$2({
     ref: mesh,
     scale: [scale.width, scale.height, 1]
-  }, props), /*#__PURE__*/React__default["default"].createElement("planeBufferGeometry", {
-    attach: "geometry",
-    args: [1, 1, widthSegments, heightSegments]
-  }), /*#__PURE__*/React__default["default"].createElement("shaderMaterial", {
-    ref: material,
-    attach: "material",
-    args: [{
-      vertexShader: vertexShader,
-      fragmentShader: fragmentShader
-    }],
-    transparent: true,
-    uniforms: uniforms
+  }, props), {}, {
+    children: [/*#__PURE__*/jsxRuntime.jsx("planeBufferGeometry", {
+      attach: "geometry",
+      args: [1, 1, widthSegments, heightSegments]
+    }), /*#__PURE__*/jsxRuntime.jsx("shaderMaterial", {
+      ref: material,
+      attach: "material",
+      args: [{
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader
+      }],
+      transparent: true,
+      uniforms: uniforms
+    })]
   }));
 };
 
 var _excluded$1 = ["children", "parallax", "stickyLerp"];
 
+function ownKeys$1(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread$1(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$1(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$1(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 var ParallaxMesh = function ParallaxMesh(_ref) {
   var children = _ref.children,
       scrollState = _ref.scrollState,
       scale = _ref.scale,
       parallax = _ref.parallax;
-  var mesh = React.useRef();
+  var mesh = react.useRef();
   fiber.useFrame(function () {
     if (!scrollState.inViewport) return;
     var parallaxProgress = scrollState.progress * 2 - 1;
     mesh.current.position.y = parallax * parallaxProgress * scale.multiplier;
   });
-  return /*#__PURE__*/React__default["default"].createElement("mesh", {
-    ref: mesh
-  }, children);
+  return /*#__PURE__*/jsxRuntime.jsx("mesh", {
+    ref: mesh,
+    children: children
+  });
 };
 var ParallaxScrollScene = function ParallaxScrollScene(_ref2) {
-  var children = _ref2.children,
+  var _children = _ref2.children,
       parallax = _ref2.parallax;
       _ref2.stickyLerp;
       var props = _objectWithoutProperties__default["default"](_ref2, _excluded$1);
 
-  return /*#__PURE__*/React__default["default"].createElement(r3fScrollRig.ScrollScene, _extends__default["default"]({
+  return /*#__PURE__*/jsxRuntime.jsx(r3fScrollRig.ScrollScene, _objectSpread$1(_objectSpread$1({
     scissor: false
-  }, props, {
-    inViewportMargin: Math.abs(parallax * 3)
-  }), function (props) {
-    return /*#__PURE__*/React__default["default"].createElement(ParallaxMesh, _extends__default["default"]({
-      parallax: parallax
-    }, props), children(props));
-  });
+  }, props), {}, {
+    inViewportMargin: Math.abs(parallax * 3),
+    children: function children(props) {
+      return /*#__PURE__*/jsxRuntime.jsx(ParallaxMesh, _objectSpread$1(_objectSpread$1({
+        parallax: parallax
+      }, props), {}, {
+        children: _children(props)
+      }));
+    }
+  }));
 };
 
 var _excluded = ["scale"],
@@ -261,7 +274,6 @@ var _excluded = ["scale"],
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
-
 var StickyMesh = function StickyMesh(_ref) {
   var children = _ref.children,
       scrollState = _ref.scrollState,
@@ -270,8 +282,8 @@ var StickyMesh = function StickyMesh(_ref) {
       priority = _ref.priority,
       _ref$stickyLerp = _ref.stickyLerp,
       stickyLerp = _ref$stickyLerp === void 0 ? 1.0 : _ref$stickyLerp;
-  var mesh = React.useRef();
-  var local = React.useRef({
+  var mesh = react.useRef();
+  var local = react.useRef({
     lerp: 1
   }).current;
   fiber.useFrame(function () {
@@ -303,9 +315,10 @@ var StickyMesh = function StickyMesh(_ref) {
     mesh.current.position.y = three.MathUtils.lerp(mesh.current.position.y, y, local.lerp);
   }, priority + 1); // must happen after ScrollScene's useFrame to be buttery
 
-  return /*#__PURE__*/React__default["default"].createElement("mesh", {
-    ref: mesh
-  }, children);
+  return /*#__PURE__*/jsxRuntime.jsx("mesh", {
+    ref: mesh,
+    children: children
+  });
 };
 var renderAsSticky = function renderAsSticky(children, _ref2) {
   var stickyLerp = _ref2.stickyLerp,
@@ -325,12 +338,14 @@ var renderAsSticky = function renderAsSticky(children, _ref2) {
       });
     }
 
-    return /*#__PURE__*/React__default["default"].createElement(StickyMesh, _extends__default["default"]({
+    return /*#__PURE__*/jsxRuntime.jsx(StickyMesh, _objectSpread(_objectSpread({
       scale: scale,
       stickyLerp: stickyLerp
-    }, props), children(_objectSpread({
-      scale: childScale
-    }, props)));
+    }, props), {}, {
+      children: children(_objectSpread({
+        scale: childScale
+      }, props))
+    }));
   };
 };
 var StickyScrollScene = function StickyScrollScene(_ref4) {
@@ -340,11 +355,13 @@ var StickyScrollScene = function StickyScrollScene(_ref4) {
       scaleToViewport = _ref4$scaleToViewport === void 0 ? true : _ref4$scaleToViewport,
       props = _objectWithoutProperties__default["default"](_ref4, _excluded2);
 
-  return /*#__PURE__*/React__default["default"].createElement(r3fScrollRig.ScrollScene, _extends__default["default"]({
+  return /*#__PURE__*/jsxRuntime.jsx(r3fScrollRig.ScrollScene, _objectSpread(_objectSpread({
     scissor: false
-  }, props), renderAsSticky(children, {
-    stickyLerp: stickyLerp,
-    scaleToViewport: scaleToViewport
+  }, props), {}, {
+    children: renderAsSticky(children, {
+      stickyLerp: stickyLerp,
+      scaleToViewport: scaleToViewport
+    })
   }));
 };
 
@@ -355,7 +372,7 @@ var DprScaler = function DprScaler() {
   var setDpr = fiber.useThree(function (s) {
     return s.setDpr;
   });
-  React.useEffect(function () {
+  react.useEffect(function () {
     var devicePixelRatio = window.devicePixelRatio || 1;
 
     if (devicePixelRatio > 1) {

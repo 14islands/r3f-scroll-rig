@@ -23,8 +23,8 @@ export interface ElementTracker {
 }
 
 export interface ElementTrackerProps {
-  track: React.MutableRefObject<HTMLElement>
-  inViewportMargin?: number
+  track: RefObject<HTMLElement>
+  rootMargin?: string
 }
 
 export type PropsOrElement = React.MutableRefObject<HTMLElement> | ElementTrackerProps

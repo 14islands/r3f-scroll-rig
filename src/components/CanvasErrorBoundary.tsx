@@ -1,7 +1,13 @@
-import React from 'react'
+// @ts-nocheck
+import React, { ReactElement } from 'react'
 import PropTypes from 'prop-types'
 
-class CanvasErrorBoundary extends React.Component {
+interface ICanvasErrorBoundary {
+  children: ReactElement
+  onError: () => void
+}
+
+class CanvasErrorBoundary extends React.Component<{}, ICanvasErrorBoundary> {
   constructor(props) {
     super(props)
     this.state = { error: false }

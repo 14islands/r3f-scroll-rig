@@ -8,6 +8,14 @@ const useCanvasStore = create(
     // //////////////////////////////////////////////////////////////////////////
     // GLOBAL ScrollRig STATE
     // //////////////////////////////////////////////////////////////////////////
+    debug: false,
+    scaleMultiplier: config.DEFAULT_SCALE_MULTIPLIER,
+
+    globalRender: true,
+    globalPriority: config.PRIORITY_GLOBAL,
+    globalAutoClear: false,
+    globalClearDepth: true,
+
     globalRenderQueue: false,
     clearGlobalRenderQueue: () => set(() => ({ globalRenderQueue: false })),
 
@@ -78,7 +86,6 @@ const useCanvasStore = create(
     // Used to ask components to re-calculate their positions after a layout reflow
     pageReflow: 0,
     requestReflow: () => {
-      config.debug && console.log('ScrollRig', 'reflow() requested')
       set((state) => {
         return { pageReflow: state.pageReflow + 1 }
       })
@@ -93,11 +100,7 @@ const useCanvasStore = create(
       progress: 0,
       direction: '',
     },
-    scrollTo: null, // (target) => window.scrollTo(0, target),
-    setScrollTo: (fn) => {
-      console.log('setScrollTo', fn)
-      set(() => ({ setScrollTo: fn }))
-    },
+    scrollTo: (target) => window.scrollTo(0, target),
   }))
 )
 

@@ -2,35 +2,18 @@ import create from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import { useRef, useImperativeHandle, useEffect } from 'react';
 import Lenis from '@studio-freight/lenis';
-import { addEffect } from '@react-three/fiber';
 
 // Transient shared state for canvas components
 // usContext() causes re-rendering which can drop frames
 const config = {
-  debug: false,
-  fps: false,
-  autoPixelRatio: true,
-  // use PerformanceMonitor
-  // Global lerp settings
-  scrollLerp: 0.14,
-  // Linear interpolation - high performance easing
-  scrollRestDelta: 0.014,
-  // min delta to trigger animation frame on scroll
-  subpixelScrolling: true,
   // Execution order for useFrames (highest = last render)
   PRIORITY_PRELOAD: 0,
   PRIORITY_SCISSORS: 1,
   PRIORITY_VIEWPORTS: 1,
   PRIORITY_GLOBAL: 1000,
-  // Scaling
-  scaleMultiplier: 1,
-  // scale pixels vs viewport units (1:1 by default)
+  DEFAULT_SCALE_MULTIPLIER: 1,
   // Global rendering props
-  globalRender: true,
-  preloadQueue: [],
-  hasGlobalCanvas: false,
-  disableAutoClear: true,
-  clearDepth: true
+  preloadQueue: []
 };
 var config$1 = config;
 
@@ -38,6 +21,12 @@ const useCanvasStore = create(subscribeWithSelector(set => ({
   // //////////////////////////////////////////////////////////////////////////
   // GLOBAL ScrollRig STATE
   // //////////////////////////////////////////////////////////////////////////
+  debug: false,
+  scaleMultiplier: config$1.DEFAULT_SCALE_MULTIPLIER,
+  globalRender: true,
+  globalPriority: config$1.PRIORITY_GLOBAL,
+  globalAutoClear: false,
+  globalClearDepth: true,
   globalRenderQueue: false,
   clearGlobalRenderQueue: () => set(() => ({
     globalRenderQueue: false
@@ -154,7 +143,6 @@ const useCanvasStore = create(subscribeWithSelector(set => ({
   // Used to ask components to re-calculate their positions after a layout reflow
   pageReflow: 0,
   requestReflow: () => {
-    config$1.debug && console.log('ScrollRig', 'reflow() requested');
     set(state => {
       return {
         pageReflow: state.pageReflow + 1
@@ -170,14 +158,7 @@ const useCanvasStore = create(subscribeWithSelector(set => ({
     progress: 0,
     direction: ''
   },
-  scrollTo: null,
-  // (target) => window.scrollTo(0, target),
-  setScrollTo: fn => {
-    console.log('setScrollTo', fn);
-    set(() => ({
-      setScrollTo: fn
-    }));
-  }
+  scrollTo: target => window.scrollTo(0, target)
 })));
 
 /**
@@ -208,7 +189,8 @@ function LenisScrollbar(_ref, ref) {
     config,
     ...props
   } = _ref;
-  const lenisImpl = useRef();
+  const lenisImpl = useRef(); // Expose lenis imperative API
+
   useImperativeHandle(ref, () => ({
     start: () => {
       var _lenisImpl$current;
@@ -220,33 +202,36 @@ function LenisScrollbar(_ref, ref) {
 
       return (_lenisImpl$current2 = lenisImpl.current) === null || _lenisImpl$current2 === void 0 ? void 0 : _lenisImpl$current2.stop();
     },
-    onScroll: cb => {
+    on: (event, cb) => {
       var _lenisImpl$current3;
 
-      return (_lenisImpl$current3 = lenisImpl.current) === null || _lenisImpl$current3 === void 0 ? void 0 : _lenisImpl$current3.on('scroll', cb);
+      return (_lenisImpl$current3 = lenisImpl.current) === null || _lenisImpl$current3 === void 0 ? void 0 : _lenisImpl$current3.on(event, cb);
     },
     scrollTo: (target, props) => {
       var _lenisImpl$current4;
 
       return (_lenisImpl$current4 = lenisImpl.current) === null || _lenisImpl$current4 === void 0 ? void 0 : _lenisImpl$current4.scrollTo(target, props);
+    },
+    raf: time => {
+      var _lenisImpl$current5;
+
+      return (_lenisImpl$current5 = lenisImpl.current) === null || _lenisImpl$current5 === void 0 ? void 0 : _lenisImpl$current5.raf(time);
     }
   }));
-  useEffect(() => {
+  useEffect(function initLenis() {
     const lenis = lenisImpl.current = new Lenis({
       duration,
       easing,
       smooth,
       direction,
       ...config
-    }); // let r3f drive the frameloop
-
-    const removeEffect = addEffect(time => lenis.raf(time)); // cleanup on unmount
+    }); // cleanup on unmount
 
     return () => {
-      removeEffect();
       lenis.destroy();
     };
-  }, [smooth]);
+  }, [duration, easing, smooth, direction, config]); // Support a render function as child
+
   return children && children(props);
 }
 

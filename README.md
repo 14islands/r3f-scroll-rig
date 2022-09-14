@@ -98,14 +98,14 @@ Sandbox Demo:
 Hook used in regular DOM components to render something onto the webGl canvas.
 
 ```ts
-useCanvas(object: Three.Object3D, deps = []): (props: any) => void
+useCanvas(object: Three.Object3D, deps = {}): (props: any) => void
 ```
 
 `object` will be added to the global canvas when this component is mounted and removed from the canvas when it unmounts.
 
-`useCanvas` returns a function that can be used to update the props of the `object` that was passed in.
+`useCanvas` returns a function that can be used to update the props of the `object` at any time.
 
-`deps` can be used to unmount/re-mount the `object` when they change but this is usually not needed. Use the returned function to send new props instead.
+`deps` is an object can be used to automatically update properties on the canvas `object` when they change due to a re-render of the parent component.
 
 ```jsx
 import { useCanvas } from '@14islands/r3f-scroll-rig';

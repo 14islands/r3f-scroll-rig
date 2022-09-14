@@ -1,14 +1,10 @@
-import _extends from '@babel/runtime/helpers/esm/extends';
-import React, { useMemo, useEffect, useRef } from 'react';
+import { useMemo, useEffect, useRef } from 'react';
 import { Color, Vector2, MathUtils } from 'three';
 import { useThree, useFrame } from '@react-three/fiber';
 import { Text } from '@react-three/drei/core/Text';
+import { jsx, jsxs } from 'react/jsx-runtime';
 import { useScrollRig, useImgTagAsTexture, ScrollScene, _config } from '@14islands/r3f-scroll-rig';
 import lerp from '@14islands/lerp';
-
-/**
- * Returns a WebGL Troika text mesh styled as the source DOM element
- */
 
 const WebGLText = _ref => {
   let {
@@ -62,7 +58,7 @@ const WebGLText = _ref => {
   }
 
   const yOffset = scale ? scale.height * 0.5 : size.height * 0.5;
-  return /*#__PURE__*/React.createElement(Text, _extends({
+  return /*#__PURE__*/jsx(Text, {
     fontSize: fontSize,
     maxWidth: scale ? scale.width : size.width,
     lineHeight: lineHeight,
@@ -75,8 +71,10 @@ const WebGLText = _ref => {
     ,
     position: [xOffset + fontSize * fontOffsetX, yOffset + fontSize * fontOffsetY, 0] // font specific
     ,
-    material: material
-  }, props), children);
+    material: material,
+    ...props,
+    children: children
+  });
 };
 
 const WebGLImage = _ref => {
@@ -173,22 +171,24 @@ const WebGLImage = _ref => {
     material.current.uniforms.u_viewport.value = scrollState.viewport;
     if (invalidateFrameLoop) invalidate();
   });
-  return /*#__PURE__*/React.createElement("mesh", _extends({
+  return /*#__PURE__*/jsxs("mesh", {
     ref: mesh,
-    scale: [scale.width, scale.height, 1]
-  }, props), /*#__PURE__*/React.createElement("planeBufferGeometry", {
-    attach: "geometry",
-    args: [1, 1, widthSegments, heightSegments]
-  }), /*#__PURE__*/React.createElement("shaderMaterial", {
-    ref: material,
-    attach: "material",
-    args: [{
-      vertexShader,
-      fragmentShader
-    }],
-    transparent: true,
-    uniforms: uniforms
-  }));
+    scale: [scale.width, scale.height, 1],
+    ...props,
+    children: [/*#__PURE__*/jsx("planeBufferGeometry", {
+      attach: "geometry",
+      args: [1, 1, widthSegments, heightSegments]
+    }), /*#__PURE__*/jsx("shaderMaterial", {
+      ref: material,
+      attach: "material",
+      args: [{
+        vertexShader,
+        fragmentShader
+      }],
+      transparent: true,
+      uniforms: uniforms
+    })]
+  });
 };
 
 const ParallaxMesh = _ref => {
@@ -204,9 +204,10 @@ const ParallaxMesh = _ref => {
     const parallaxProgress = scrollState.progress * 2 - 1;
     mesh.current.position.y = parallax * parallaxProgress * scale.multiplier;
   });
-  return /*#__PURE__*/React.createElement("mesh", {
-    ref: mesh
-  }, children);
+  return /*#__PURE__*/jsx("mesh", {
+    ref: mesh,
+    children: children
+  });
 };
 const ParallaxScrollScene = _ref2 => {
   let {
@@ -215,13 +216,16 @@ const ParallaxScrollScene = _ref2 => {
     stickyLerp,
     ...props
   } = _ref2;
-  return /*#__PURE__*/React.createElement(ScrollScene, _extends({
-    scissor: false
-  }, props, {
-    inViewportMargin: Math.abs(parallax * 3)
-  }), props => /*#__PURE__*/React.createElement(ParallaxMesh, _extends({
-    parallax: parallax
-  }, props), children(props)));
+  return /*#__PURE__*/jsx(ScrollScene, {
+    scissor: false,
+    ...props,
+    inViewportMargin: Math.abs(parallax * 3),
+    children: props => /*#__PURE__*/jsx(ParallaxMesh, {
+      parallax: parallax,
+      ...props,
+      children: children(props)
+    })
+  });
 };
 
 const StickyMesh = _ref => {
@@ -266,9 +270,10 @@ const StickyMesh = _ref => {
     mesh.current.position.y = MathUtils.lerp(mesh.current.position.y, y, local.lerp);
   }, priority + 1); // must happen after ScrollScene's useFrame to be buttery
 
-  return /*#__PURE__*/React.createElement("mesh", {
-    ref: mesh
-  }, children);
+  return /*#__PURE__*/jsx("mesh", {
+    ref: mesh,
+    children: children
+  });
 };
 const renderAsSticky = (children, _ref2) => {
   let {
@@ -291,13 +296,15 @@ const renderAsSticky = (children, _ref2) => {
       };
     }
 
-    return /*#__PURE__*/React.createElement(StickyMesh, _extends({
+    return /*#__PURE__*/jsx(StickyMesh, {
       scale: scale,
-      stickyLerp: stickyLerp
-    }, props), children({
-      scale: childScale,
-      ...props
-    }));
+      stickyLerp: stickyLerp,
+      ...props,
+      children: children({
+        scale: childScale,
+        ...props
+      })
+    });
   };
 };
 const StickyScrollScene = _ref4 => {
@@ -307,12 +314,14 @@ const StickyScrollScene = _ref4 => {
     scaleToViewport = true,
     ...props
   } = _ref4;
-  return /*#__PURE__*/React.createElement(ScrollScene, _extends({
-    scissor: false
-  }, props), renderAsSticky(children, {
-    stickyLerp,
-    scaleToViewport
-  }));
+  return /*#__PURE__*/jsx(ScrollScene, {
+    scissor: false,
+    ...props,
+    children: renderAsSticky(children, {
+      stickyLerp,
+      scaleToViewport
+    })
+  });
 };
 
 const DprScaler = () => {

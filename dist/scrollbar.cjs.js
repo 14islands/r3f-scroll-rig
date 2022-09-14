@@ -9,7 +9,6 @@ var create = require('zustand');
 var middleware = require('zustand/middleware');
 var react = require('react');
 var Lenis = require('@studio-freight/lenis');
-var fiber = require('@react-three/fiber');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -22,30 +21,14 @@ var Lenis__default = /*#__PURE__*/_interopDefaultLegacy(Lenis);
 // Transient shared state for canvas components
 // usContext() causes re-rendering which can drop frames
 var config = {
-  debug: false,
-  fps: false,
-  autoPixelRatio: true,
-  // use PerformanceMonitor
-  // Global lerp settings
-  scrollLerp: 0.14,
-  // Linear interpolation - high performance easing
-  scrollRestDelta: 0.014,
-  // min delta to trigger animation frame on scroll
-  subpixelScrolling: true,
   // Execution order for useFrames (highest = last render)
   PRIORITY_PRELOAD: 0,
   PRIORITY_SCISSORS: 1,
   PRIORITY_VIEWPORTS: 1,
   PRIORITY_GLOBAL: 1000,
-  // Scaling
-  scaleMultiplier: 1,
-  // scale pixels vs viewport units (1:1 by default)
+  DEFAULT_SCALE_MULTIPLIER: 1,
   // Global rendering props
-  globalRender: true,
-  preloadQueue: [],
-  hasGlobalCanvas: false,
-  disableAutoClear: true,
-  clearDepth: true
+  preloadQueue: []
 };
 var config$1 = config;
 
@@ -61,6 +44,12 @@ var useCanvasStore = create__default["default"](middleware.subscribeWithSelector
     // //////////////////////////////////////////////////////////////////////////
     // GLOBAL ScrollRig STATE
     // //////////////////////////////////////////////////////////////////////////
+    debug: false,
+    scaleMultiplier: config$1.DEFAULT_SCALE_MULTIPLIER,
+    globalRender: true,
+    globalPriority: config$1.PRIORITY_GLOBAL,
+    globalAutoClear: false,
+    globalClearDepth: true,
     globalRenderQueue: false,
     clearGlobalRenderQueue: function clearGlobalRenderQueue() {
       return set(function () {
@@ -178,7 +167,6 @@ var useCanvasStore = create__default["default"](middleware.subscribeWithSelector
     // Used to ask components to re-calculate their positions after a layout reflow
     pageReflow: 0,
     requestReflow: function requestReflow() {
-      config$1.debug && console.log('ScrollRig', 'reflow() requested');
       set(function (state) {
         return {
           pageReflow: state.pageReflow + 1
@@ -194,15 +182,8 @@ var useCanvasStore = create__default["default"](middleware.subscribeWithSelector
       progress: 0,
       direction: ''
     },
-    scrollTo: null,
-    // (target) => window.scrollTo(0, target),
-    setScrollTo: function setScrollTo(fn) {
-      console.log('setScrollTo', fn);
-      set(function () {
-        return {
-          setScrollTo: fn
-        };
-      });
+    scrollTo: function scrollTo(target) {
+      return window.scrollTo(0, target);
     }
   };
 }));
@@ -252,7 +233,8 @@ function LenisScrollbar(_ref, ref) {
       config = _ref.config,
       props = _objectWithoutProperties__default["default"](_ref, _excluded);
 
-  var lenisImpl = react.useRef();
+  var lenisImpl = react.useRef(); // Expose lenis imperative API
+
   react.useImperativeHandle(ref, function () {
     return {
       start: function start() {
@@ -265,35 +247,36 @@ function LenisScrollbar(_ref, ref) {
 
         return (_lenisImpl$current2 = lenisImpl.current) === null || _lenisImpl$current2 === void 0 ? void 0 : _lenisImpl$current2.stop();
       },
-      onScroll: function onScroll(cb) {
+      on: function on(event, cb) {
         var _lenisImpl$current3;
 
-        return (_lenisImpl$current3 = lenisImpl.current) === null || _lenisImpl$current3 === void 0 ? void 0 : _lenisImpl$current3.on('scroll', cb);
+        return (_lenisImpl$current3 = lenisImpl.current) === null || _lenisImpl$current3 === void 0 ? void 0 : _lenisImpl$current3.on(event, cb);
       },
       scrollTo: function scrollTo(target, props) {
         var _lenisImpl$current4;
 
         return (_lenisImpl$current4 = lenisImpl.current) === null || _lenisImpl$current4 === void 0 ? void 0 : _lenisImpl$current4.scrollTo(target, props);
+      },
+      raf: function raf(time) {
+        var _lenisImpl$current5;
+
+        return (_lenisImpl$current5 = lenisImpl.current) === null || _lenisImpl$current5 === void 0 ? void 0 : _lenisImpl$current5.raf(time);
       }
     };
   });
-  react.useEffect(function () {
+  react.useEffect(function initLenis() {
     var lenis = lenisImpl.current = new Lenis__default["default"](_objectSpread({
       duration: duration,
       easing: easing,
       smooth: smooth,
       direction: direction
-    }, config)); // let r3f drive the frameloop
-
-    var removeEffect = fiber.addEffect(function (time) {
-      return lenis.raf(time);
-    }); // cleanup on unmount
+    }, config)); // cleanup on unmount
 
     return function () {
-      removeEffect();
       lenis.destroy();
     };
-  }, [smooth]);
+  }, [duration, easing, smooth, direction, config]); // Support a render function as child
+
   return children && children(props);
 }
 

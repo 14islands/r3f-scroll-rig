@@ -17,7 +17,7 @@ const getBabelOptions = ({ useESModules }, targets) => ({
   runtimeHelpers: true,
   presets: [
     ['@babel/preset-env', { loose: false, modules: false, targets }],
-    '@babel/preset-react',
+    ['@babel/preset-react', { runtime: 'automatic' }],
     '@babel/preset-typescript',
   ],
   plugins: [
@@ -33,7 +33,7 @@ function targetTypings(entry, out) {
   return {
     writeBundle() {
       return fs.lstat(`dist/${out}`).catch(() => {
-        return fs.writeFile(`dist/${out}.d.ts`, `export * from "./${entry}"`)
+        return fs.writeFile(`dist/${out}.d.ts`, `export * from "../${entry}"`)
       })
     },
   }

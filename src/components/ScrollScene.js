@@ -1,13 +1,12 @@
-import React, { useState, useLayoutEffect, useCallback } from 'react'
+import React, { useState, useCallback, useLayoutEffect } from 'react'
 import { Scene } from 'three'
 import { useFrame, createPortal } from '@react-three/fiber'
-import _lerp from '@14islands/lerp'
 
 import config from '../config'
 import { useCanvasStore } from '../store'
 import useScrollRig from '../hooks/useScrollRig'
-import DebugMesh from '../utils/DebugMesh'
-import useTracker from './useTracker'
+import DebugMesh from './DebugMesh'
+import useTracker from '../hooks/useTracker'
 
 /**
  * Generic THREE.js Scene that tracks the dimensions and position of a DOM element while scrolling
@@ -19,15 +18,12 @@ let ScrollScene = ({
   track,
   children,
   margin = 0, // Margin outside scissor to avoid clipping vertex displacement (px)
-  inViewportMargin = 0,
+  inViewportMargin,
   visible = true,
+  hideOffscreen = true,
   scissor = false,
   debug = false,
-  positionFixed = false,
-  hiddenStyle = { opacity: 0 },
   as = 'scene',
-  autoRender = true,
-  hideOffscreen = true,
   renderOrder = 1,
   priority = config.PRIORITY_SCISSORS,
   ...props
@@ -41,68 +37,48 @@ let ScrollScene = ({
   const [scene, setScene] = useState(scissor ? new Scene() : null)
   const { requestRender, renderScissor } = useScrollRig()
   const pageReflow = useCanvasStore((state) => state.pageReflow)
+  const globalRender = useCanvasStore((state) => state.globalRender)
 
-  const { update, bounds, scale, position, scrollState, inViewport } = useTracker({ track, inViewportMargin }, [
-    pageReflow,
-    scene,
-  ])
+  const { update, bounds, scale, position, scrollState, inViewport } = useTracker(
+    { track, rootMargin: inViewportMargin },
+    [pageReflow, scene]
+  )
 
-  console.log('ScrollScene', bounds, scale, position, scrollState, inViewport)
-
+  // Hide scene when outside of viewport if `hideOffscreen` or set to `visible` prop
   useLayoutEffect(() => {
-    // hide image - leave in DOM to measure and get events
-    if (!track?.current) return
-
-    if (debug) {
-      track.current.style.opacity = 0.5
-    } else {
-      Object.assign(track.current.style, {
-        ...hiddenStyle,
-      })
-    }
-
-    return () => {
-      if (!track?.current) return
-      Object.keys(hiddenStyle).forEach((key) => (track.current.style[key] = ''))
-    }
-  }, [track])
+    if (scene) scene.visible = hideOffscreen ? inViewport && visible : visible
+  }, [scene, inViewport, hideOffscreen, visible])
 
   // RENDER FRAME
-  useFrame(({ gl, camera }) => {
-    if (!scene || !scale) return
+  useFrame(
+    ({ gl, camera }) => {
+      if (!scene || !scale) return
 
-    // update element tracker
-    update()
+      // update element tracker
+      update()
 
-    const { x, y, positiveYUpBottom } = position
-    const { inViewport } = scrollState
+      if (scene.visible) {
+        // move scene
+        scene.position.y = position.y
+        scene.position.x = position.x
 
-    // hide/show scene
-    scene.visible = hideOffscreen ? inViewport && visible : visible
-
-    if (scene.visible) {
-      // move scene
-      if (!positionFixed) {
-        scene.position.y = y
-        scene.position.x = x
-      }
-
-      if (scissor) {
-        autoRender &&
+        if (scissor) {
           renderScissor({
             gl,
             scene,
             camera,
             left: bounds.left - margin,
-            top: positiveYUpBottom - margin,
+            top: position.positiveYUpBottom - margin,
             width: bounds.width + margin * 2,
             height: bounds.height + margin * 2,
           })
-      } else {
-        autoRender && requestRender()
+        } else {
+          requestRender()
+        }
       }
-    }
-  }, priority)
+    },
+    globalRender ? priority : undefined
+  )
 
   const content = (
     <group renderOrder={renderOrder}>
@@ -116,11 +92,10 @@ let ScrollScene = ({
           margin,
           renderOrder,
           // new props
-          scale, // array
-          scaleObj: { width: scale[0], height: scale[1] },
+          scale,
           scrollState,
-          scene,
           inViewport,
+          scene,
           // useFrame render priority (in case children need to run after)
           priority: priority + renderOrder,
           // tunnel the rest

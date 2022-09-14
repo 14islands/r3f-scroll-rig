@@ -1,14 +1,14 @@
 import React, { useRef, useState, useLayoutEffect } from 'react'
 import { Scene } from 'three'
-import { useFrame, useThree, createPortal } from '@react-three/fiber'
-import _lerp from '@14islands/lerp'
+import { useFrame, createPortal, invalidate } from '@react-three/fiber'
 
 import config from '../config'
 import { useCanvasStore } from '../store'
 import useScrollRig from '../hooks/useScrollRig'
-import DebugMesh from '../utils/DebugMesh'
-import useTracker from './useTracker'
+import DebugMesh from './DebugMesh'
+import useTracker from '../hooks/useTracker'
 import useScrollbar from '../scrollbar/useScrollbar'
+
 /**
  * Generic THREE.js Scene that tracks the dimensions and position of a DOM element while scrolling
  * Scene is rendered into a GL viewport matching the DOM position for better performance
@@ -20,11 +20,11 @@ let ViewportScrollScene = ({
   track,
   children,
   margin = 0, // Margin outside viewport to avoid clipping vertex displacement (px)
-  inViewportMargin = 0,
+  inViewportMargin,
   visible = true,
+  hideOffscreen = true,
   debug = false,
   orthographic = false,
-  hiddenStyle = { opacity: 0 },
   renderOrder = 1,
   priority = config.PRIORITY_VIEWPORTS,
   ...props
@@ -32,51 +32,40 @@ let ViewportScrollScene = ({
   const camera = useRef()
   const [scene] = useState(() => new Scene())
 
-  const { invalidate } = useThree()
+  // const get = useThree((state) => state.get)
+  // const setEvents = useThree((state) => state.setEvents)
+
   const { renderViewport } = useScrollRig()
   const { scroll } = useScrollbar()
 
   const pageReflow = useCanvasStore((state) => state.pageReflow)
+  const scaleMultiplier = useCanvasStore((state) => state.scaleMultiplier)
 
-  const { update, bounds, scale, position, scrollState, inViewport } = useTracker({ track, inViewportMargin }, [
-    pageReflow,
-    scene,
-  ])
+  const { update, bounds, scale, position, scrollState, inViewport } = useTracker(
+    { track, rootMargin: inViewportMargin },
+    [pageReflow, scene]
+  )
+
+  // Hide scene when outside of viewport if `hideOffscreen` or set to `visible` prop
+  useLayoutEffect(() => {
+    scene.visible = hideOffscreen ? inViewport && visible : visible
+  }, [inViewport, hideOffscreen, visible])
 
   const [cameraDistance, setCameraDistance] = useState(0)
 
-  // El is rendered
-  useLayoutEffect(() => {
-    // hide image - leave in DOM to measure and get events
-    if (!track?.current) return
-
-    if (debug) {
-      track.current.style.opacity = 0.5
-    } else {
-      Object.assign(track.current.style, {
-        ...hiddenStyle,
-      })
-    }
-
-    return () => {
-      if (!track?.current) return
-      Object.keys(hiddenStyle).forEach((key) => (track.current.style[key] = ''))
-    }
-  }, [track])
-
   // Find bounding box & scale mesh on resize
   useLayoutEffect(() => {
-    const viewportWidth = bounds.width * config.scaleMultiplier
-    const viewportHeight = bounds.height * config.scaleMultiplier
-    const cameraDistance = Math.max(viewportWidth, viewportHeight) * config.scaleMultiplier
+    const viewportWidth = bounds.width * scaleMultiplier
+    const viewportHeight = bounds.height * scaleMultiplier
+    const cameraDistance = Math.max(viewportWidth, viewportHeight)
     setCameraDistance(cameraDistance)
 
     // Calculate FOV to match the DOM bounds for this camera distance
     if (camera.current && !orthographic) {
       camera.current.aspect =
-        (viewportWidth + margin * 2 * config.scaleMultiplier) / (viewportHeight + margin * 2 * config.scaleMultiplier)
+        (viewportWidth + margin * 2 * scaleMultiplier) / (viewportHeight + margin * 2 * scaleMultiplier)
       camera.current.fov =
-        2 * (180 / Math.PI) * Math.atan((viewportHeight + margin * 2 * config.scaleMultiplier) / (2 * cameraDistance))
+        2 * (180 / Math.PI) * Math.atan((viewportHeight + margin * 2 * scaleMultiplier) / (2 * cameraDistance))
       camera.current.updateProjectionMatrix()
       // https://github.com/react-spring/@react-three/fiber/issues/178
       // Update matrix world since the renderer is a frame late
@@ -84,20 +73,33 @@ let ViewportScrollScene = ({
     }
     // trigger a frame
     invalidate()
-  }, [track, pageReflow, bounds])
+  }, [track, pageReflow, bounds, scaleMultiplier])
 
   const compute = React.useCallback(
     (event, state) => {
+      // limit events to DOM element bounds
       if (track.current && event.target === track.current) {
         const { width, height, left, top } = bounds
-        const x = event.clientX - left + scroll.x
-        const y = event.clientY - top + scroll.y
-        state.pointer.set((x / width) * 2 - 1, -(y / height) * 2 + 1)
+        const mWidth = width + margin * 2
+        const mHeight = height + margin * 2
+        const x = event.clientX - left + margin + scroll.x
+        const y = event.clientY - top + margin + scroll.y
+        state.pointer.set((x / mWidth) * 2 - 1, -(y / mHeight) * 2 + 1)
         state.raycaster.setFromCamera(state.pointer, camera.current)
       }
     },
     [bounds, position]
   )
+
+  // Not needed?
+  // from: https://github.com/pmndrs/drei/blob/d22fe0f58fd596c7bfb60a7a543cf6c80da87624/src/web/View.tsx#L80
+  // but seems to work without it
+  // useEffect(() => {
+  //   // Connect the event layer to the tracking element
+  //   const old = get().events.connected
+  //   setEvents({ connected: track.current })
+  //   return () => setEvents({ connected: old })
+  // }, [])
 
   // RENDER FRAME
   useFrame(({ gl }) => {
@@ -105,11 +107,6 @@ let ViewportScrollScene = ({
 
     // update element tracker
     update()
-
-    const { inViewport } = scrollState
-
-    // hide/show scene
-    scene.visible = inViewport && visible
 
     // Render scene to viewport using local camera and limit updates using scissor test
     // Performance improvement - faster than always rendering full canvas
@@ -165,9 +162,9 @@ let ViewportScrollScene = ({
               // new props
               scale,
               scrollState,
+              inViewport,
               scene,
               camera: camera.current,
-              inViewport,
               // useFrame render priority (in case children need to run after)
               priority: priority + renderOrder,
               // tunnel the rest

@@ -94,7 +94,7 @@ export const useTextureLoader = (url, { disableMipmaps = false } = {}) => {
       null,
       (err) => {
         console.error('err', err)
-      },
+      }
     )
   }
 
