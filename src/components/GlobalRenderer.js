@@ -21,17 +21,17 @@ const GlobalRenderer = () => {
   const globalAutoClear = useCanvasStore((state) => state.globalAutoClear)
   const globalPriority = useCanvasStore((state) => state.globalPriority)
 
-  const { debug, requestRender } = useScrollRig()
+  const scrollRig = useScrollRig()
 
   // https://threejs.org/docs/#api/en/renderers/WebGLRenderer.debug
   useLayoutEffect(() => {
-    gl.debug.checkShaderErrors = debug
-  }, [debug])
+    gl.debug.checkShaderErrors = scrollRig.debug
+  }, [scrollRig.debug])
 
   useEffect(() => {
     // clear canvas automatically if all children were removed
     if (!Object.keys(canvasChildren).length) {
-      debug && console.log('GlobalRenderer', 'auto clear empty canvas')
+      scrollRig.debug && console.log('GlobalRenderer', 'auto clear empty canvas')
       gl.getClearColor(col)
       gl.setClearColor(col, gl.getClearAlpha())
       gl.clear(true, true)
@@ -50,8 +50,8 @@ const GlobalRenderer = () => {
       config.preloadQueue = []
       gl.autoClear = true
       // trigger new frame to get correct visual state after all preloads
-      debug && console.log('GlobalRenderer', 'preload complete. trigger global render')
-      requestRender()
+      scrollRig.debug && console.log('GlobalRenderer', 'preload complete. trigger global render')
+      scrollRig.requestRender()
       invalidate()
     },
     globalRender ? config.PRIORITY_PRELOAD : -1 //negative priority doesn't take over render loop
@@ -88,7 +88,7 @@ const GlobalRenderer = () => {
     globalRender ? globalPriority : undefined
   ) // Take over rendering
 
-  debug && console.log('GlobalRenderer', Object.keys(canvasChildren).length)
+  scrollRig.debug && console.log('GlobalRenderer', Object.keys(canvasChildren).length)
   return (
     <>
       {Object.keys(canvasChildren).map((key) => {

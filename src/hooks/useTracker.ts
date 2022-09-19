@@ -24,7 +24,6 @@ function useTracker(args: PropsOrElement, deps: any[] = []): ElementTracker {
   const scaleMultiplier = useCanvasStore((state) => state.scaleMultiplier)
 
   const { track, rootMargin } = isElementProps(args) ? { ...defaultArgs, ...args } : { ...defaultArgs, track: args }
-  // const scrollMargin = typeof rootMargin === 'number' ? size.height * inViewportMargin : rootMargin
 
   // check if element is in viewport
   const { ref, inView: inViewport } = useInView({ rootMargin })
