@@ -1,14 +1,15 @@
 import React, { useEffect, forwardRef, useMemo, useRef, useLayoutEffect, Fragment as Fragment$1, useCallback, useState, useImperativeHandle } from 'react';
-import { useThree, invalidate, useFrame, Canvas, extend, createPortal, addEffect } from '@react-three/fiber';
+import { useThree, invalidate, useFrame, Canvas, extend, createPortal, useLoader, addEffect } from '@react-three/fiber';
 import { ResizeObserver } from '@juggle/resize-observer';
 import { parse } from 'query-string';
 import create from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import mergeRefs from 'react-merge-refs';
 import { jsx, Fragment, jsxs } from 'react/jsx-runtime';
-import { Vector2, Color, MathUtils, Scene, ImageBitmapLoader, TextureLoader, CanvasTexture, sRGBEncoding, LinearFilter, RGBFormat, RGBAFormat } from 'three';
+import { Vector2, Color, MathUtils, Scene, TextureLoader } from 'three';
 import { shaderMaterial } from '@react-three/drei/core/shaderMaterial.js';
 import { useInView } from 'react-intersection-observer';
+import { suspend } from 'suspend-react';
 import { debounce } from 'debounce';
 import Lenis from '@studio-freight/lenis';
 
@@ -224,9 +225,16 @@ const PerspectiveCamera = /*#__PURE__*/forwardRef((_ref, ref) => {
   const cameraRef = useRef();
   useLayoutEffect(() => {
     const width = size.width * scaleMultiplier;
-    const height = size.height * scaleMultiplier;
+    const height = size.height * scaleMultiplier; // const radToDeg = (radians) => radians * (180 / Math.PI)
+    // const degToRad = (degrees) => degrees * (Math.PI / 180)
+
     cameraRef.current.aspect = width / height;
-    cameraRef.current.fov = 2 * (180 / Math.PI) * Math.atan(height / (2 * distance));
+    cameraRef.current.fov = 2 * (180 / Math.PI) * Math.atan(height / (2 * cameraRef.current.position.z)); // cameraRef.current.fov = props.fov
+    // const vFOV = props.fov * (Math.PI / 180)
+    // const hFOV = 2 * Math.atan(Math.tan(vFOV / 2) * cameraRef.current.aspect)
+    // cameraRef.current.position.z = cameraRef.current.getFilmHeight() / cameraRef.current.getFocalLength()
+    // cameraRef.current.position.z = Math.tan(((hFOV / 2.0) * Math.PI) / 180.0) * 2.0
+
     cameraRef.current.lookAt(0, 0, 0);
     cameraRef.current.updateProjectionMatrix(); // https://github.com/react-spring/@react-three/fiber/issues/178
     // Update matrix world since the renderer is a frame late
@@ -446,18 +454,15 @@ const GlobalRenderer = () => {
   const globalClearDepth = useCanvasStore(state => state.globalClearDepth);
   const globalAutoClear = useCanvasStore(state => state.globalAutoClear);
   const globalPriority = useCanvasStore(state => state.globalPriority);
-  const {
-    debug,
-    requestRender
-  } = useScrollRig(); // https://threejs.org/docs/#api/en/renderers/WebGLRenderer.debug
+  const scrollRig = useScrollRig(); // https://threejs.org/docs/#api/en/renderers/WebGLRenderer.debug
 
   useLayoutEffect(() => {
-    gl.debug.checkShaderErrors = debug;
-  }, [debug]);
+    gl.debug.checkShaderErrors = scrollRig.debug;
+  }, [scrollRig.debug]);
   useEffect(() => {
     // clear canvas automatically if all children were removed
     if (!Object.keys(canvasChildren).length) {
-      debug && console.log('GlobalRenderer', 'auto clear empty canvas');
+      scrollRig.debug && console.log('GlobalRenderer', 'auto clear empty canvas');
       gl.getClearColor(col);
       gl.setClearColor(col, gl.getClearAlpha());
       gl.clear(true, true);
@@ -474,8 +479,8 @@ const GlobalRenderer = () => {
     config.preloadQueue = [];
     gl.autoClear = true; // trigger new frame to get correct visual state after all preloads
 
-    debug && console.log('GlobalRenderer', 'preload complete. trigger global render');
-    requestRender();
+    scrollRig.debug && console.log('GlobalRenderer', 'preload complete. trigger global render');
+    scrollRig.requestRender();
     invalidate();
   }, globalRender ? config.PRIORITY_PRELOAD : -1 //negative priority doesn't take over render loop
   ); // GLOBAL RENDER LOOP
@@ -511,7 +516,7 @@ const GlobalRenderer = () => {
     useCanvasStore.getState().clearGlobalRenderQueue();
   }, globalRender ? globalPriority : undefined); // Take over rendering
 
-  debug && console.log('GlobalRenderer', Object.keys(canvasChildren).length);
+  scrollRig.debug && console.log('GlobalRenderer', Object.keys(canvasChildren).length);
   return /*#__PURE__*/jsx(Fragment, {
     children: Object.keys(canvasChildren).map(key => {
       const {
@@ -758,8 +763,7 @@ function useTracker(args) {
     ...args
   } : { ...defaultArgs,
     track: args
-  }; // const scrollMargin = typeof rootMargin === 'number' ? size.height * inViewportMargin : rootMargin
-  // check if element is in viewport
+  }; // check if element is in viewport
 
   const {
     ref,
@@ -1133,11 +1137,12 @@ ViewportScrollScene = /*#__PURE__*/React.memo(ViewportScrollScene);
  * @param {object} object THREE.js object3d
  */
 
-function useCanvas(object, deps, _ref) {
+function useCanvas(object) {
+  let deps = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
   let {
     key,
     dispose = true
-  } = _ref;
+  } = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
   const updateCanvas = useCanvasStore(state => state.updateCanvas);
   const renderToCanvas = useCanvasStore(state => state.renderToCanvas);
   const removeFromCanvas = useCanvasStore(state => state.removeFromCanvas); // auto generate uuid v4 key
@@ -1238,127 +1243,47 @@ function useCanvasRef() {
 /**
  *  Reasons for why this exists:
  *
- *  - Make sure we don't load image twice - <img> tag already loads image, we need to make sure we get a cache hit
+ *  - Make sure we don't load image twice - <img> tag already loads image,
+ *    wait for it to finish so we get a cache hit
  *
  *  - Get responsive image size using currentSrc/src from the <img/> if available
  *
- *  - Consistent image loading across major browsers
- *    - Safari doesnt support createImageBitmap
- *    - Firefox createImageBitmap doesn't accept 2nd parameter for flipping
- *    - Firefox createImageBitmap seems to flip powerOf2 images by default - Chrome doesn't
+ *  - Auto-load new texture if image currentSrc changes
+ *    - This supports lazy loading images (although the GPU upload can cause jank)
  *
  */
-// only use ImageBitmapLoader if supported and not FF for now
 
-const supportsImageBitmap = typeof createImageBitmap !== 'undefined' && /Firefox/.test(navigator.userAgent) === false; // Override fetch to prefer cached images by default
-
-if (typeof window !== 'undefined') {
-  const realFetch = window.fetch;
-
-  window.fetch = function (url) {
-    let options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {
-      cache: 'force-cache'
-    };
-
-    for (var _len = arguments.length, args = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
-      args[_key - 2] = arguments[_key];
-    }
-
-    return realFetch(url, options, ...args);
-  };
-}
-
-const useTextureLoader = function (url) {
+function useImageAsTexture(imgRef) {
   let {
-    disableMipmaps = false
+    initTexture = true
   } = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-  const [texture, setTexture] = useState();
-  const [imageBitmap, setImageBitmap] = useState();
   const {
     gl
   } = useThree();
-  const isWebGL2 = gl.capabilities.isWebGL2;
-  const useImageBitmap = isWebGL2 && supportsImageBitmap; // webgl2 supports NPOT images so we have less flipY logic
+  const {
+    size
+  } = useThree();
+  const currentSrc = suspend(() => {
+    return new Promise(resolve => {
+      const el = imgRef.current; // respond to all future load events (resizing might load another image)
 
-  if (typeof window !== 'undefined') {
-    window._useImageBitmap = useImageBitmap;
-  }
+      el === null || el === void 0 ? void 0 : el.addEventListener('load', () => resolve(el === null || el === void 0 ? void 0 : el.currentSrc), {
+        once: true
+      }); // detect if loaded from browser cache
 
-  const disposeBitmap = useCallback(() => {
-    if (imageBitmap && imageBitmap.close) {
-      imageBitmap.close();
-      setImageBitmap(null);
-    }
-  }, [imageBitmap]);
-
-  const loadTexture = url => {
-    let loader;
-
-    if (useImageBitmap) {
-      loader = new ImageBitmapLoader(); // Flip if texture
-
-      loader.setOptions({
-        imageOrientation: 'flipY',
-        premultiplyAlpha: 'none'
-      });
-    } else {
-      loader = new TextureLoader();
-    }
-
-    loader.setCrossOrigin('anonymous');
-    loader.load(url, texture => {
-      if (useImageBitmap) {
-        setImageBitmap(imageBitmap);
-        texture = new CanvasTexture(texture);
-      } // max quality
-
-
-      texture.anisotropy = gl.capabilities.getMaxAnisotropy();
-      texture.encoding = sRGBEncoding;
-
-      if (disableMipmaps) {
-        texture.minFilter = LinearFilter;
-        texture.generateMipmaps = false;
-      } // JPEGs can't have an alpha channel, so memory can be saved by storing them as RGB.
-      // eslint-disable-next-line no-useless-escape
-
-
-      var isJPEG = url.search(/\.jpe?g($|\?)/i) > 0 || url.search(/^data\:image\/jpeg/) === 0;
-      texture.format = isJPEG ? RGBFormat : RGBAFormat;
-      setTexture(texture);
-    }, null, err => {
-      console.error('err', err);
-    });
-  };
-
-  useEffect(() => {
-    if (url) {
-      loadTexture(url);
-    }
-  }, [url]);
-  return [texture, disposeBitmap];
-};
-const useImgTagAsTexture = (imgEl, opts) => {
-  const [url, setUrl] = useState(null);
-  const [texture, disposeBitmap] = useTextureLoader(url, opts);
-
-  const loadTexture = () => {
-    imgEl.removeEventListener('load', loadTexture);
-    setUrl(imgEl.currentSrc || imgEl.src);
-  };
-
-  useEffect(() => {
-    // Wait for DOM <img> to finish loading so we get a cache hit from our upcoming fetch API request
-    if (imgEl) {
-      imgEl.addEventListener('load', loadTexture); // check if image was loaded from browser cache
-
-      if (imgEl.complete) {
-        loadTexture();
+      if (el !== null && el !== void 0 && el.complete) {
+        resolve(el === null || el === void 0 ? void 0 : el.currentSrc);
       }
-    }
-  }, [imgEl]);
-  return [texture, disposeBitmap];
-};
+    });
+  }, [imgRef, size]);
+  const texture = useLoader(TextureLoader, currentSrc); // https://github.com/mrdoob/three.js/issues/22696
+  // Upload the texture to the GPU immediately instead of waiting for the first render
+
+  useEffect(function uploadTextureToGPU() {
+    initTexture && gl.initTexture(texture);
+  }, [gl, texture, initTexture]);
+  return texture;
+}
 
 const EASE_EXP_OUT = t => t === 1 ? 1 : 1 - Math.pow(2, -10 * t); // https://easings.net/
 
@@ -1520,4 +1445,4 @@ const SmoothScrollbar = _ref => {
   });
 };
 
-export { GlobalCanvasIfSupported$1 as GlobalCanvas, ScrollScene, SmoothScrollbar, UseCanvas, ViewportScrollScene, config as _config, useCanvas, useCanvasRef, useCanvasStore, useImgTagAsTexture, useScrollRig, useScrollbar, useTextureLoader, useTracker };
+export { GlobalCanvasIfSupported$1 as GlobalCanvas, ScrollScene, SmoothScrollbar, UseCanvas, ViewportScrollScene, config as _config, useCanvas, useCanvasRef, useCanvasStore, useImageAsTexture, useScrollRig, useScrollbar, useTracker };

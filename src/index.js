@@ -11,8 +11,8 @@ export { useCanvasRef } from './hooks/useCanvasRef'
 export { useScrollbar } from './scrollbar/useScrollbar'
 export { useTracker } from './hooks/useTracker'
 
-// TODO: move to stdlib
-export { useImgTagAsTexture, useTextureLoader } from './hooks/useImgTagAsTexture'
+// Utils hooks
+export { useImageAsTexture } from './hooks/useImageAsTexture'
 
 // Scrollbar
 export { SmoothScrollbar } from './scrollbar/SmoothScrollbar'
