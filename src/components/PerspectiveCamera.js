@@ -24,8 +24,18 @@ export const PerspectiveCamera = forwardRef(({ makeDefault = false, ...props }, 
     const width = size.width * scaleMultiplier
     const height = size.height * scaleMultiplier
 
+    // const radToDeg = (radians) => radians * (180 / Math.PI)
+    // const degToRad = (degrees) => degrees * (Math.PI / 180)
+
     cameraRef.current.aspect = width / height
-    cameraRef.current.fov = 2 * (180 / Math.PI) * Math.atan(height / (2 * distance))
+    cameraRef.current.fov = 2 * (180 / Math.PI) * Math.atan(height / (2 * cameraRef.current.position.z))
+    // cameraRef.current.fov = props.fov
+
+    // const vFOV = props.fov * (Math.PI / 180)
+    // const hFOV = 2 * Math.atan(Math.tan(vFOV / 2) * cameraRef.current.aspect)
+    // cameraRef.current.position.z = cameraRef.current.getFilmHeight() / cameraRef.current.getFocalLength()
+    // cameraRef.current.position.z = Math.tan(((hFOV / 2.0) * Math.PI) / 180.0) * 2.0
+
     cameraRef.current.lookAt(0, 0, 0)
     cameraRef.current.updateProjectionMatrix()
     // https://github.com/react-spring/@react-three/fiber/issues/178
