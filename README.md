@@ -345,8 +345,8 @@ Note: even though `colorManagement` is turned on, `ACESFilmic` toneMapping is tu
   positionFixed = false       // Make scene fixed in the viewport instead of moving with scrollbar. Usefull to s
 >
   { ({ scale, ...props }) => (
-    <mesh>
-      <planeGeometry args={[scale.width, scale.height]} />
+    <mesh scale={scale}>
+      <planeGeometry />
       <meshBasicMaterial color="turquoise" />
     </mesh>
   )}

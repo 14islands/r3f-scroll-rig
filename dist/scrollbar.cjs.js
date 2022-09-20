@@ -6,7 +6,6 @@ var _typeof = require('@babel/runtime/helpers/typeof');
 var _objectWithoutProperties = require('@babel/runtime/helpers/objectWithoutProperties');
 var _defineProperty = require('@babel/runtime/helpers/defineProperty');
 var create = require('zustand');
-var middleware = require('zustand/middleware');
 var react = require('react');
 var Lenis = require('@studio-freight/lenis');
 
@@ -39,7 +38,7 @@ function _toPrimitive(input, hint) { if (_typeof__default["default"](input) !== 
 function ownKeys$1(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread$1(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$1(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$1(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
-var useCanvasStore = create__default["default"](middleware.subscribeWithSelector(function (set) {
+var useCanvasStore = create__default["default"](function (set) {
   return {
     // //////////////////////////////////////////////////////////////////////////
     // GLOBAL ScrollRig STATE
@@ -60,22 +59,8 @@ var useCanvasStore = create__default["default"](middleware.subscribeWithSelector
     },
     // true if WebGL initialized without errors
     isCanvasAvailable: true,
-    setCanvasAvailable: function setCanvasAvailable(isCanvasAvailable) {
-      return set(function () {
-        return {
-          isCanvasAvailable: isCanvasAvailable
-        };
-      });
-    },
     // true if <VirtualScrollbar> is currently enabled
     hasVirtualScrollbar: false,
-    setVirtualScrollbar: function setVirtualScrollbar(hasVirtualScrollbar) {
-      return set(function () {
-        return {
-          hasVirtualScrollbar: hasVirtualScrollbar
-        };
-      });
-    },
     // map of all components to render on the global canvas
     canvasChildren: {},
     // add component to canvas
@@ -108,25 +93,27 @@ var useCanvasStore = create__default["default"](middleware.subscribeWithSelector
     },
     // pass new props to a canvas component
     updateCanvas: function updateCanvas(key, newProps) {
-      return set(function (_ref2) {
-        var canvasChildren = _ref2.canvasChildren;
-        if (!canvasChildren[key]) return;
-        var _canvasChildren$key = canvasChildren[key],
-            mesh = _canvasChildren$key.mesh,
-            props = _canvasChildren$key.props,
-            instances = _canvasChildren$key.instances;
+      return (// @ts-ignore
+        set(function (_ref2) {
+          var canvasChildren = _ref2.canvasChildren;
+          if (!canvasChildren[key]) return;
+          var _canvasChildren$key = canvasChildren[key],
+              mesh = _canvasChildren$key.mesh,
+              props = _canvasChildren$key.props,
+              instances = _canvasChildren$key.instances;
 
-        var obj = _objectSpread$1(_objectSpread$1({}, canvasChildren), {}, _defineProperty__default["default"]({}, key, {
-          mesh: mesh,
-          props: _objectSpread$1(_objectSpread$1({}, props), newProps),
-          instances: instances
-        })); // console.log('updateCanvas', key, { ...props, ...newProps })
+          var obj = _objectSpread$1(_objectSpread$1({}, canvasChildren), {}, _defineProperty__default["default"]({}, key, {
+            mesh: mesh,
+            props: _objectSpread$1(_objectSpread$1({}, props), newProps),
+            instances: instances
+          })); // console.log('updateCanvas', key, { ...props, ...newProps })
 
 
-        return {
-          canvasChildren: obj
-        };
-      });
+          return {
+            canvasChildren: obj
+          };
+        })
+      );
     },
     // remove component from canvas
     removeFromCanvas: function removeFromCanvas(key) {
@@ -184,9 +171,12 @@ var useCanvasStore = create__default["default"](middleware.subscribeWithSelector
     },
     scrollTo: function scrollTo(target) {
       return window.scrollTo(0, target);
+    },
+    onScroll: function onScroll() {
+      return function () {};
     }
   };
-}));
+});
 
 /**
  * Public interface for ScrollRig
@@ -202,10 +192,14 @@ var useScrollbar = function useScrollbar() {
   var scrollTo = useCanvasStore(function (state) {
     return state.scrollTo;
   });
+  var onScroll = useCanvasStore(function (state) {
+    return state.onScroll;
+  });
   return {
     enabled: hasVirtualScrollbar,
     scroll: scroll,
-    scrollTo: scrollTo
+    scrollTo: scrollTo,
+    onScroll: onScroll
   };
 };
 
@@ -252,15 +246,25 @@ function LenisScrollbar(_ref, ref) {
 
         return (_lenisImpl$current3 = lenisImpl.current) === null || _lenisImpl$current3 === void 0 ? void 0 : _lenisImpl$current3.on(event, cb);
       },
-      scrollTo: function scrollTo(target, props) {
+      once: function once(event, cb) {
         var _lenisImpl$current4;
 
-        return (_lenisImpl$current4 = lenisImpl.current) === null || _lenisImpl$current4 === void 0 ? void 0 : _lenisImpl$current4.scrollTo(target, props);
+        return (_lenisImpl$current4 = lenisImpl.current) === null || _lenisImpl$current4 === void 0 ? void 0 : _lenisImpl$current4.once(event, cb);
       },
-      raf: function raf(time) {
+      off: function off(event, cb) {
         var _lenisImpl$current5;
 
-        return (_lenisImpl$current5 = lenisImpl.current) === null || _lenisImpl$current5 === void 0 ? void 0 : _lenisImpl$current5.raf(time);
+        return (_lenisImpl$current5 = lenisImpl.current) === null || _lenisImpl$current5 === void 0 ? void 0 : _lenisImpl$current5.off(event, cb);
+      },
+      scrollTo: function scrollTo(target, props) {
+        var _lenisImpl$current6;
+
+        return (_lenisImpl$current6 = lenisImpl.current) === null || _lenisImpl$current6 === void 0 ? void 0 : _lenisImpl$current6.scrollTo(target, props);
+      },
+      raf: function raf(time) {
+        var _lenisImpl$current7;
+
+        return (_lenisImpl$current7 = lenisImpl.current) === null || _lenisImpl$current7 === void 0 ? void 0 : _lenisImpl$current7.raf(time);
       }
     };
   });
@@ -275,7 +279,7 @@ function LenisScrollbar(_ref, ref) {
     return function () {
       lenis.destroy();
     };
-  }, [duration, easing, smooth, direction, config]); // Support a render function as child
+  }, [duration, easing, smooth, direction]); // Support a render function as child
 
   return children && children(props);
 }

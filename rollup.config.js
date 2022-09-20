@@ -74,5 +74,5 @@ function createConfig(entry, out) {
 export default [
   ...createConfig('src/index', 'web'),
   ...createConfig('src/scrollbar/index', 'scrollbar'),
-  ...createConfig('examples/src/components/stdlib/index', 'stdlib'),
+  ...createConfig('powerups', 'powerups'),
 ]

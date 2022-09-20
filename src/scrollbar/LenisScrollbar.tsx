@@ -4,7 +4,7 @@ import { useRef, useEffect, forwardRef, useImperativeHandle, ReactElement } from
 // eslint-disable-next-line import/no-unresolved
 import Lenis from '@studio-freight/lenis'
 
-type LenisScrollCallback = (props: {
+export type LenisScrollCallback = (props: {
   scroll: number
   limit: number
   velocity: number
@@ -29,6 +29,8 @@ export interface ILenisScrollbar {
   stop: () => void
   start: () => void
   on: (event: string, cb: LenisScrollCallback) => void
+  once: (event: string, cb: LenisScrollCallback) => void
+  off: (event: string, cb: LenisScrollCallback) => void
   scrollTo: LenisScrollTo
   raf: (time: number) => void
 }
@@ -54,6 +56,8 @@ export function LenisScrollbar(
     start: () => lenisImpl.current?.start(),
     stop: () => lenisImpl.current?.stop(),
     on: (event: string, cb: LenisScrollCallback) => lenisImpl.current?.on(event, cb),
+    once: (event: string, cb: LenisScrollCallback) => lenisImpl.current?.once(event, cb),
+    off: (event: string, cb: LenisScrollCallback) => lenisImpl.current?.off(event, cb),
     scrollTo: (target: LenisScrollToTarget, props: LenisScrollToConfig) => lenisImpl.current?.scrollTo(target, props),
     raf: (time: number) => lenisImpl.current?.raf(time),
   }))
@@ -73,7 +77,7 @@ export function LenisScrollbar(
         lenis.destroy()
       }
     },
-    [duration, easing, smooth, direction, config]
+    [duration, easing, smooth, direction]
   )
 
   // Support a render function as child

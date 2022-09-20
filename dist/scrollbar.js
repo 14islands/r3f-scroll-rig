@@ -1,5 +1,4 @@
 import create from 'zustand';
-import { subscribeWithSelector } from 'zustand/middleware';
 import { useRef, useImperativeHandle, useEffect } from 'react';
 import Lenis from '@studio-freight/lenis';
 
@@ -17,7 +16,7 @@ const config = {
 };
 var config$1 = config;
 
-const useCanvasStore = create(subscribeWithSelector(set => ({
+const useCanvasStore = create(set => ({
   // //////////////////////////////////////////////////////////////////////////
   // GLOBAL ScrollRig STATE
   // //////////////////////////////////////////////////////////////////////////
@@ -33,14 +32,8 @@ const useCanvasStore = create(subscribeWithSelector(set => ({
   })),
   // true if WebGL initialized without errors
   isCanvasAvailable: true,
-  setCanvasAvailable: isCanvasAvailable => set(() => ({
-    isCanvasAvailable
-  })),
   // true if <VirtualScrollbar> is currently enabled
   hasVirtualScrollbar: false,
-  setVirtualScrollbar: hasVirtualScrollbar => set(() => ({
-    hasVirtualScrollbar
-  })),
   // map of all components to render on the global canvas
   canvasChildren: {},
   // add component to canvas
@@ -75,7 +68,8 @@ const useCanvasStore = create(subscribeWithSelector(set => ({
     });
   },
   // pass new props to a canvas component
-  updateCanvas: (key, newProps) => set(_ref2 => {
+  updateCanvas: (key, newProps) => // @ts-ignore
+  set(_ref2 => {
     let {
       canvasChildren
     } = _ref2;
@@ -158,8 +152,9 @@ const useCanvasStore = create(subscribeWithSelector(set => ({
     progress: 0,
     direction: ''
   },
-  scrollTo: target => window.scrollTo(0, target)
-})));
+  scrollTo: target => window.scrollTo(0, target),
+  onScroll: () => () => {}
+}));
 
 /**
  * Public interface for ScrollRig
@@ -169,10 +164,12 @@ const useScrollbar = () => {
   const hasVirtualScrollbar = useCanvasStore(state => state.hasVirtualScrollbar);
   const scroll = useCanvasStore(state => state.scroll);
   const scrollTo = useCanvasStore(state => state.scrollTo);
+  const onScroll = useCanvasStore(state => state.onScroll);
   return {
     enabled: hasVirtualScrollbar,
     scroll,
-    scrollTo
+    scrollTo,
+    onScroll
   };
 };
 
@@ -207,15 +204,25 @@ function LenisScrollbar(_ref, ref) {
 
       return (_lenisImpl$current3 = lenisImpl.current) === null || _lenisImpl$current3 === void 0 ? void 0 : _lenisImpl$current3.on(event, cb);
     },
-    scrollTo: (target, props) => {
+    once: (event, cb) => {
       var _lenisImpl$current4;
 
-      return (_lenisImpl$current4 = lenisImpl.current) === null || _lenisImpl$current4 === void 0 ? void 0 : _lenisImpl$current4.scrollTo(target, props);
+      return (_lenisImpl$current4 = lenisImpl.current) === null || _lenisImpl$current4 === void 0 ? void 0 : _lenisImpl$current4.once(event, cb);
     },
-    raf: time => {
+    off: (event, cb) => {
       var _lenisImpl$current5;
 
-      return (_lenisImpl$current5 = lenisImpl.current) === null || _lenisImpl$current5 === void 0 ? void 0 : _lenisImpl$current5.raf(time);
+      return (_lenisImpl$current5 = lenisImpl.current) === null || _lenisImpl$current5 === void 0 ? void 0 : _lenisImpl$current5.off(event, cb);
+    },
+    scrollTo: (target, props) => {
+      var _lenisImpl$current6;
+
+      return (_lenisImpl$current6 = lenisImpl.current) === null || _lenisImpl$current6 === void 0 ? void 0 : _lenisImpl$current6.scrollTo(target, props);
+    },
+    raf: time => {
+      var _lenisImpl$current7;
+
+      return (_lenisImpl$current7 = lenisImpl.current) === null || _lenisImpl$current7 === void 0 ? void 0 : _lenisImpl$current7.raf(time);
     }
   }));
   useEffect(function initLenis() {
@@ -230,7 +237,7 @@ function LenisScrollbar(_ref, ref) {
     return () => {
       lenis.destroy();
     };
-  }, [duration, easing, smooth, direction, config]); // Support a render function as child
+  }, [duration, easing, smooth, direction]); // Support a render function as child
 
   return children && children(props);
 }

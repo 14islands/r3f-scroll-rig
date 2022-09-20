@@ -15,7 +15,7 @@
   ],
   "exports": {
     "./scrollbar": "./dist/scrollbar.js",
-    "./stdlib": "./dist/stdlib.js",
+    "./powerups": "./dist/powerups.js",
     ".": "./dist/web.js"
   },
   "scripts": {
@@ -45,7 +45,7 @@
   "homepage": "https://github.com/14islands/r3f-scroll-rig#readme",
   "dependencies": {
     "@juggle/resize-observer": "^3.4.0",
-    "@studio-freight/lenis": "^0.2.2",
+    "@studio-freight/lenis": "^0.2.6",
     "@types/query-string": "^6.3.0",
     "debounce": "^1.2.1",
     "query-string": "^6.14.1",

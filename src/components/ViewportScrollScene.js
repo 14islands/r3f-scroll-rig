@@ -140,10 +140,10 @@ let ViewportScrollScene = ({
             ref={camera}
             position={[0, 0, cameraDistance]}
             onUpdate={(self) => self.updateProjectionMatrix()}
-            left={scale.width / -2}
-            right={scale.width / 2}
-            top={scale.height / 2}
-            bottom={scale.height / -2}
+            left={scale[0] / -2}
+            right={scale[0] / 2}
+            top={scale[1] / 2}
+            bottom={scale[1] / -2}
             far={cameraDistance * 2}
             near={0.001}
           />

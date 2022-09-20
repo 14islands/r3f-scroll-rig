@@ -4,7 +4,7 @@ import { addEffect, invalidate } from '@react-three/fiber'
 
 import useCanvasStore from '../store'
 
-import LenisScrollbar, { ILenisScrollbar } from './LenisScrollbar'
+import LenisScrollbar, { ILenisScrollbar, LenisScrollCallback } from './LenisScrollbar'
 
 interface ISmoothScrobbar {
   children: (props: any) => ReactElement
@@ -12,6 +12,7 @@ interface ISmoothScrobbar {
   smooth: boolean
   paused: boolean
   disablePointerOnScroll: boolean
+  config: object
 }
 
 export const SmoothScrollbar = ({
@@ -20,11 +21,11 @@ export const SmoothScrollbar = ({
   paused = false,
   scrollRestoration = 'auto',
   disablePointerOnScroll = true,
+  config,
 }: ISmoothScrobbar) => {
   const ref = useRef<HTMLElement>()
   const lenis = useRef<ILenisScrollbar>()
   const preventPointer = useRef(false)
-  const setVirtualScrollbar = useCanvasStore((state) => state.setVirtualScrollbar)
   const scrollState = useCanvasStore((state) => state.scroll)
 
   // disable pointer events while scrolling to avoid slow event handlers
@@ -39,6 +40,13 @@ export const SmoothScrollbar = ({
   // reset pointer events when moving mouse
   const onMouseMove = useCallback(() => {
     preventPointerEvents(false)
+  }, [])
+
+  // function to bind to scroll event
+  // return function that will unbind same callback
+  const onScroll = useCallback((cb: LenisScrollCallback) => {
+    lenis.current?.on('scroll', cb)
+    return () => lenis.current?.off('scroll', cb)
   }, [])
 
   useEffect(() => {
@@ -69,9 +77,13 @@ export const SmoothScrollbar = ({
     // @ts-ignore
     useCanvasStore.setState({ scrollTo: lenis.current?.scrollTo })
 
+    // expose global onScroll function to subscribe to scroll events
+    // @ts-ignore
+    useCanvasStore.setState({ onScroll })
+
     // Set active
     document.documentElement.classList.toggle('js-has-smooth-scrollbar', smooth)
-    setVirtualScrollbar(smooth)
+    useCanvasStore.setState({ hasVirtualScrollbar: smooth })
 
     // make sure R3F loop is invalidated when scrolling
     const invalidateOnWheelEvent = () => invalidate()
@@ -96,7 +108,7 @@ export const SmoothScrollbar = ({
   }, [paused])
 
   return (
-    <LenisScrollbar ref={lenis} smooth={smooth}>
+    <LenisScrollbar ref={lenis} smooth={smooth} config={config}>
       {/* Use functio child so we can spread props
         - for instance disable pointer events while scrolling */}
       {(bind: any) => children({ ...bind, ref })}

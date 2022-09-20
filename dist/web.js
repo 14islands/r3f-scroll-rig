@@ -1,12 +1,11 @@
-import React, { useEffect, forwardRef, useMemo, useRef, useLayoutEffect, Fragment as Fragment$1, useCallback, useState, useImperativeHandle } from 'react';
+import React, { useEffect, forwardRef, useMemo, useRef, useLayoutEffect, Fragment as Fragment$1, Suspense, useCallback, useState, useImperativeHandle } from 'react';
 import { useThree, invalidate, useFrame, Canvas, extend, createPortal, useLoader, addEffect } from '@react-three/fiber';
 import { ResizeObserver } from '@juggle/resize-observer';
 import { parse } from 'query-string';
 import create from 'zustand';
-import { subscribeWithSelector } from 'zustand/middleware';
 import mergeRefs from 'react-merge-refs';
 import { jsx, Fragment, jsxs } from 'react/jsx-runtime';
-import { Vector2, Color, MathUtils, Scene, TextureLoader } from 'three';
+import { Vector2, Color, MathUtils, Scene, ImageBitmapLoader, Texture, CanvasTexture, TextureLoader } from 'three';
 import { shaderMaterial } from '@react-three/drei/core/shaderMaterial.js';
 import { useInView } from 'react-intersection-observer';
 import { suspend } from 'suspend-react';
@@ -26,7 +25,7 @@ const config = {
   preloadQueue: []
 };
 
-const useCanvasStore = create(subscribeWithSelector(set => ({
+const useCanvasStore = create(set => ({
   // //////////////////////////////////////////////////////////////////////////
   // GLOBAL ScrollRig STATE
   // //////////////////////////////////////////////////////////////////////////
@@ -42,14 +41,8 @@ const useCanvasStore = create(subscribeWithSelector(set => ({
   })),
   // true if WebGL initialized without errors
   isCanvasAvailable: true,
-  setCanvasAvailable: isCanvasAvailable => set(() => ({
-    isCanvasAvailable
-  })),
   // true if <VirtualScrollbar> is currently enabled
   hasVirtualScrollbar: false,
-  setVirtualScrollbar: hasVirtualScrollbar => set(() => ({
-    hasVirtualScrollbar
-  })),
   // map of all components to render on the global canvas
   canvasChildren: {},
   // add component to canvas
@@ -84,7 +77,8 @@ const useCanvasStore = create(subscribeWithSelector(set => ({
     });
   },
   // pass new props to a canvas component
-  updateCanvas: (key, newProps) => set(_ref2 => {
+  updateCanvas: (key, newProps) => // @ts-ignore
+  set(_ref2 => {
     let {
       canvasChildren
     } = _ref2;
@@ -167,8 +161,9 @@ const useCanvasStore = create(subscribeWithSelector(set => ({
     progress: 0,
     direction: ''
   },
-  scrollTo: target => window.scrollTo(0, target)
-})));
+  scrollTo: target => window.scrollTo(0, target),
+  onScroll: () => () => {}
+}));
 
 /**
  * runtime check for requestIdleCallback
@@ -594,6 +589,7 @@ const GlobalCanvas = _ref => {
     globalAutoClear = false,
     // don't clear viewports
     globalClearDepth = true,
+    loadingFallback,
     ...props
   } = _ref;
   // enable debug mode
@@ -646,7 +642,10 @@ const GlobalCanvas = _ref => {
     } // allow to override anything of the above
     ,
     ...props,
-    children: [children, /*#__PURE__*/jsx(GlobalRenderer$1, {}), !orthographic && /*#__PURE__*/jsx(PerspectiveCamera$1, {
+    children: [/*#__PURE__*/jsxs(Suspense, {
+      fallback: loadingFallback,
+      children: [children, /*#__PURE__*/jsx(GlobalRenderer$1, {})]
+    }), !orthographic && /*#__PURE__*/jsx(PerspectiveCamera$1, {
       makeDefault: true,
       ...camera
     }), orthographic && /*#__PURE__*/jsx(OrthographicCamera$1, {
@@ -662,7 +661,6 @@ const GlobalCanvasIfSupported = _ref2 => {
     onError,
     ...props
   } = _ref2;
-  const setCanvasAvailable = useCanvasStore(state => state.setCanvasAvailable);
   useLayoutEffect(() => {
     document.documentElement.classList.add('js-has-global-canvas');
   }, []);
@@ -672,7 +670,9 @@ const GlobalCanvasIfSupported = _ref2 => {
     jsx(CanvasErrorBoundary$1, {
       onError: err => {
         onError && onError(err);
-        setCanvasAvailable(false);
+        useCanvasStore.setState({
+          isCanvasAvailable: false
+        });
         /* WebGL failed to init */
 
         document.documentElement.classList.remove('js-has-global-canvas');
@@ -730,10 +730,12 @@ const useScrollbar = () => {
   const hasVirtualScrollbar = useCanvasStore(state => state.hasVirtualScrollbar);
   const scroll = useCanvasStore(state => state.scroll);
   const scrollTo = useCanvasStore(state => state.scrollTo);
+  const onScroll = useCanvasStore(state => state.onScroll);
   return {
     enabled: hasVirtualScrollbar,
     scroll,
-    scrollTo
+    scrollTo,
+    onScroll
   };
 };
 
@@ -770,10 +772,11 @@ function useTracker(args) {
     inView: inViewport
   } = useInView({
     rootMargin
-  });
+  }); // bind useInView ref to current tracking element
+
   useLayoutEffect(() => {
     ref(track.current);
-  }, []); // cache the return object
+  }, [track]); // cache the return object
 
   const position = useRef({
     x: 0,
@@ -838,7 +841,10 @@ function useTracker(args) {
     return [(bounds === null || bounds === void 0 ? void 0 : bounds.width) * scaleMultiplier, (bounds === null || bounds === void 0 ? void 0 : bounds.height) * scaleMultiplier, 1];
   }, [track, size, ...deps]);
   const update = useCallback(() => {
-    if (!track.current || !scrollState.inViewport) return;
+    if (!track.current || !scrollState.inViewport) {
+      return;
+    }
+
     position.x = (bounds.x - scroll.x) * scaleMultiplier;
     position.y = -1 * (bounds.y - scroll.y) * scaleMultiplier;
     position.top = position.y + bounds.sceneOffset.y;
@@ -847,11 +853,11 @@ function useTracker(args) {
     // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
 
     const pxInside = bounds.top + position.y - bounds.top + size.height - bounds.sceneOffset.y;
-    scrollState.progress = MathUtils.clamp(MathUtils.mapLinear(pxInside, 0, size.height + bounds.height, 0, 1), 0, 1); // percent of total visible distance
+    scrollState.progress = MathUtils.mapLinear(pxInside, 0, size.height + bounds.height, 0, 1); // percent of total visible distance
 
-    scrollState.visibility = MathUtils.clamp(MathUtils.mapLinear(pxInside, 0, bounds.height, 0, 1), 0, 1); // percent of item height in view
+    scrollState.visibility = MathUtils.mapLinear(pxInside, 0, bounds.height, 0, 1); // percent of item height in view
 
-    scrollState.viewport = MathUtils.clamp(MathUtils.mapLinear(pxInside, 0, size.height, 0, 1), 0, 1); // percent of window height scrolled since visible
+    scrollState.viewport = MathUtils.mapLinear(pxInside, 0, size.height, 0, 1); // percent of window height scrolled since visible
   }, [bounds, track, size]);
   return {
     bounds,
@@ -1091,10 +1097,10 @@ let ViewportScrollScene = _ref => {
       ref: camera,
       position: [0, 0, cameraDistance],
       onUpdate: self => self.updateProjectionMatrix(),
-      left: scale.width / -2,
-      right: scale.width / 2,
-      top: scale.height / 2,
-      bottom: scale.height / -2,
+      left: scale[0] / -2,
+      right: scale[0] / 2,
+      top: scale[1] / 2,
+      bottom: scale[1] / -2,
       far: cameraDistance * 2,
       near: 0.001
     }), /*#__PURE__*/jsxs("group", {
@@ -1241,21 +1247,31 @@ function useCanvasRef() {
 }
 
 /**
- *  Reasons for why this exists:
+ *  Create Threejs Texture from DOM image tag
  *
- *  - Make sure we don't load image twice - <img> tag already loads image,
- *    wait for it to finish so we get a cache hit
+ *  - Supports <picture> and `srcset` - uses `currentSrc` to get the responsive image source
  *
- *  - Get responsive image size using currentSrc/src from the <img/> if available
+ *  - Supports lazy-loading image - suspends until first load event. Warning: the GPU upload can cause jank
  *
- *  - Auto-load new texture if image currentSrc changes
- *    - This supports lazy loading images (although the GPU upload can cause jank)
+ *  - Relies on browser cache to avoid loading image twice. We let the <img> tag load the image and suspend until it's ready.
  *
+ *  - NOTE: You must add the `crossOrigin` attribute
+ *     <img src="" alt="" crossOrigin="anonymous"/>
  */
+// Use an ImageBitmapLoader if imageBitmaps are supported. Moves much of the
+// expensive work of uploading a texture to the GPU off the main thread.
+// Copied from: github.com/mrdoob/three.js/blob/master/examples/jsm/loaders/GLTFLoader.js#L2424
+
+const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent) === true;
+const isFirefox = navigator.userAgent.indexOf('Firefox') > -1; // @ts-ignore
+
+const firefoxVersion = isFirefox ? navigator.userAgent.match(/Firefox\/([0-9]+)\./)[1] : -1;
+const useTextureLoader = typeof createImageBitmap === 'undefined' || isSafari || isFirefox && firefoxVersion < 98;
 
 function useImageAsTexture(imgRef) {
   let {
-    initTexture = true
+    initTexture = true,
+    premultiplyAlpha = 'default'
   } = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
   const {
     gl
@@ -1276,7 +1292,27 @@ function useImageAsTexture(imgRef) {
       }
     });
   }, [imgRef, size]);
-  const texture = useLoader(TextureLoader, currentSrc); // https://github.com/mrdoob/three.js/issues/22696
+  const LoaderProto = useTextureLoader ? TextureLoader : ImageBitmapLoader; // @ts-ignore
+
+  const result = useLoader(LoaderProto, currentSrc, loader => {
+    if (loader instanceof ImageBitmapLoader) {
+      loader.setOptions({
+        colorSpaceConversion: 'none',
+        premultiplyAlpha,
+        // "none" increases blocking time in lighthouse
+        imageOrientation: 'flipY'
+      });
+    }
+  });
+  const texture = useMemo(() => {
+    if (result instanceof Texture) {
+      return result;
+    }
+
+    if (result instanceof ImageBitmap) {
+      return new CanvasTexture(result);
+    }
+  }, [result]); // https://github.com/mrdoob/three.js/issues/22696
   // Upload the texture to the GPU immediately instead of waiting for the first render
 
   useEffect(function uploadTextureToGPU() {
@@ -1316,15 +1352,25 @@ function LenisScrollbar(_ref, ref) {
 
       return (_lenisImpl$current3 = lenisImpl.current) === null || _lenisImpl$current3 === void 0 ? void 0 : _lenisImpl$current3.on(event, cb);
     },
-    scrollTo: (target, props) => {
+    once: (event, cb) => {
       var _lenisImpl$current4;
 
-      return (_lenisImpl$current4 = lenisImpl.current) === null || _lenisImpl$current4 === void 0 ? void 0 : _lenisImpl$current4.scrollTo(target, props);
+      return (_lenisImpl$current4 = lenisImpl.current) === null || _lenisImpl$current4 === void 0 ? void 0 : _lenisImpl$current4.once(event, cb);
     },
-    raf: time => {
+    off: (event, cb) => {
       var _lenisImpl$current5;
 
-      return (_lenisImpl$current5 = lenisImpl.current) === null || _lenisImpl$current5 === void 0 ? void 0 : _lenisImpl$current5.raf(time);
+      return (_lenisImpl$current5 = lenisImpl.current) === null || _lenisImpl$current5 === void 0 ? void 0 : _lenisImpl$current5.off(event, cb);
+    },
+    scrollTo: (target, props) => {
+      var _lenisImpl$current6;
+
+      return (_lenisImpl$current6 = lenisImpl.current) === null || _lenisImpl$current6 === void 0 ? void 0 : _lenisImpl$current6.scrollTo(target, props);
+    },
+    raf: time => {
+      var _lenisImpl$current7;
+
+      return (_lenisImpl$current7 = lenisImpl.current) === null || _lenisImpl$current7 === void 0 ? void 0 : _lenisImpl$current7.raf(time);
     }
   }));
   useEffect(function initLenis() {
@@ -1339,7 +1385,7 @@ function LenisScrollbar(_ref, ref) {
     return () => {
       lenis.destroy();
     };
-  }, [duration, easing, smooth, direction, config]); // Support a render function as child
+  }, [duration, easing, smooth, direction]); // Support a render function as child
 
   return children && children(props);
 }
@@ -1351,12 +1397,12 @@ const SmoothScrollbar = _ref => {
     smooth = true,
     paused = false,
     scrollRestoration = 'auto',
-    disablePointerOnScroll = true
+    disablePointerOnScroll = true,
+    config
   } = _ref;
   const ref = useRef();
   const lenis = useRef();
   const preventPointer = useRef(false);
-  const setVirtualScrollbar = useCanvasStore(state => state.setVirtualScrollbar);
   const scrollState = useCanvasStore(state => state.scroll); // disable pointer events while scrolling to avoid slow event handlers
 
   const preventPointerEvents = prevent => {
@@ -1371,18 +1417,30 @@ const SmoothScrollbar = _ref => {
 
   const onMouseMove = useCallback(() => {
     preventPointerEvents(false);
+  }, []); // function to bind to scroll event
+  // return function that will unbind same callback
+
+  const onScroll = useCallback(cb => {
+    var _lenis$current;
+
+    (_lenis$current = lenis.current) === null || _lenis$current === void 0 ? void 0 : _lenis$current.on('scroll', cb);
+    return () => {
+      var _lenis$current2;
+
+      return (_lenis$current2 = lenis.current) === null || _lenis$current2 === void 0 ? void 0 : _lenis$current2.off('scroll', cb);
+    };
   }, []);
   useEffect(() => {
-    var _lenis$current2, _lenis$current3;
+    var _lenis$current4, _lenis$current5;
 
     // let r3f drive the frameloop
     const removeEffect = addEffect(time => {
-      var _lenis$current;
+      var _lenis$current3;
 
-      return (_lenis$current = lenis.current) === null || _lenis$current === void 0 ? void 0 : _lenis$current.raf(time);
+      return (_lenis$current3 = lenis.current) === null || _lenis$current3 === void 0 ? void 0 : _lenis$current3.raf(time);
     }); // update global scroll store
 
-    (_lenis$current2 = lenis.current) === null || _lenis$current2 === void 0 ? void 0 : _lenis$current2.on('scroll', _ref2 => {
+    (_lenis$current4 = lenis.current) === null || _lenis$current4 === void 0 ? void 0 : _lenis$current4.on('scroll', _ref2 => {
       let {
         scroll,
         limit,
@@ -1410,11 +1468,18 @@ const SmoothScrollbar = _ref => {
     // @ts-ignore
 
     useCanvasStore.setState({
-      scrollTo: (_lenis$current3 = lenis.current) === null || _lenis$current3 === void 0 ? void 0 : _lenis$current3.scrollTo
+      scrollTo: (_lenis$current5 = lenis.current) === null || _lenis$current5 === void 0 ? void 0 : _lenis$current5.scrollTo
+    }); // expose global onScroll function to subscribe to scroll events
+    // @ts-ignore
+
+    useCanvasStore.setState({
+      onScroll
     }); // Set active
 
     document.documentElement.classList.toggle('js-has-smooth-scrollbar', smooth);
-    setVirtualScrollbar(smooth); // make sure R3F loop is invalidated when scrolling
+    useCanvasStore.setState({
+      hasVirtualScrollbar: smooth
+    }); // make sure R3F loop is invalidated when scrolling
 
     const invalidateOnWheelEvent = () => invalidate();
 
@@ -1432,13 +1497,14 @@ const SmoothScrollbar = _ref => {
     }
   }, []);
   useEffect(() => {
-    var _lenis$current4, _lenis$current5;
+    var _lenis$current6, _lenis$current7;
 
-    paused ? (_lenis$current4 = lenis.current) === null || _lenis$current4 === void 0 ? void 0 : _lenis$current4.stop() : (_lenis$current5 = lenis.current) === null || _lenis$current5 === void 0 ? void 0 : _lenis$current5.start();
+    paused ? (_lenis$current6 = lenis.current) === null || _lenis$current6 === void 0 ? void 0 : _lenis$current6.stop() : (_lenis$current7 = lenis.current) === null || _lenis$current7 === void 0 ? void 0 : _lenis$current7.start();
   }, [paused]);
   return /*#__PURE__*/jsx(LenisScrollbar$1, {
     ref: lenis,
     smooth: smooth,
+    config: config,
     children: bind => children({ ...bind,
       ref
     })

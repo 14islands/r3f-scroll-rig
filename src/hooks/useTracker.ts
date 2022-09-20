@@ -28,9 +28,10 @@ function useTracker(args: PropsOrElement, deps: any[] = []): ElementTracker {
   // check if element is in viewport
   const { ref, inView: inViewport } = useInView({ rootMargin })
 
+  // bind useInView ref to current tracking element
   useLayoutEffect(() => {
     ref(track.current)
-  }, [])
+  }, [track])
 
   // cache the return object
   const position: ScrollPosition = useRef({
@@ -87,7 +88,9 @@ function useTracker(args: PropsOrElement, deps: any[] = []): ElementTracker {
   }, [track, size, ...deps]) as [width: number, height: number, depth: number]
 
   const update = useCallback(() => {
-    if (!track.current || !scrollState.inViewport) return
+    if (!track.current || !scrollState.inViewport) {
+      return
+    }
 
     position.x = (bounds.x - scroll.x) * scaleMultiplier
     position.y = -1 * (bounds.y - scroll.y) * scaleMultiplier
@@ -97,9 +100,9 @@ function useTracker(args: PropsOrElement, deps: any[] = []): ElementTracker {
 
     // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
     const pxInside = bounds.top + position.y - bounds.top + size.height - bounds.sceneOffset.y
-    scrollState.progress = MathUtils.clamp(MathUtils.mapLinear(pxInside, 0, size.height + bounds.height, 0, 1), 0, 1) // percent of total visible distance
-    scrollState.visibility = MathUtils.clamp(MathUtils.mapLinear(pxInside, 0, bounds.height, 0, 1), 0, 1) // percent of item height in view
-    scrollState.viewport = MathUtils.clamp(MathUtils.mapLinear(pxInside, 0, size.height, 0, 1), 0, 1) // percent of window height scrolled since visible
+    scrollState.progress = MathUtils.mapLinear(pxInside, 0, size.height + bounds.height, 0, 1) // percent of total visible distance
+    scrollState.visibility = MathUtils.mapLinear(pxInside, 0, bounds.height, 0, 1) // percent of item height in view
+    scrollState.viewport = MathUtils.mapLinear(pxInside, 0, size.height, 0, 1) // percent of window height scrolled since visible
   }, [bounds, track, size])
 
   return {

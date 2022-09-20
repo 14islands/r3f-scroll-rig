@@ -1,7 +1,8 @@
-import { useLayoutEffect } from 'react'
+import { useLayoutEffect, Suspense } from 'react'
 import { Canvas, Props } from '@react-three/fiber'
 import { ResizeObserver } from '@juggle/resize-observer'
 import { parse } from 'query-string'
+
 import { useCanvasStore } from '../store'
 import ResizeManager from './ResizeManager'
 import PerspectiveCamera from './PerspectiveCamera'
@@ -24,6 +25,7 @@ interface IGlobalCanvas extends Props {
   globalPriority?: number
   globalAutoClear?: boolean
   globalClearDepth?: boolean
+  loadingFallback?: any
 }
 
 const GlobalCanvas = ({
@@ -39,6 +41,7 @@ const GlobalCanvas = ({
   globalPriority = config.PRIORITY_GLOBAL,
   globalAutoClear = false, // don't clear viewports
   globalClearDepth = true,
+  loadingFallback,
   ...props
 }: Omit<IGlobalCanvas, 'onError'>) => {
   // enable debug mode
@@ -89,8 +92,10 @@ const GlobalCanvas = ({
       // allow to override anything of the above
       {...props}
     >
-      {children}
-      <GlobalRenderer />
+      <Suspense fallback={loadingFallback}>
+        {children}
+        <GlobalRenderer />
+      </Suspense>
 
       {/* @ts-ignore */}
       {!orthographic && <PerspectiveCamera makeDefault={true} {...camera} />}
@@ -103,8 +108,6 @@ const GlobalCanvas = ({
 }
 
 const GlobalCanvasIfSupported = ({ children, onError, ...props }: IGlobalCanvas) => {
-  const setCanvasAvailable = useCanvasStore((state) => state.setCanvasAvailable)
-
   useLayoutEffect(() => {
     document.documentElement.classList.add('js-has-global-canvas')
   }, [])
@@ -114,7 +117,7 @@ const GlobalCanvasIfSupported = ({ children, onError, ...props }: IGlobalCanvas)
     <CanvasErrorBoundary
       onError={(err) => {
         onError && onError(err)
-        setCanvasAvailable(false) /* WebGL failed to init */
+        useCanvasStore.setState({ isCanvasAvailable: false }) /* WebGL failed to init */
         document.documentElement.classList.remove('js-has-global-canvas')
         document.documentElement.classList.add('js-global-canvas-error')
       }}
