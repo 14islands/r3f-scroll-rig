@@ -94,8 +94,8 @@
     "three": "^0.144.0"
   },
   "peerDependencies": {
-    "@react-three/drei": ">=9.29.1",
-    "@react-three/fiber": ">=8.7.2",
+    "@react-three/drei": ">=9.0.0",
+    "@react-three/fiber": ">=8.0.0",
     "three": ">=0.139.0"
   }
 }

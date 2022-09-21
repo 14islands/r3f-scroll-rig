@@ -1,15 +1,62 @@
 # Changelog
 
-TODO
+# Changelog
 
-- update to r3f8
+## v8.0.0
 
-- make useImgTagAsTexture suspend
+Complete refactor with focus on reducing complexity.
 
-- use loader to show cover when loading + on history nav
-- ScrollScene visible=false still triggers raycast - how to avoid?
-- Make subpixelScrolling=true default in scrollbar?
-- higher scrolldelta causing scrollbar jumps when going slow
+Now uses mostly R3F defaults and `<GlobalCanvas>` accepts all R3F Canvas props.
+
+Advanced use-cases are enabled only when setting `frameloop="demand"` - so most users won't have to worry about this.
+
+### New peer deps:
+
+- @react-three/fiber `">=8.0.0"`
+- Three.js `>=0.139.0` is now required for colorManagement
+
+### New features
+
+- Started adding typescript
+- Uses `https://github.com/studio-freight/lenis` scrollbar
+- New hook `useTracker` that tracks DOM elements - refactored `ScrollScene` and `ViewportScrollScene` to use this internally.
+- New hook `useCanvasRef` which can be used to hide tracked DOM elements when the canvas is active.
+- New hook `useImageAsTexture` which loads images from the DOM and suspends via useLoader. Replaces the old `useImgTagAsTexture` which did not suspend properly and was more of a hack.
+
+### Breaking Changes:
+
+- Removed `useImgTagAsTexture`. Use `useImageAsTexture` instead.
+- `ScrollScene` and `ViewportScrollScene`
+
+  - Renamed `el` prop to `track`
+  - `inViewportMargin` is now a string and maps to IntersectionObserver `rootMargin`
+  - Removed `lerp`, `lerpOffset`. Uses the SmoothScrollbar position directly.
+  - Removed `setInViewportProp` prop. Instead uses IntersectionObserver to always set `inViewport` prop.
+  - Removed `updateLayout` - relac position using the `reflow()` method from `useSrcollRig()` instead.
+  - Removed `positionFixed` - suggest implementing manually in some other way using `useTracker`.
+  - Removed `autoRender` - suggest implementing manually in a custom component using `useTracker`.
+  - Removed `resizeDelay`
+  - Removed `hiddenStyle` - use `useCanvasRef` instead to control how tracked DOM elements are hidden.
+
+- `VirtualScrollbar` and `HijackedScrollbar` removed. Use `SmoothScrollbar` instead which is similar to the old hijacked version.
+- `GlobalCanvas`
+
+  - Removed `config` prop and added individual props instead:
+    - Added `debug` to turn on shader compile errors and show console.logs
+    - Added `scaleMultiplier` to control viewport units scaling
+    - Added `globalRender` - enable/disable built-in render loop
+    - Added `globalPriority` - enable/disable built-in render loop
+    - Added `globalAutoClear?: boolean` to control if `gl.clearDepth()` is called before render in global render loop. Default `false` - render as HUD on top of viewports without clearing them.
+    - Added `globalClearDepth?: boolean` to control `gl.autoClear` in global render loop. Default `true`.
+  - Renamed `fallback` property to `loadingFallback` for global Suspense fallback as R3F Canvas already has a prop with this name
+
+- examples/ folder removed
+- added new import target `@14islands/r3f-scroll-rig/powerups` with useful helpers - might become separate repo later
+
+## v7.0.0
+
+- update to R3f v7
+- Enables autoRender by default if frameloop="always"
 
 ## v6.0.0
 

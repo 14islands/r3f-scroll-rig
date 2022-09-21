@@ -8,11 +8,11 @@ import LenisScrollbar, { ILenisScrollbar, LenisScrollCallback } from './LenisScr
 
 interface ISmoothScrobbar {
   children: (props: any) => ReactElement
-  scrollRestoration: ScrollRestoration
-  smooth: boolean
-  paused: boolean
-  disablePointerOnScroll: boolean
-  config: object
+  scrollRestoration?: ScrollRestoration
+  smooth?: boolean
+  paused?: boolean
+  disablePointerOnScroll?: boolean
+  config?: object
 }
 
 export const SmoothScrollbar = ({
