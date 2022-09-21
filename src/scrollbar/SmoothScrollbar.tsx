@@ -9,16 +9,16 @@ import LenisScrollbar, { ILenisScrollbar, LenisScrollCallback } from './LenisScr
 interface ISmoothScrobbar {
   children: (props: any) => ReactElement
   scrollRestoration?: ScrollRestoration
-  smooth?: boolean
-  paused?: boolean
+  enabled?: boolean
+  locked?: boolean
   disablePointerOnScroll?: boolean
   config?: object
 }
 
 export const SmoothScrollbar = ({
   children,
-  smooth = true,
-  paused = false,
+  enabled = true,
+  locked = false,
   scrollRestoration = 'auto',
   disablePointerOnScroll = true,
   config,
@@ -82,8 +82,8 @@ export const SmoothScrollbar = ({
     useCanvasStore.setState({ onScroll })
 
     // Set active
-    document.documentElement.classList.toggle('js-has-smooth-scrollbar', smooth)
-    useCanvasStore.setState({ hasVirtualScrollbar: smooth })
+    document.documentElement.classList.toggle('js-has-smooth-scrollbar', enabled)
+    useCanvasStore.setState({ hasVirtualScrollbar: enabled })
 
     // make sure R3F loop is invalidated when scrolling
     const invalidateOnWheelEvent = () => invalidate()
@@ -95,7 +95,7 @@ export const SmoothScrollbar = ({
       window.removeEventListener('pointermove', onMouseMove)
       window.removeEventListener('wheel', invalidateOnWheelEvent)
     }
-  }, [smooth])
+  }, [enabled])
 
   useLayoutEffect(() => {
     if ('scrollRestoration' in window.history) {
@@ -104,11 +104,11 @@ export const SmoothScrollbar = ({
   }, [])
 
   useEffect(() => {
-    paused ? lenis.current?.stop() : lenis.current?.start()
-  }, [paused])
+    locked ? lenis.current?.stop() : lenis.current?.start()
+  }, [locked])
 
   return (
-    <LenisScrollbar ref={lenis} smooth={smooth} config={config}>
+    <LenisScrollbar ref={lenis} smooth={enabled} config={config}>
       {/* Use functio child so we can spread props
         - for instance disable pointer events while scrolling */}
       {(bind: any) => children({ ...bind, ref })}
