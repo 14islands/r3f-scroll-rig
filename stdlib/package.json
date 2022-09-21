@@ -1,5 +1,0 @@
-{
-  "internal": true,
-  "main": "../dist/stdlib.cjs.js",
-  "module": "../dist/stdlib.js"
-}

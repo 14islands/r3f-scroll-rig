@@ -17,8 +17,8 @@ const getBabelOptions = ({ useESModules }, targets) => ({
   runtimeHelpers: true,
   presets: [
     ['@babel/preset-env', { loose: false, modules: false, targets }],
-    '@babel/preset-react',
-    // '@babel/preset-typescript',
+    ['@babel/preset-react', { runtime: 'automatic' }],
+    '@babel/preset-typescript',
   ],
   plugins: [
     ['@babel/plugin-proposal-class-properties', { loose: false }],
@@ -33,7 +33,7 @@ function targetTypings(entry, out) {
   return {
     writeBundle() {
       return fs.lstat(`dist/${out}`).catch(() => {
-        return fs.writeFile(`dist/${out}.d.ts`, `export * from "./${entry}"`)
+        return fs.writeFile(`dist/${out}.d.ts`, `export * from "../${entry}"`)
       })
     },
   }
@@ -74,5 +74,5 @@ function createConfig(entry, out) {
 export default [
   ...createConfig('src/index', 'web'),
   ...createConfig('src/scrollbar/index', 'scrollbar'),
-  ...createConfig('examples/src/components/stdlib/index', 'stdlib'),
+  ...createConfig('powerups', 'powerups'),
 ]

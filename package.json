@@ -1,10 +1,13 @@
 {
   "name": "@14islands/r3f-scroll-rig",
-  "version": "7.0.6",
+  "version": "7.0.7",
   "description": "Progressively enhance any React website with WebGL using @react-three/fiber",
   "main": "dist/web.cjs.js",
   "module": "dist/web.js",
+  "types": "dist/web.d.ts",
   "sideEffects": false,
+  "type": "module",
+  "source": "src/index.ts",
   "files": [
     "dist",
     "scrollbar",
@@ -12,7 +15,8 @@
   ],
   "exports": {
     "./scrollbar": "./dist/scrollbar.js",
-    "./stdlib": "./dist/stdlib.js"
+    "./powerups": "./dist/powerups.js",
+    ".": "./dist/web.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -40,21 +44,28 @@
   },
   "homepage": "https://github.com/14islands/r3f-scroll-rig#readme",
   "dependencies": {
-    "@juggle/resize-observer": "^3.2.0",
-    "@react-hook/window-size": "^3.0.6",
-    "prop-types": "^15.7.2",
+    "@juggle/resize-observer": "^3.4.0",
+    "@studio-freight/lenis": "^0.2.6",
+    "@types/query-string": "^6.3.0",
+    "debounce": "^1.2.1",
     "query-string": "^6.14.1",
+    "react-intersection-observer": "^9.4.0",
+    "suspend-react": "^0.0.8",
     "zustand": "^3.4.2"
   },
   "devDependencies": {
-    "@14islands/lerp": "^1.0.3",
     "@babel/core": "^7.10.3",
     "@babel/plugin-proposal-class-properties": "^7.10.1",
     "@babel/plugin-transform-runtime": "^7.10.3",
     "@babel/preset-env": "^7.10.3",
     "@babel/preset-react": "^7.10.1",
-    "@react-three/drei": "^8.2.1",
-    "@react-three/fiber": "^7.0.24",
+    "@babel/preset-typescript": "^7.16.7",
+    "@react-three/drei": "^9.29.1",
+    "@react-three/fiber": "^8.7.2",
+    "@types/debounce": "^1.2.1",
+    "@types/query-string": "^6.3.0",
+    "@types/react": "^18.0.8",
+    "@types/three": "^0.144.0",
     "babel-eslint": "^10.1.0",
     "babel-plugin-transform-react-remove-prop-types": "^0.4.24",
     "eslint": "^7.3.1",
@@ -72,18 +83,19 @@
     "husky": "^4.2.5",
     "lint-staged": "^10.2.11",
     "prettier": "^2.0.5",
+    "react": "^18.1.0",
+    "react-dom": "^18.1.0",
     "rollup": "^2.18.1",
     "rollup-plugin-babel": "^4.4.0",
     "rollup-plugin-json": "^4.0.0",
     "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-peer-deps-external": "^2.2.3",
     "rollup-plugin-size-snapshot": "^0.12.0",
-    "three": "^0.132.0"
+    "three": "^0.144.0"
   },
   "peerDependencies": {
-    "@14islands/lerp": ">=1.0.3",
-    "@react-three/drei": ">=8.2.1",
-    "@react-three/fiber": ">=7.0.24",
-    "three": ">=0.126.0"
+    "@react-three/drei": ">=9.0.0",
+    "@react-three/fiber": ">=8.0.0",
+    "three": ">=0.139.0"
   }
 }

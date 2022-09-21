@@ -1,22 +1,22 @@
 {
   "web.js": {
-    "bundled": 70856,
-    "minified": 32051,
-    "gzipped": 9435,
+    "bundled": 45954,
+    "minified": 20375,
+    "gzipped": 6461,
     "treeshaked": {
       "rollup": {
-        "code": 14474,
-        "import_statements": 774
+        "code": 3670,
+        "import_statements": 512
       },
       "webpack": {
-        "code": 17271
+        "code": 12267
       }
     }
   },
   "web.cjs.js": {
-    "bundled": 97184,
-    "minified": 47386,
-    "gzipped": 11530
+    "bundled": 72177,
+    "minified": 36451,
+    "gzipped": 8395
   },
   "vscroll.js": {
     "bundled": 12612,
@@ -38,23 +38,23 @@
     "gzipped": 2419
   },
   "scrollbar.js": {
-    "bundled": 23719,
-    "minified": 9983,
-    "gzipped": 3286,
+    "bundled": 6852,
+    "minified": 2768,
+    "gzipped": 1110,
     "treeshaked": {
       "rollup": {
-        "code": 1360,
-        "import_statements": 195
+        "code": 1513,
+        "import_statements": 67
       },
       "webpack": {
-        "code": 2866
+        "code": 2573
       }
     }
   },
   "scrollbar.cjs.js": {
-    "bundled": 30451,
-    "minified": 13911,
-    "gzipped": 4040
+    "bundled": 11819,
+    "minified": 5876,
+    "gzipped": 1775
   },
   "examples.js": {
     "bundled": 2866,
@@ -76,22 +76,41 @@
     "gzipped": 973
   },
   "stdlib.js": {
-    "bundled": 9580,
-    "minified": 4724,
-    "gzipped": 1818,
+    "bundled": 9462,
+    "minified": 4571,
+    "gzipped": 1790,
     "treeshaked": {
       "rollup": {
-        "code": 192,
-        "import_statements": 192
+        "code": 175,
+        "import_statements": 175
       },
       "webpack": {
-        "code": 1374
+        "code": 1357
       }
     }
   },
   "stdlib.cjs.js": {
-    "bundled": 14708,
-    "minified": 7648,
-    "gzipped": 2514
+    "bundled": 17078,
+    "minified": 9402,
+    "gzipped": 2603
+  },
+  "powerups.js": {
+    "bundled": 17107,
+    "minified": 8357,
+    "gzipped": 2961,
+    "treeshaked": {
+      "rollup": {
+        "code": 1672,
+        "import_statements": 220
+      },
+      "webpack": {
+        "code": 2891
+      }
+    }
+  },
+  "powerups.cjs.js": {
+    "bundled": 28392,
+    "minified": 14932,
+    "gzipped": 3925
   }
 }

@@ -1,24 +1,21 @@
-// Public & battle-tested
-// ----------------------------------
-export { default as GlobalCanvas } from './canvas/GlobalCanvas'
-export { ScrollScene } from './trackers/ScrollScene'
-export { ViewportScrollScene } from './trackers/ViewportScrollScene'
-export { ScrollDomPortal } from './trackers/ScrollDomPortal'
+// Components
+export { default as GlobalCanvas } from './components/GlobalCanvas'
+export { ScrollScene } from './components/ScrollScene'
+export { ViewportScrollScene } from './components/ViewportScrollScene'
+export { UseCanvas } from './components/UseCanvas'
+
+// Hooks
 export { useScrollRig } from './hooks/useScrollRig'
 export { useCanvas } from './hooks/useCanvas'
+export { useCanvasRef } from './hooks/useCanvasRef'
 export { useScrollbar } from './scrollbar/useScrollbar'
+export { useTracker } from './hooks/useTracker'
 
-// TODO: move to stdlib
-export { useImgTagAsTexture, useTextureLoader } from './hooks/useImgTagAsTexture'
+// Utils hooks
+export { useImageAsTexture } from './hooks/useImageAsTexture'
 
-// TODO: should we deprecate Virtual and make Hijacked the default?
-export { HijackedScrollbar as SmoothScrollbar } from './scrollbar/HijackedScrollbar'
-export { HijackedScrollbar } from './scrollbar/HijackedScrollbar'
-export { VirtualScrollbar } from './scrollbar/VirtualScrollbar'
-
-// Public & somewhat experimental
-// ----------------------------------
-export { useDelayedCanvas } from './hooks/useDelayedCanvas'
+// Scrollbar
+export { SmoothScrollbar } from './scrollbar/SmoothScrollbar'
 
 // Private-ish
 // ----------------------------------

@@ -5,13 +5,15 @@ import { useCanvasStore } from '../store'
  */
 export const useScrollbar = () => {
   const hasVirtualScrollbar = useCanvasStore((state) => state.hasVirtualScrollbar)
-  const requestReflow = useCanvasStore((state) => state.requestReflow)
-  const pageReflowCompleted = useCanvasStore((state) => state.pageReflowCompleted)
+  const scroll = useCanvasStore((state) => state.scroll)
+  const scrollTo = useCanvasStore((state) => state.scrollTo)
+  const onScroll = useCanvasStore((state) => state.onScroll)
 
   return {
-    hasVirtualScrollbar,
-    reflow: requestReflow,
-    reflowCompleted: pageReflowCompleted,
+    enabled: hasVirtualScrollbar,
+    scroll,
+    scrollTo,
+    onScroll,
   }
 }
 
