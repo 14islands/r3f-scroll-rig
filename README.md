@@ -7,10 +7,10 @@ Progressively enhance a React website with WebGL using `@react-three/fiber` and 
 <td>
 <ul>
 <li><a href="#features">Features</a></li>
-<li><a href="#features">Introduction</a></li>
-<li><a href="#features">Installing</a></li>
-<li><a href="#features">Setting up</a></li>
-<li><a href="#features">Hello World!</a></li>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#installing">Installing</a></li>
+<li><a href="#settingup">Setting up</a></li>
+<li><a href="#examples">Examples</a></li>
 <li><a href="#api">API</a></li>
 <li><a href="#gotchas">Gotchas</a></li>
 </ul>
@@ -26,10 +26,10 @@ Progressively enhance a React website with WebGL using `@react-three/fiber` and 
 
 # Features
 
-- 🔍 Track DOM elements and draw Threejs mesh in their place using correct scale.
-- 📐 Render as a viewport in a separate render pass so each scene can have a separate camera, lights, etc.
-- 🌠 Helps load responsive images from the DOM. Supports `<picture>`, `srset` and `loading="lazy"`
+- 🔍 Tracks DOM elements and draws Three.js objects in their place using correct scale and position.
 - 🤷 Framework agnostic - works with `next.js`, `gatsby.js`, `create-react-app` etc.
+- 📐 Can render objects in viewports. Makes it possible for each object to have a unique camera, lights, environment map, etc.
+- 🌠 Helps load responsive images from the DOM. Supports `<picture>`, `srset` and `loading="lazy"`
 - 🚀 Optimized for performance. Only calls `Element.getBoundingClientRect()` once on mount and uses IntersectionObserver to know if something is in the viewport.
 - ♻️ Plays nice with the @react-three ecosystem
 
@@ -65,8 +65,6 @@ export const wrapRootElement = ({ element }) => (
 
 In order to perfectly match the WebGL and DOM content while scrolling the page, some sort of Javascript "smooth scrolling" needs to be applied.
 
-- The `SmoothScrollbar` component will animate `window.scrollY` smoothly. It does not use JS to move the content using transforms. We can use `position: sticky` etc. 👌
-
 Wrap your page in `SmoothScrollbar`:
 
 ```jsx
@@ -90,8 +88,6 @@ export const HomePage = () => (
 
 The scrollbar also disables pointer-events on the child components while scrolling to avoid jank from mouse events.
 
-💡**Note:** _You can use `SmoothScrollbar` independently based on the project needs. If the project doesn't need WebGL you can still use the scrollbar to implement smooth scrolling._
-
 # Getting Started
 
 This is a basic example of a component that tracks the DOM and use the canvas to render a WebLG mesh in its place:
@@ -113,21 +109,21 @@ Sandbox Demo:
     <td valign="top">
       <h2><a href="#components">Components</a></h2>
         <ul>
-          <li><a href="#globalCanvas">GlobalCanvas</a></li>
-          <li><a href="#smoothScrollbar">SmoothScrollbar</a></li>
-          <li><a href="#useCanvas">UseCanvas</a></li>
-          <li><a href="#scrollScene">ScrollScene</a></li>
-          <li><a href="#viewportScrollScene">ViewportScrollScene</a></li>
+          <li><a href="#globalcanvas">GlobalCanvas</a></li>
+          <li><a href="#smoothscrollbar">SmoothScrollbar</a></li>
+          <li><a href="#usecanvas">UseCanvas</a></li>
+          <li><a href="#scrollscene">ScrollScene</a></li>
+          <li><a href="#viewportscrollscene">ViewportScrollScene</a></li>
         </ul>
        <td valign="top">
        <h2> <a href="#hooks">Hooks</a></h2>
         <ul>
-          <li><a href="#useScrollRig">useScrollRig</a></li>
-          <li><a href="#useScrollbar">useScrollbar</a></li>
-          <li><a href="#useCanvas">useCanvas</a></li>
-          <li><a href="#useImageAsTexture">useImageAsTexture</a></li>
-          <li><a href="#useCanvasRef">useCanvasRef</a></li>
-          <li><a href="#useTracker">useTracker</a></li>
+          <li><a href="#usescrollrig">useScrollRig</a></li>
+          <li><a href="#usescrollbar">useScrollbar</a></li>
+          <li><a href="#usecanvas">useCanvas</a></li>
+          <li><a href="#useimageastexture">useImageAsTexture</a></li>
+          <li><a href="#usecanvasref">useCanvasRef</a></li>
+          <li><a href="#usetracker">useTracker</a></li>
         </ul>
     </td>
 
@@ -136,7 +132,7 @@ Sandbox Demo:
 
 ## Components
 
-### `GlobalCanvas`
+### `<GlobalCanvas>`
 
 #### Render Props
 
@@ -156,25 +152,30 @@ Sandbox Demo:
 />
 ```
 
-### `<SmoothScrolbar>`
+### `<SmoothScrollbar>`
 
-The hijacked scrollbar takes over the browser scrollbar and animates it with Javascript and linear interpolation. This allows us to match the speed of objects moving on the fixed GlobalCanvas.
+The `SmoothScrollbar` component will animate `window.scrollY` smoothly. This allows us to match the speed of objects moving on the fixed GlobalCanvas.
+
+It **does not** use JS to move the content using transforms.
+
+We can use `position: sticky` etc. 👌
 
 Uses `@studio-freight/lenis` internally.
+
+Sets `pointer-events: none` on the immediate child while scrolling to avoid jank caused by hover states.
+
+The R3F event loop is used to animate scroll.
 
 ```jsx
 import { SmoothScrolbar } from '@14islands/r3f-scroll-rig'
 
 export const HomePage = () => (
-  <SmoothScrolbar>
-    {
-      // Expects a single functional child
-      (bind) => (
-        // Return a single DOM wrapper and spread all props {...bind}
-        <article {...bind}>This content will be smooth scrolled</article>
-      )
-    }
-  </SmoothScrolbar>
+  <SmoothScrollbar>
+    {(bind) => (
+      // Return a single DOM wrapper and spread all props {...bind}
+      <article {...bind}>This content will be smooth scrolled</article>
+    )}
+  </SmoothScrollbar>
 )
 ```
 
@@ -184,8 +185,8 @@ export const HomePage = () => (
 <SmoothScrollbar
   children: (props) => JSX.Element // render function
   scrollRestoration?: ScrollRestoration = "auto"
-  smooth?: boolean = true
-  paused?: boolean = false
+  enabled?: boolean = true // smooth scroll or not
+  locked?: boolean = false // lock/disable scroll
   disablePointerOnScroll?: boolean = true
   config?: object  // lenis config options
 />
@@ -193,15 +194,21 @@ export const HomePage = () => (
 
 #### Use without GlobalCanvas
 
-You can import and use `SmoothScrollbar` in isolation from a separate `scrollbar` target. This excludes all `@react-three/fiber`, `three` related imports and allows you to slim down the bundle size.
+💡**Note:** _You can use `SmoothScrollbar` independently based on the project needs. If the project doesn't need WebGL you can still use the scrollbar to implement smooth scrolling._
 
 ```jsx
 import { SmoothScrollbar } from '@14islands/r3f-scroll-rig/scrollbar'
 ```
 
-### `UseCanvas`
+💡 _A The `scrollbar` import target excludes all `@react-three/fiber`, `three` related imports and allows you to slim down the bundle size._
 
-This HoC tunnels the children to the GlobalCanvas using the `useCanvas` hook. It's basically just the same as using the hook but it automatically updates the canvas component when any of the props change
+### `<UseCanvas>`
+
+This HoC tunnels the children to the GlobalCanvas using the `useCanvas` hook.
+
+The props added to `UseCanvas` will be tunneled to the child component inside the GlobalCanvas.
+
+It's basically just the same as using the hook but it automatically updates the canvas component's props when any of the props change
 
 #### Render Props
 
@@ -216,16 +223,23 @@ This HoC tunnels the children to the GlobalCanvas using the `useCanvas` hook. It
 
 ### `<ScrollScene>`
 
+Tracks a DOM element and moves to match its position in the viewport.
+
+The child component is passed `scale` which can be used to match the DOM element's size. It's also passed `scrollState` which contains information regarding it's position in the viewport, this is useful for things like parallax or animations.
+
 ```ts
 <ScrollScene
   track: RefObject            // DOM element to track (ref)
   children: (props) => JSX.Element  // render function
-  inViewportMargin: string = "50%"  // IntersectionObserver rootMargin
-  hideOffscreen: boolean = true // Hide scene when off screen
-  margin: number              // margin added outside scissor
-  scissor: boolean = false    // Render as separate pass in a scissor
-  visible: boolean = true     // Scene visibility
-  debug: boolean = false      // Render a debug plane and show 50% opacity of DOM element
+  as?: string = "scene"       // renders as a Scene by default
+  inViewportMargin?: string = "50%"  // IntersectionObserver rootMargin
+  hideOffscreen?: boolean = true // Hide scene when off screen
+  margin?: number             // margin added outside scissor
+  scissor?: boolean = false   // Render as separate pass in a scissor
+  visible?: boolean = true    // Scene visibility
+  debug?: boolean = false     // Render a debug plane and show 50% opacity of DOM element
+  renderOrder?: number = 1    // Object3D renderOrder
+  priority?: number = 1       // useFrame priority
   >
   { ({ scale, ...props }) => (
     <mesh scale={scale}>
@@ -248,7 +262,7 @@ scrollState: {
   visibility: number // number - percent of item height in view
   viewport: number // number - percent of window height scrolled since visible
 }
-scene // three js scene that wraps this component
+scene: Scene // three js scene that wraps this component
 inViewport: boolean // boolean set to true while in viewport
 priority: number // the parent useFrame priority
 props: any[] // tunneled from the parent
@@ -256,23 +270,128 @@ props: any[] // tunneled from the parent
 
 ### `<ViewportScrollScene>`
 
-Same as ScrollScene but renders a virtual scene in a separate pass.
+Tracks a DOM element similar to ScrollScene, but renders a virtual scene in a separate pass.
+
+This makes it possible to use different lights and camera settings compared to the global scene, at the cost of one extra render per instance.
+
+The child receives similar props as the ScrollScene provides.
+
+```ts
+<ViewportScrollScene
+  track: RefObject            // DOM element to track (ref)
+  children: (props) => JSX.Element  // render function
+  orthographic?: boolean = false // uses a perspective camera by default
+  inViewportMargin?: string = "50%"  // IntersectionObserver rootMargin
+  hideOffscreen?: boolean = true // Hide scene when off screen
+  margin?: number             // margin added outside scissor
+  visible?: boolean = true    // Scene visibility
+  debug?: boolean = false     // Render a debug plane and show 50% opacity of DOM element
+  renderOrder?: number = 1    // Object3D renderOrder
+  priority?: number = 1       // useFrame priority
+  >
+  { ({ scale, ...props }) => (
+    <mesh scale={scale}>
+      <planeGeometry />
+      <meshBasicMaterial color="turquoise" />
+    </mesh>
+  )}
+</ScrollScene>
+```
+
+The child node will be passed the following `props`:
+
+```ts
+track: RefObject
+scale: number[]
+scrollState: {
+  // transient state - not reactive
+  inViewport: boolean // boolean - true if currently in viewport
+  progress: number // number - 0 when below viewport. 1 when above viewport
+  visibility: number // number - percent of item height in view
+  viewport: number // number - percent of window height scrolled since visible
+}
+scene: Scene // the parent three js scene that is rendered in the viewport
+camera: Camera // three js camera used to render the viewpor
+inViewport: boolean // boolean set to true while in viewport
+priority: number // the parent useFrame priority
+props: any[] // tunneled from the parent
+```
 
 ## Hooks
 
-### `useCanvas`
+### `useScrollbar`
 
-Hook used in regular DOM components to render something onto the webGl canvas.
+Use this to access the scrollbar and current scroll information.
 
 ```ts
-useCanvas(object: Three.Object3D, deps = {}): (props: any) => void
+import { useScrollbar } from '@14islands/r3f-scroll-rig'
+
+const {
+  enabled: boolean // True if SmoothScrollbar is enabled
+  scroll: {
+    // transient scroll information
+    y: number
+    x: number
+    limit: number
+    velocity: number
+    progress: number
+    direction: string
+  }
+  scrollTo: (number | element) => void // scroll to
+  onScroll: (cb) => unbindFunc // subscribe to scroll events
+} = useScrollbar
+```
+
+#### Use without GlobalCanvas
+
+💡 You can import and use `useScrollbar` in isolation from a separate `scrollbar` target. This excludes all `@react-three/fiber`, `three` related imports and allows you to slim down the bundle size.
+
+```jsx
+import { useScrollbar } from '@14islands/r3f-scroll-rig/scrollbar'
+```
+
+### `useScrollRig`
+
+Hook to access current scroll rig state and functions related to rendering.
+
+```ts
+import { useScrollRig } from '@14islands/r3f-scroll-rig'
+
+const {
+  isCanvasAvailable: boolean // True if webgl is enabled and GlobalCanvas has been added to the page
+  hasVirtualScrollbar: boolean // True if a smooth scrollbar is currently enabled onm the DOM content
+  scaleMultiplier: number // current viewport unit scaling = 1 by default
+  reflow: () => void  // tigger re-calculation of elements position (called automatically on resize), () => void
+  debug: boolean, // whether the GloblCanvas is in debug mode or not
+  // Advanced render API
+  preloadScene: (scene, camera, layer, callback) => void, // request scene to do a preload render before next frame
+  requestRender: (layers?: number[]) => void, // request the global render loop to render next frame
+  renderScissor: ({ gl, scene, camera, top, left, width, height, layer, autoClear, clearDepth}) => void, // renders scene with a scissor to the canvas
+  renderViewport:  ({ gl, scene, camera, top, left, width, height, layer, autoClear, clearDepth}) => void, // renders a scene inside a viewport to the canvas,
+} = useScrollRig
+```
+
+### `useCanvas`
+
+Hook used in regular DOM components to render something onto the `GlobalCanvas`.
+
+```ts
+const update = useCanvas(
+  object: Object3D | (props) => Object3D,
+  deps = {},
+  { key, dispose = true} = {}
+): (props: any) => void
 ```
 
 `object` will be added to the global canvas when this component is mounted and removed from the canvas when it unmounts.
 
-`useCanvas` returns a function that can be used to update the props of the `object` at any time.
+`deps` is an optional object can be used to automatically update properties on the canvas object when they change due to a re-render of the parent component.
 
-`deps` is an object can be used to automatically update properties on the canvas `object` when they change due to a re-render of the parent component.
+If `key` is specified, the mesh will not unmount as long as there are other hooks using this key. This can be used to make page transitions where an object moves seamlessly from one page to another.
+
+if `dispose` is set to `false` - objects will never unmount from the canvas.
+
+Returns a function that can be used to update the props of the `object` at any time.
 
 ```jsx
 import { useCanvas } from '@14islands/r3f-scroll-rig';
@@ -292,45 +411,32 @@ function MyComponent() {
 
 ```
 
-### `useScrollRig`
-
-Hook to access current scroll rig state and functions related to rendering.
-
-```js
-import { useScrollRig } from '@14islands/r3f-scroll-rig'
-
-const {
-  isCanvasAvailable, // True if webgl is enabled and GlobalCanvas has been added to the page
-  hasVirtualScrollbar, // True if a smooth scrollbar is currently enabled onm the DOM content
-  scaleMultiplier, // current viewport unit scaling = 1 by default
-  reflow, // tigger re-calculation of elements position (called automatically on resize), () => void
-  debug, // whether the GloblCanvas is in debug mode or not
-  // Advanced render API
-  preloadScene, // request scene to do a preload render before next frame, (scene, camera, layer, callback) => void
-  requestRender, // request the global render loop to render next frame
-  renderScissor, // renders scene with a scissor to the canvas, ({ gl, scene, camera, left, top, width, height, layer, autoClear, clearDepth}) => void
-  renderViewport, // renders a scene inside a viewport to the canvas, ({ gl, scene, camera, left, top, width, height, layer, autoClear, clearDepth}) => void
-} = useScrollRig
-```
-
-### `useScrollbar`
-
-Similar to `useScrollRig` but useful to access the smooth scrollbar on websites without webgl. Does not import any three dependencies.
-
-```js
-import { useScrollbar } from '@14islands/r3f-scroll-rig/scrollbar'
-
-const {
-  hasVirtualScrollbar, // True if a smooth scrollbar is currently enabled onm the DOM content
-  reflow, // tigger re-calculation of elements position (called automatically on resize), () => void
-} = useScrollbar
-```
-
 ### `useCanvasRef`
+
+Use this to hide DOM elements while the GlobalCanvas is active. Usually used in combination with `ScrollScene` to hide the DOM element being tracked.
+
+```ts
+const ref = useCanvasRef(props: {
+  style?: Partial<CSSStyleDeclaration>
+  className?: string
+})
+```
+
+Default hidden style is `opacity: 0`
+
+The specified styles or classes will be added to the DOM element if the GlobalCanvas is active. If the WebGL context creation fails, these styles will be removed.
 
 ### `useImageAsTexture`
 
+Loads a `THREE.Texture` from a DOM image source.
+
+🚧 To Be Documented 🚧
+
 ### `useTracker`
+
+Used internally by `ScrollScene` and `ViewportScrollScene` to track DOM elements.
+
+🚧 To Be Documented 🚧
 
 # Gotchas
 
@@ -392,6 +498,25 @@ Some effects like the Bloom also become heavy with large viewport dimensions so 
 
 Note: `ViewportScrollScene` will not be affected by global postprocessing effects since it runs in a separate render pass.
 
+## Can I use R3F events in `<ViewportScrollScene>`?
+
+Yes, events can be tunneled. You need to re-attach the event system to a parent of the canvas for this to work:
+
+```tsx
+const ref = useRef()
+return (
+  <div ref={ref}>
+    <GlobalCanvas
+      eventSource={ref} // rebind event source to a parent DOM element
+      eventPrefix="client" // use clientX/Y for a scrolling page
+      style={{
+        pointerEvents: 'none', // delegate events to wrapper
+      }}
+    />
+  </div>
+)
+```
+
 ## Advanced - render on demand
 
 If the R3F frameloop is set to `demand` - the scroll rig will make sure global renders and viewport renders only happens if it's needed.
@@ -401,3 +526,7 @@ To request global render call `requestRender()` from `useScrollRig` on each fram
 This library also supports rendering separate scenes in viewports as a separate render pass by calling `renderViewport()`. This way we can render scenes with separate lights or different camera than the global scene. This is how `ViewportScrollScene` works.
 
 In this scenario you also need to call `invalidate` to trigger a new R3F frame.
+
+```
+
+```
