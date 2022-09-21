@@ -1394,8 +1394,8 @@ var LenisScrollbar$1 = /*#__PURE__*/forwardRef(LenisScrollbar);
 const SmoothScrollbar = _ref => {
   let {
     children,
-    smooth = true,
-    paused = false,
+    enabled = true,
+    locked = false,
     scrollRestoration = 'auto',
     disablePointerOnScroll = true,
     config
@@ -1476,9 +1476,9 @@ const SmoothScrollbar = _ref => {
       onScroll
     }); // Set active
 
-    document.documentElement.classList.toggle('js-has-smooth-scrollbar', smooth);
+    document.documentElement.classList.toggle('js-has-smooth-scrollbar', enabled);
     useCanvasStore.setState({
-      hasVirtualScrollbar: smooth
+      hasVirtualScrollbar: enabled
     }); // make sure R3F loop is invalidated when scrolling
 
     const invalidateOnWheelEvent = () => invalidate();
@@ -1490,7 +1490,7 @@ const SmoothScrollbar = _ref => {
       window.removeEventListener('pointermove', onMouseMove);
       window.removeEventListener('wheel', invalidateOnWheelEvent);
     };
-  }, [smooth]);
+  }, [enabled]);
   useLayoutEffect(() => {
     if ('scrollRestoration' in window.history) {
       window.history.scrollRestoration = scrollRestoration;
@@ -1499,11 +1499,11 @@ const SmoothScrollbar = _ref => {
   useEffect(() => {
     var _lenis$current6, _lenis$current7;
 
-    paused ? (_lenis$current6 = lenis.current) === null || _lenis$current6 === void 0 ? void 0 : _lenis$current6.stop() : (_lenis$current7 = lenis.current) === null || _lenis$current7 === void 0 ? void 0 : _lenis$current7.start();
-  }, [paused]);
+    locked ? (_lenis$current6 = lenis.current) === null || _lenis$current6 === void 0 ? void 0 : _lenis$current6.stop() : (_lenis$current7 = lenis.current) === null || _lenis$current7 === void 0 ? void 0 : _lenis$current7.start();
+  }, [locked]);
   return /*#__PURE__*/jsx(LenisScrollbar$1, {
     ref: lenis,
-    smooth: smooth,
+    smooth: enabled,
     config: config,
     children: bind => children({ ...bind,
       ref

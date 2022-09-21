@@ -1606,10 +1606,10 @@ function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (O
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 var SmoothScrollbar = function SmoothScrollbar(_ref) {
   var _children = _ref.children,
-      _ref$smooth = _ref.smooth,
-      smooth = _ref$smooth === void 0 ? true : _ref$smooth,
-      _ref$paused = _ref.paused,
-      paused = _ref$paused === void 0 ? false : _ref$paused,
+      _ref$enabled = _ref.enabled,
+      enabled = _ref$enabled === void 0 ? true : _ref$enabled,
+      _ref$locked = _ref.locked,
+      locked = _ref$locked === void 0 ? false : _ref$locked,
       _ref$scrollRestoratio = _ref.scrollRestoration,
       scrollRestoration = _ref$scrollRestoratio === void 0 ? 'auto' : _ref$scrollRestoratio,
       _ref$disablePointerOn = _ref.disablePointerOnScroll,
@@ -1693,9 +1693,9 @@ var SmoothScrollbar = function SmoothScrollbar(_ref) {
       onScroll: onScroll
     }); // Set active
 
-    document.documentElement.classList.toggle('js-has-smooth-scrollbar', smooth);
+    document.documentElement.classList.toggle('js-has-smooth-scrollbar', enabled);
     useCanvasStore.setState({
-      hasVirtualScrollbar: smooth
+      hasVirtualScrollbar: enabled
     }); // make sure R3F loop is invalidated when scrolling
 
     var invalidateOnWheelEvent = function invalidateOnWheelEvent() {
@@ -1709,7 +1709,7 @@ var SmoothScrollbar = function SmoothScrollbar(_ref) {
       window.removeEventListener('pointermove', onMouseMove);
       window.removeEventListener('wheel', invalidateOnWheelEvent);
     };
-  }, [smooth]);
+  }, [enabled]);
   React.useLayoutEffect(function () {
     if ('scrollRestoration' in window.history) {
       window.history.scrollRestoration = scrollRestoration;
@@ -1718,11 +1718,11 @@ var SmoothScrollbar = function SmoothScrollbar(_ref) {
   React.useEffect(function () {
     var _lenis$current6, _lenis$current7;
 
-    paused ? (_lenis$current6 = lenis.current) === null || _lenis$current6 === void 0 ? void 0 : _lenis$current6.stop() : (_lenis$current7 = lenis.current) === null || _lenis$current7 === void 0 ? void 0 : _lenis$current7.start();
-  }, [paused]);
+    locked ? (_lenis$current6 = lenis.current) === null || _lenis$current6 === void 0 ? void 0 : _lenis$current6.stop() : (_lenis$current7 = lenis.current) === null || _lenis$current7 === void 0 ? void 0 : _lenis$current7.start();
+  }, [locked]);
   return /*#__PURE__*/jsxRuntime.jsx(LenisScrollbar$1, {
     ref: lenis,
-    smooth: smooth,
+    smooth: enabled,
     config: config,
     children: function children(bind) {
       return _children(_objectSpread(_objectSpread({}, bind), {}, {
