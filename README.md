@@ -1,28 +1,23 @@
 # @14islands/r3f-scroll-rig
 
+![npm](https://img.shields.io/npm/v/@14islands/r3f-scroll-rig?color=magenta&style=flat-square)
+
 Progressively enhance a React website with WebGL using `@react-three/fiber` and smooth scrolling.
 
-<table>
-<tr>
-<td>
-<ul>
-<li><a href="#features">Features</a></li>
-<li><a href="#introduction">Introduction</a></li>
-<li><a href="#installing">Installing</a></li>
-<li><a href="#getting-started">Getting Started</a></li>
-<li><a href="#examples">Examples</a></li>
-<li><a href="#api">API</a></li>
-<li><a href="#gotchas">Gotchas</a></li>
-</ul>
-</td>
-<td>
 <p align="center">
- <img width="33.6%" src="https://www.dropbox.com/s/17rrpgbw07ct4jn/scroll-rig.gif?dl=0&raw=1" />
-  <img width="50%" src="https://www.dropbox.com/s/9rja3b6a3967mjv/scroll-rig2.gif?dl=0&raw=1" /> 
+  <img width="59%" src="https://www.dropbox.com/s/9rja3b6a3967mjv/scroll-rig2.gif?dl=0&raw=1" style="float:right" />
+ <img width="40%" src="https://www.dropbox.com/s/17rrpgbw07ct4jn/scroll-rig.gif?dl=0&raw=1" style="float:right" />
 </p>
-</td>
-</tr>
-</table>
+
+
+[ <a href="#features">Features</a> |
+<a href="#introduction">Introduction</a> |
+<a href="#installing">Installing</a> |
+<a href="#getting-started">Getting Started</a> |
+<a href="#examples">Examples</a> |
+<a href="#api">API</a> |
+<a href="#gotchas">Gotchas</a> ]
+
 
 # Features
 
@@ -36,6 +31,9 @@ Progressively enhance a React website with WebGL using `@react-three/fiber` and 
 # Introduction
 
 Background: [Progressive Enhancement with WebGL and React](https://medium.com/14islands/progressive-enhancement-with-webgl-and-react-71cd19e66d4)
+
+
+![scrollrig](https://user-images.githubusercontent.com/420472/191715313-cc813f47-4e4a-454f-a2f5-d8e2ec998c95.jpeg)
 
 At the core there is a global shared canvas `GlobalCanvas` that stays in between page loads. React DOM components can choose to draw things on this canvas while they are mounted using a custom hook called `useCanvas` or the HoC `UseCanvas`.
 
@@ -123,6 +121,7 @@ How it works:
 
 - [Hello World](https://codesandbox.io/s/hello-world-ibc8y7)
 
+
 # API
 
 <table>
@@ -157,7 +156,7 @@ How it works:
 
 #### Render Props
 
-```ts
+```tsx
 <GlobalCanvas
   children // R3F global child nodes
   as?: any = Canvas
@@ -202,7 +201,7 @@ export const HomePage = () => (
 
 #### Render Props
 
-```ts
+```tsx
 <SmoothScrollbar
   children: (props) => JSX.Element // render function
   scrollRestoration?: ScrollRestoration = "auto"
@@ -233,14 +232,18 @@ It's basically just the same as using the hook but it automatically updates the 
 
 #### Render Props
 
-```ts
+```tsx
 <UseCanvas
   children: JSX.Element | (props) => JSX.Element
-  props: any[] // props tunneled to the canvas child - updates on re-render
+  props?: any[] // props tunneled to the canvas child - updates on re-render
+  id?: string   // persistent layout ID (see below)
 >
   <MyMeshComponent />
 </UseCanvas>
 ```
+
+`id` can be used to indicate that the same canvas componets is to be shared between DOM components. For instance it can prevent a mesh from unmounting when navigating to a new page, if that same mesh with the same ID is also present on the new page. This is similar to how Framer Motions layoutId works, but without the automatic layout animation. 
+
 
 ### `<ScrollScene>`
 
@@ -248,7 +251,7 @@ Tracks a DOM element and moves to match its position in the viewport.
 
 The child component is passed `scale` which can be used to match the DOM element's size. It's also passed `scrollState` which contains information regarding it's position in the viewport, this is useful for things like parallax or animations.
 
-```ts
+```tsx
 <ScrollScene
   track: RefObject            // DOM element to track (ref)
   children: (props) => JSX.Element  // render function
@@ -273,7 +276,7 @@ The child component is passed `scale` which can be used to match the DOM element
 
 The child node will be passed the following `props`:
 
-```tsx
+```ts
 track: RefObject
 scale: number[]
 scrollState: {
@@ -297,7 +300,7 @@ This makes it possible to use different lights and camera settings compared to t
 
 The child receives similar props as the ScrollScene provides.
 
-```ts
+```tsx
 <ViewportScrollScene
   track: RefObject            // DOM element to track (ref)
   children: (props) => JSX.Element  // render function
@@ -344,11 +347,11 @@ props: any[] // tunneled from the parent
 
 Use this to access the scrollbar and current scroll information.
 
-```ts
+```tsx
 import { useScrollbar } from '@14islands/r3f-scroll-rig'
 
 const {
-  enabled: boolean // True if SmoothScrollbar is enabled
+  enabled: boolean, // True if SmoothScrollbar is enabled
   scroll: {
     // transient scroll information
     y: number
@@ -357,8 +360,8 @@ const {
     velocity: number
     progress: number
     direction: string
-  }
-  scrollTo: (number | element) => void // scroll to
+  },
+  scrollTo: (number | element) => void, // scroll to
   onScroll: (cb) => unbindFunc // subscribe to scroll events
 } = useScrollbar
 ```
@@ -375,14 +378,14 @@ import { useScrollbar } from '@14islands/r3f-scroll-rig/scrollbar'
 
 Hook to access current scroll rig state and functions related to rendering.
 
-```ts
+```tsx
 import { useScrollRig } from '@14islands/r3f-scroll-rig'
 
 const {
-  isCanvasAvailable: boolean // True if webgl is enabled and GlobalCanvas has been added to the page
-  hasVirtualScrollbar: boolean // True if a smooth scrollbar is currently enabled onm the DOM content
-  scaleMultiplier: number // current viewport unit scaling = 1 by default
-  reflow: () => void  // tigger re-calculation of elements position (called automatically on resize), () => void
+  isCanvasAvailable: boolean, // True if webgl is enabled and GlobalCanvas has been added to the page
+  hasVirtualScrollbar: boolean, // True if a smooth scrollbar is currently enabled onm the DOM content
+  scaleMultiplier: number, // current viewport unit scaling = 1 by default
+  reflow: () => void, // tigger re-calculation of elements position (called automatically on resize), () => void
   debug: boolean, // whether the GloblCanvas is in debug mode or not
   // Advanced render API
   preloadScene: (scene, camera, layer, callback) => void, // request scene to do a preload render before next frame
@@ -436,7 +439,7 @@ function MyComponent() {
 
 Use this to hide DOM elements while the GlobalCanvas is active. Usually used in combination with `ScrollScene` to hide the DOM element being tracked.
 
-```ts
+```tsx
 const ref = useCanvasRef(props: {
   style?: Partial<CSSStyleDeclaration>
   className?: string
