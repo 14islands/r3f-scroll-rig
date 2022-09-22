@@ -9,7 +9,7 @@ Progressively enhance a React website with WebGL using `@react-three/fiber` and 
 <li><a href="#features">Features</a></li>
 <li><a href="#introduction">Introduction</a></li>
 <li><a href="#installing">Installing</a></li>
-<li><a href="#settingup">Setting up</a></li>
+<li><a href="#getting-started">Getting Started</a></li>
 <li><a href="#examples">Examples</a></li>
 <li><a href="#api">API</a></li>
 <li><a href="#gotchas">Gotchas</a></li>
@@ -45,7 +45,7 @@ React DOM components can use `ScrollScene` or `ViewportScrollScene` to automatic
 
 `yarn add @14islands/r3f-scroll-rig @react-three/fiber three`
 
-# Setting up
+# Getting Started
 
 1. Add `<GlobalCanvas>` to your layout. Keep it outside of your router to keep it from unmounting when navigating between pages.
 
@@ -86,21 +86,42 @@ export const HomePage = () => (
 )
 ```
 
-The scrollbar also disables pointer-events on the child components while scrolling to avoid jank from mouse events.
-
-# Getting Started
+3. Track a DOM element and render a Three.js object in its place
 
 This is a basic example of a component that tracks the DOM and use the canvas to render a WebLG mesh in its place:
+
+```jsx
+import { UseCanvas, ScrollScene } from '@14islands/r3f-scroll-rig'
+
+export const MyComponent = () => (
+  const el = useRef()
+  return (
+    <>
+      <div ref={el}>Track me!</a>
+      <UseCanvas>
+        <ScrollScene track={el}>
+          {(props) => (
+            <mesh {...props}>
+              <planeGeometry />
+              <meshBasicMaterial color="turquoise" />
+            </mesh>
+          )}
+        </ScrollScene>
+      </UseCanvas>
+  )
+)
+```
 
 How it works:
 
 - The page layout is styled using normal HTML & CSS
-- A component will use the `useCanvas` hook and pass in a `<Scrollscene>` to track a DOM element
-- Inside the `<ScrollScene>` we place a spinning 3D cube and scale it according to the DOM elements size.
+- The `UseCanvas` HoC is used to send its children to the `GlobalCanvas` while the component is mounted
+- A `<Scrollscene>` is used to track the DOM element
+- Inside the `<ScrollScene>` we place a mesh which will receive the correct scale as part of the passed down `props`
 
-Sandbox Demo:
+# Examples
 
-[![Basic demo](https://www.dropbox.com/s/n3ciejf9micax70/demo1.png?dl=0&raw=1)](https://codesandbox.io/s/scroll-rig-basic-demo-zfmf0)
+- [Hello World](https://codesandbox.io/s/hello-world-ibc8y7)
 
 # API
 
@@ -517,7 +538,13 @@ return (
 )
 ```
 
-## Advanced - render on demand
+## inViewportMargin is not working in CodeSandbox
+
+The CodeSandbox editor runs in an iframe which breaks the IntersectionObserver's `rootMargin`. If you open the example outside the iframe, you'll see it's working as intended.
+
+This is know [issue](https://github.com/thebuilder/react-intersection-observer/issues/330#issuecomment-612221114).
+
+# Advanced - render on demand
 
 If the R3F frameloop is set to `demand` - the scroll rig will make sure global renders and viewport renders only happens if it's needed.
 
