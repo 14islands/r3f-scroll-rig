@@ -544,7 +544,9 @@ This is know [issue](https://github.com/thebuilder/react-intersection-observer/i
 
 ## HMR is not working with UseCanvas children
 
-This is a known issue. You can make it work again by defining your children as top level functions instead of inlining them:
+This is a known issue with the `UseCanvas` component.
+
+You can either use the `useCanvas()` hook instead, or make HMR work again by defining your children as top level functions instead of inlining them:
 
 ```jsx
 
