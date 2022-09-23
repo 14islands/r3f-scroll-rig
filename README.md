@@ -9,7 +9,6 @@ Progressively enhance a React website with WebGL using `@react-three/fiber` and 
  <img width="40%" src="https://www.dropbox.com/s/17rrpgbw07ct4jn/scroll-rig.gif?dl=0&raw=1" style="float:right" />
 </p>
 
-
 [ <a href="#features">Features</a> |
 <a href="#introduction">Introduction</a> |
 <a href="#installing">Installing</a> |
@@ -17,7 +16,6 @@ Progressively enhance a React website with WebGL using `@react-three/fiber` and 
 <a href="#examples">Examples</a> |
 <a href="#api">API</a> |
 <a href="#gotchas">Gotchas</a> ]
-
 
 # Features
 
@@ -32,10 +30,9 @@ Progressively enhance a React website with WebGL using `@react-three/fiber` and 
 
 Background: [Progressive Enhancement with WebGL and React](https://medium.com/14islands/progressive-enhancement-with-webgl-and-react-71cd19e66d4)
 
-
 ![scrollrig](https://user-images.githubusercontent.com/420472/191715313-cc813f47-4e4a-454f-a2f5-d8e2ec998c95.jpeg)
 
-At the core there is a global shared canvas `GlobalCanvas` that stays in between page loads. React DOM components can choose to draw things on this canvas while they are mounted using a custom hook called `useCanvas` or the HoC `UseCanvas`.
+At the core there is a global shared canvas `GlobalCanvas` that stays in between page loads. React DOM components can choose to draw things on this canvas while they are mounted using a custom hook called `useCanvas` or the `UseCanvas` tunnel component.
 
 React DOM components can use `ScrollScene` or `ViewportScrollScene` to automatically track their position and draw a Three.js scene in that exact location. Everything is synched to the scrollbar position.
 
@@ -61,7 +58,7 @@ export const wrapRootElement = ({ element }) => (
 
 2. Add smooth scrolling to the DOM content
 
-In order to perfectly match the WebGL and DOM content while scrolling the page, some sort of Javascript "smooth scrolling" needs to be applied.
+We need to animate the browser scroll position in order to perfectly match the WebGL objects and DOM content.
 
 Wrap your page in `SmoothScrollbar`:
 
@@ -91,7 +88,7 @@ This is a basic example of a component that tracks the DOM and use the canvas to
 ```jsx
 import { UseCanvas, ScrollScene } from '@14islands/r3f-scroll-rig'
 
-export const MyComponent = () => (
+export const HtmlComponent = () => (
   const el = useRef()
   return (
     <>
@@ -113,14 +110,13 @@ export const MyComponent = () => (
 How it works:
 
 - The page layout is styled using normal HTML & CSS
-- The `UseCanvas` HoC is used to send its children to the `GlobalCanvas` while the component is mounted
+- The `UseCanvas` component is used to send its children to the `GlobalCanvas` while the component is mounted
 - A `<Scrollscene>` is used to track the DOM element
 - Inside the `<ScrollScene>` we place a mesh which will receive the correct scale as part of the passed down `props`
 
 # Examples
 
 - [Hello World](https://codesandbox.io/s/hello-world-ibc8y7)
-
 
 # API
 
@@ -224,7 +220,7 @@ import { SmoothScrollbar } from '@14islands/r3f-scroll-rig/scrollbar'
 
 ### `<UseCanvas>`
 
-This HoC tunnels the children to the GlobalCanvas using the `useCanvas` hook.
+This component tunnels the children to the GlobalCanvas using the `useCanvas` hook.
 
 The props added to `UseCanvas` will be tunneled to the child component inside the GlobalCanvas.
 
@@ -242,8 +238,7 @@ It's basically just the same as using the hook but it automatically updates the 
 </UseCanvas>
 ```
 
-`id` can be used to indicate that the same canvas componets is to be shared between DOM components. For instance it can prevent a mesh from unmounting when navigating to a new page, if that same mesh with the same ID is also present on the new page. This is similar to how Framer Motions layoutId works, but without the automatic layout animation. 
-
+`id` can be used to indicate that the same canvas componets is to be shared between DOM components. For instance it can prevent a mesh from unmounting when navigating to a new page, if that same mesh with the same ID is also present on the new page. This is similar to how Framer Motions layoutId works, but without the automatic layout animation.
 
 ### `<ScrollScene>`
 
@@ -546,6 +541,30 @@ return (
 The CodeSandbox editor runs in an iframe which breaks the IntersectionObserver's `rootMargin`. If you open the example outside the iframe, you'll see it's working as intended.
 
 This is know [issue](https://github.com/thebuilder/react-intersection-observer/issues/330#issuecomment-612221114).
+
+## HMR is not working with UseCanvas children
+
+This is a known issue. You can make it work again by defining your children as top level functions instead of inlining them:
+
+```jsx
+
+// HMR will work on me since I'm defined here!
+const MyScrollScene => () => (
+  <ScrollScene track={el} debug={false}>
+    ...
+  </ScrollScene>
+)
+
+function MyHtmlComponent() {
+  return (
+    <UseCanvas>
+       <MyScrollScene/>
+    </UseCanvas>
+  )
+}
+```
+
+A similar [issue](https://github.com/pmndrs/tunnel-rat/issues/4) exist in `tunnel-rat`.
 
 # Advanced - render on demand
 

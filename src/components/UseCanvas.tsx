@@ -3,7 +3,7 @@ import { useCanvas } from '../hooks/useCanvas'
 
 interface IUseCanvas {
   children: ReactElement
-  id: string // persistent layout id
+  id?: string // persistent layout id
 }
 
 const UseCanvas = forwardRef(({ children, id, ...props }: IUseCanvas, ref) => {
