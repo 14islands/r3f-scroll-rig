@@ -16,14 +16,16 @@ import { suspend } from 'suspend-react'
  *     <img src="" alt="" crossOrigin="anonymous"/>
  */
 
-// Use an ImageBitmapLoader if imageBitmaps are supported. Moves much of the
-// expensive work of uploading a texture to the GPU off the main thread.
-// Copied from: github.com/mrdoob/three.js/blob/master/examples/jsm/loaders/GLTFLoader.js#L2424
-const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent) === true
-const isFirefox = navigator.userAgent.indexOf('Firefox') > -1
-// @ts-ignore
-const firefoxVersion = isFirefox ? navigator.userAgent.match(/Firefox\/([0-9]+)\./)[1] : -1
-const useTextureLoader = typeof createImageBitmap === 'undefined' || isSafari || (isFirefox && firefoxVersion < 98)
+function useTextureLoader() {
+  // Use an ImageBitmapLoader if imageBitmaps are supported. Moves much of the
+  // expensive work of uploading a texture to the GPU off the main thread.
+  // Copied from: github.com/mrdoob/three.js/blob/master/examples/jsm/loaders/GLTFLoader.js#L2424
+  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent) === true
+  const isFirefox = navigator.userAgent.indexOf('Firefox') > -1
+  // @ts-ignore
+  const firefoxVersion = isFirefox ? navigator.userAgent.match(/Firefox\/([0-9]+)\./)[1] : -1
+  return typeof createImageBitmap === 'undefined' || isSafari || (isFirefox && firefoxVersion < 98)
+}
 
 function useImageAsTexture(
   imgRef: RefObject<HTMLImageElement>,
@@ -46,7 +48,7 @@ function useImageAsTexture(
     })
   }, [imgRef, size]) as string
 
-  const LoaderProto = useTextureLoader ? TextureLoader : ImageBitmapLoader
+  const LoaderProto = useTextureLoader() ? TextureLoader : ImageBitmapLoader
   // @ts-ignore
   const result: any = useLoader(LoaderProto, currentSrc, (loader) => {
     if (loader instanceof ImageBitmapLoader) {

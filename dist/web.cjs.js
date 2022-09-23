@@ -1452,15 +1452,17 @@ function useCanvasRef() {
  *  - NOTE: You must add the `crossOrigin` attribute
  *     <img src="" alt="" crossOrigin="anonymous"/>
  */
-// Use an ImageBitmapLoader if imageBitmaps are supported. Moves much of the
-// expensive work of uploading a texture to the GPU off the main thread.
-// Copied from: github.com/mrdoob/three.js/blob/master/examples/jsm/loaders/GLTFLoader.js#L2424
 
-var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent) === true;
-var isFirefox = navigator.userAgent.indexOf('Firefox') > -1; // @ts-ignore
+function useTextureLoader() {
+  // Use an ImageBitmapLoader if imageBitmaps are supported. Moves much of the
+  // expensive work of uploading a texture to the GPU off the main thread.
+  // Copied from: github.com/mrdoob/three.js/blob/master/examples/jsm/loaders/GLTFLoader.js#L2424
+  var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent) === true;
+  var isFirefox = navigator.userAgent.indexOf('Firefox') > -1; // @ts-ignore
 
-var firefoxVersion = isFirefox ? navigator.userAgent.match(/Firefox\/([0-9]+)\./)[1] : -1;
-var useTextureLoader = typeof createImageBitmap === 'undefined' || isSafari || isFirefox && firefoxVersion < 98;
+  var firefoxVersion = isFirefox ? navigator.userAgent.match(/Firefox\/([0-9]+)\./)[1] : -1;
+  return typeof createImageBitmap === 'undefined' || isSafari || isFirefox && firefoxVersion < 98;
+}
 
 function useImageAsTexture(imgRef) {
   var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
@@ -1490,7 +1492,7 @@ function useImageAsTexture(imgRef) {
       }
     });
   }, [imgRef, size]);
-  var LoaderProto = useTextureLoader ? three.TextureLoader : three.ImageBitmapLoader; // @ts-ignore
+  var LoaderProto = useTextureLoader() ? three.TextureLoader : three.ImageBitmapLoader; // @ts-ignore
 
   var result = fiber.useLoader(LoaderProto, currentSrc, function (loader) {
     if (loader instanceof three.ImageBitmapLoader) {

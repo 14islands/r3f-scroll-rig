@@ -5,7 +5,7 @@ import { parse } from 'query-string';
 import create from 'zustand';
 import mergeRefs from 'react-merge-refs';
 import { jsx, Fragment, jsxs } from 'react/jsx-runtime';
-import { Vector2, Color, MathUtils, Scene, ImageBitmapLoader, Texture, CanvasTexture, TextureLoader } from 'three';
+import { Vector2, Color, MathUtils, Scene, TextureLoader, ImageBitmapLoader, Texture, CanvasTexture } from 'three';
 import { shaderMaterial } from '@react-three/drei/core/shaderMaterial.js';
 import { useInView } from 'react-intersection-observer';
 import { suspend } from 'suspend-react';
@@ -1258,15 +1258,17 @@ function useCanvasRef() {
  *  - NOTE: You must add the `crossOrigin` attribute
  *     <img src="" alt="" crossOrigin="anonymous"/>
  */
-// Use an ImageBitmapLoader if imageBitmaps are supported. Moves much of the
-// expensive work of uploading a texture to the GPU off the main thread.
-// Copied from: github.com/mrdoob/three.js/blob/master/examples/jsm/loaders/GLTFLoader.js#L2424
 
-const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent) === true;
-const isFirefox = navigator.userAgent.indexOf('Firefox') > -1; // @ts-ignore
+function useTextureLoader() {
+  // Use an ImageBitmapLoader if imageBitmaps are supported. Moves much of the
+  // expensive work of uploading a texture to the GPU off the main thread.
+  // Copied from: github.com/mrdoob/three.js/blob/master/examples/jsm/loaders/GLTFLoader.js#L2424
+  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent) === true;
+  const isFirefox = navigator.userAgent.indexOf('Firefox') > -1; // @ts-ignore
 
-const firefoxVersion = isFirefox ? navigator.userAgent.match(/Firefox\/([0-9]+)\./)[1] : -1;
-const useTextureLoader = typeof createImageBitmap === 'undefined' || isSafari || isFirefox && firefoxVersion < 98;
+  const firefoxVersion = isFirefox ? navigator.userAgent.match(/Firefox\/([0-9]+)\./)[1] : -1;
+  return typeof createImageBitmap === 'undefined' || isSafari || isFirefox && firefoxVersion < 98;
+}
 
 function useImageAsTexture(imgRef) {
   let {
@@ -1292,7 +1294,7 @@ function useImageAsTexture(imgRef) {
       }
     });
   }, [imgRef, size]);
-  const LoaderProto = useTextureLoader ? TextureLoader : ImageBitmapLoader; // @ts-ignore
+  const LoaderProto = useTextureLoader() ? TextureLoader : ImageBitmapLoader; // @ts-ignore
 
   const result = useLoader(LoaderProto, currentSrc, loader => {
     if (loader instanceof ImageBitmapLoader) {
