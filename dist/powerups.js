@@ -1,11 +1,12 @@
 import { useEffect, useMemo, forwardRef, useRef } from 'react';
-import { Vector2, Color, MathUtils } from 'three';
+import { Vector2, Color } from 'three';
 import { invalidate, useThree, useFrame } from '@react-three/fiber';
 import { Text } from '@react-three/drei/core/Text.js';
 import { jsx, Fragment, jsxs } from 'react/jsx-runtime';
 import create from 'zustand';
 import { useScrollbar, useScrollRig as useScrollRig$1, useImageAsTexture, ScrollScene } from '@14islands/r3f-scroll-rig';
 import mergeRefs from 'react-merge-refs';
+import lerp from '@14islands/lerp';
 
 // Transient shared state for canvas components
 // usContext() causes re-rendering which can drop frames
@@ -535,54 +536,43 @@ const ParallaxScrollScene = _ref2 => {
 };
 var ParallaxScrollScene$1 = ParallaxScrollScene;
 
-const StickyMesh = _ref => {
+const StickyChild = _ref => {
   let {
     children,
     scrollState,
-    lerp,
     scale,
     priority,
     stickyLerp = 1.0
   } = _ref;
-  const mesh = useRef();
-  const local = useRef({
-    lerp: 1
-  }).current;
-  useFrame(() => {
+  const group = useRef();
+  const size = useThree(s => s.size);
+  useFrame((_, delta) => {
     if (!scrollState.inViewport) return; //  move to top of sticky area
 
-    const yTop = scale[1] / 2 - scale.viewportHeight * 0.5;
-    const yBottom = -scale[1] / 2 + scale.viewportHeight * 0.5;
-    const ySticky = yTop - (scrollState.viewport - 1) * scale.viewportHeight;
-    let y = mesh.current.position.y;
-    let targetLerp; // enter
+    const yTop = scale[1] * 0.5 - size.height * 0.5;
+    const yBottom = -scale[1] * 0.5 + size.height * 0.5;
+    const ySticky = yTop - (scrollState.viewport - 1) * size.height;
+    let y = group.current.position.y; // enter
 
     if (scrollState.viewport < 1) {
       y = yTop;
-      targetLerp = 1;
     } // sticky
-    else if (scrollState.viewport > 1 && scrollState.visibility < 1) {
+    else if (scrollState.visibility < 1) {
       y = ySticky;
-      targetLerp = stickyLerp;
     } // exit
     else {
-      y = yBottom; // TODO figure out soft limits
-      // const f = Math.max(1, scrollState.visibility - 1)
-      // y =  MathUtils.lerp(ySticky, yBottom, f)
-
-      targetLerp = 1;
+      y = yBottom;
     }
 
-    local.lerp = MathUtils.lerp(local.lerp, targetLerp, stickyLerp < 1 ? lerp : 1);
-    mesh.current.position.y = MathUtils.lerp(mesh.current.position.y, y, local.lerp);
-  }, priority + 1); // must happen after ScrollScene's useFrame to be buttery
+    group.current.position.y = lerp(group.current.position.y, y, stickyLerp, delta);
+  }, priority); // must happen after ScrollScene's useFrame to be buttery
 
-  return /*#__PURE__*/jsx("mesh", {
-    ref: mesh,
+  return /*#__PURE__*/jsx("group", {
+    ref: group,
     children: children
   });
 };
-const renderAsSticky = (children, _ref2) => {
+const renderAsSticky = (children, size, _ref2) => {
   let {
     stickyLerp,
     scaleToViewport
@@ -597,13 +587,10 @@ const renderAsSticky = (children, _ref2) => {
     let childScale = scale;
 
     if (scaleToViewport) {
-      childScale = { ...scale,
-        width: scale.viewportWidth,
-        height: scale.viewportHeight
-      };
+      childScale = [size.width, size.height, 1];
     }
 
-    return /*#__PURE__*/jsx(StickyMesh, {
+    return /*#__PURE__*/jsx(StickyChild, {
       scale: scale,
       stickyLerp: stickyLerp,
       ...props,
@@ -617,14 +604,26 @@ const renderAsSticky = (children, _ref2) => {
 const StickyScrollScene = _ref4 => {
   let {
     children,
+    track,
     stickyLerp,
     scaleToViewport = true,
     ...props
   } = _ref4;
+  const size = useThree(s => s.size);
+  const internalRef = useRef(track.current); // if tracked element is position:sticky, track the parent instead
+  // we want to track the progress of the entire sticky area
+
+  useMemo(() => {
+    const style = getComputedStyle(track.current);
+
+    if (style.position === 'sticky') {
+      internalRef.current = track.current.parentElement;
+    }
+  }, [track]);
   return /*#__PURE__*/jsx(ScrollScene, {
-    scissor: false,
+    track: internalRef,
     ...props,
-    children: renderAsSticky(children, {
+    children: renderAsSticky(children, size, {
       stickyLerp,
       scaleToViewport
     })

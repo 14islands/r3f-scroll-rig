@@ -20,7 +20,6 @@ var _inherits = require('@babel/runtime/helpers/inherits');
 var _possibleConstructorReturn = require('@babel/runtime/helpers/possibleConstructorReturn');
 var _getPrototypeOf = require('@babel/runtime/helpers/getPrototypeOf');
 var _slicedToArray = require('@babel/runtime/helpers/slicedToArray');
-var shaderMaterial_js = require('@react-three/drei/core/shaderMaterial.js');
 var reactIntersectionObserver = require('react-intersection-observer');
 var suspendReact = require('suspend-react');
 var debounce = require('debounce');
@@ -811,23 +810,21 @@ var GlobalCanvasIfSupported = function GlobalCanvasIfSupported(_ref2) {
 
 var GlobalCanvasIfSupported$1 = GlobalCanvasIfSupported;
 
-var DebugMaterial = shaderMaterial_js.shaderMaterial({
-  color: new three.Color(1.0, 0.0, 0.0),
-  opacity: 1
-}, // vertex shader
-" varying vec2 vUv;\n    void main() {\n      vUv = uv;\n      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n  }", // fragment shader
-"\n    uniform vec3 color;\n    uniform float opacity;\n    varying vec2 vUv;\n    void main() {\n      gl_FragColor.rgba = vec4(color, opacity);\n    }\n  ");
-fiber.extend({
-  DebugMaterial: DebugMaterial
-});
 var DebugMesh = function DebugMesh(_ref) {
   var scale = _ref.scale;
   return /*#__PURE__*/jsxRuntime.jsxs("mesh", {
     scale: scale,
-    children: [/*#__PURE__*/jsxRuntime.jsx("planeBufferGeometry", {}), /*#__PURE__*/jsxRuntime.jsx("debugMaterial", {
-      color: "hotpink",
-      transparent: true,
-      opacity: 0.5
+    children: [/*#__PURE__*/jsxRuntime.jsx("planeBufferGeometry", {}), /*#__PURE__*/jsxRuntime.jsx("shaderMaterial", {
+      args: [{
+        uniforms: {
+          color: {
+            value: new three.Color('hotpink')
+          }
+        },
+        vertexShader: "\n            void main() {\n              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n            }\n          ",
+        fragmentShader: "\n            uniform vec3 color;\n            uniform float opacity;\n            void main() {\n              gl_FragColor.rgba = vec4(color, .5);\n            }\n          "
+      }],
+      transparent: true
     })]
   });
 };
@@ -971,7 +968,11 @@ function useTracker(args) {
     return [(bounds === null || bounds === void 0 ? void 0 : bounds.width) * scaleMultiplier, (bounds === null || bounds === void 0 ? void 0 : bounds.height) * scaleMultiplier, 1];
   }, [track, size].concat(_toConsumableArray__default["default"](deps)));
   var update = React.useCallback(function () {
-    if (!track.current || !scrollState.inViewport) {
+    var _ref3 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+        _ref3$onlyUpdateInVie = _ref3.onlyUpdateInViewport,
+        onlyUpdateInViewport = _ref3$onlyUpdateInVie === void 0 ? true : _ref3$onlyUpdateInVie;
+
+    if (!track.current || onlyUpdateInViewport && !scrollState.inViewport) {
       return;
     }
 

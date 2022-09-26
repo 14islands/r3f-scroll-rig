@@ -14,6 +14,7 @@ var create = require('zustand');
 var _toConsumableArray = require('@babel/runtime/helpers/toConsumableArray');
 var r3fScrollRig = require('@14islands/r3f-scroll-rig');
 var mergeRefs = require('react-merge-refs');
+var lerp = require('@14islands/lerp');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -23,6 +24,7 @@ var _typeof__default = /*#__PURE__*/_interopDefaultLegacy(_typeof);
 var create__default = /*#__PURE__*/_interopDefaultLegacy(create);
 var _toConsumableArray__default = /*#__PURE__*/_interopDefaultLegacy(_toConsumableArray);
 var mergeRefs__default = /*#__PURE__*/_interopDefaultLegacy(mergeRefs);
+var lerp__default = /*#__PURE__*/_interopDefaultLegacy(lerp);
 
 // Transient shared state for canvas components
 // usContext() causes re-rendering which can drop frames
@@ -604,58 +606,49 @@ var ParallaxScrollScene = function ParallaxScrollScene(_ref2) {
 var ParallaxScrollScene$1 = ParallaxScrollScene;
 
 var _excluded = ["scale"],
-    _excluded2 = ["children", "stickyLerp", "scaleToViewport"];
+    _excluded2 = ["children", "track", "stickyLerp", "scaleToViewport"];
 
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
-var StickyMesh = function StickyMesh(_ref) {
+var StickyChild = function StickyChild(_ref) {
   var children = _ref.children,
       scrollState = _ref.scrollState,
-      lerp = _ref.lerp,
       scale = _ref.scale,
       priority = _ref.priority,
       _ref$stickyLerp = _ref.stickyLerp,
       stickyLerp = _ref$stickyLerp === void 0 ? 1.0 : _ref$stickyLerp;
-  var mesh = React.useRef();
-  var local = React.useRef({
-    lerp: 1
-  }).current;
-  fiber.useFrame(function () {
+  var group = React.useRef();
+  var size = fiber.useThree(function (s) {
+    return s.size;
+  });
+  fiber.useFrame(function (_, delta) {
     if (!scrollState.inViewport) return; //  move to top of sticky area
 
-    var yTop = scale[1] / 2 - scale.viewportHeight * 0.5;
-    var yBottom = -scale[1] / 2 + scale.viewportHeight * 0.5;
-    var ySticky = yTop - (scrollState.viewport - 1) * scale.viewportHeight;
-    var y = mesh.current.position.y;
-    var targetLerp; // enter
+    var yTop = scale[1] * 0.5 - size.height * 0.5;
+    var yBottom = -scale[1] * 0.5 + size.height * 0.5;
+    var ySticky = yTop - (scrollState.viewport - 1) * size.height;
+    var y = group.current.position.y; // enter
 
     if (scrollState.viewport < 1) {
       y = yTop;
-      targetLerp = 1;
     } // sticky
-    else if (scrollState.viewport > 1 && scrollState.visibility < 1) {
+    else if (scrollState.visibility < 1) {
       y = ySticky;
-      targetLerp = stickyLerp;
     } // exit
     else {
-      y = yBottom; // TODO figure out soft limits
-      // const f = Math.max(1, scrollState.visibility - 1)
-      // y =  MathUtils.lerp(ySticky, yBottom, f)
-
-      targetLerp = 1;
+      y = yBottom;
     }
 
-    local.lerp = three.MathUtils.lerp(local.lerp, targetLerp, stickyLerp < 1 ? lerp : 1);
-    mesh.current.position.y = three.MathUtils.lerp(mesh.current.position.y, y, local.lerp);
-  }, priority + 1); // must happen after ScrollScene's useFrame to be buttery
+    group.current.position.y = lerp__default["default"](group.current.position.y, y, stickyLerp, delta);
+  }, priority); // must happen after ScrollScene's useFrame to be buttery
 
-  return /*#__PURE__*/jsxRuntime.jsx("mesh", {
-    ref: mesh,
+  return /*#__PURE__*/jsxRuntime.jsx("group", {
+    ref: group,
     children: children
   });
 };
-var renderAsSticky = function renderAsSticky(children, _ref2) {
+var renderAsSticky = function renderAsSticky(children, size, _ref2) {
   var stickyLerp = _ref2.stickyLerp,
       scaleToViewport = _ref2.scaleToViewport;
   return function (_ref3) {
@@ -667,13 +660,10 @@ var renderAsSticky = function renderAsSticky(children, _ref2) {
     var childScale = scale;
 
     if (scaleToViewport) {
-      childScale = _objectSpread(_objectSpread({}, scale), {}, {
-        width: scale.viewportWidth,
-        height: scale.viewportHeight
-      });
+      childScale = [size.width, size.height, 1];
     }
 
-    return /*#__PURE__*/jsxRuntime.jsx(StickyMesh, _objectSpread(_objectSpread({
+    return /*#__PURE__*/jsxRuntime.jsx(StickyChild, _objectSpread(_objectSpread({
       scale: scale,
       stickyLerp: stickyLerp
     }, props), {}, {
@@ -685,15 +675,29 @@ var renderAsSticky = function renderAsSticky(children, _ref2) {
 };
 var StickyScrollScene = function StickyScrollScene(_ref4) {
   var children = _ref4.children,
+      track = _ref4.track,
       stickyLerp = _ref4.stickyLerp,
       _ref4$scaleToViewport = _ref4.scaleToViewport,
       scaleToViewport = _ref4$scaleToViewport === void 0 ? true : _ref4$scaleToViewport,
       props = _objectWithoutProperties__default["default"](_ref4, _excluded2);
 
+  var size = fiber.useThree(function (s) {
+    return s.size;
+  });
+  var internalRef = React.useRef(track.current); // if tracked element is position:sticky, track the parent instead
+  // we want to track the progress of the entire sticky area
+
+  React.useMemo(function () {
+    var style = getComputedStyle(track.current);
+
+    if (style.position === 'sticky') {
+      internalRef.current = track.current.parentElement;
+    }
+  }, [track]);
   return /*#__PURE__*/jsxRuntime.jsx(r3fScrollRig.ScrollScene, _objectSpread(_objectSpread({
-    scissor: false
+    track: internalRef
   }, props), {}, {
-    children: renderAsSticky(children, {
+    children: renderAsSticky(children, size, {
       stickyLerp: stickyLerp,
       scaleToViewport: scaleToViewport
     })

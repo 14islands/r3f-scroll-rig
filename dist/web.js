@@ -1,12 +1,11 @@
 import React, { useEffect, forwardRef, useMemo, useRef, useLayoutEffect, Fragment as Fragment$1, Suspense, useCallback, useState, useImperativeHandle } from 'react';
-import { useThree, invalidate, useFrame, Canvas, extend, createPortal, useLoader, addEffect } from '@react-three/fiber';
+import { useThree, invalidate, useFrame, Canvas, createPortal, useLoader, addEffect } from '@react-three/fiber';
 import { ResizeObserver } from '@juggle/resize-observer';
 import { parse } from 'query-string';
 import create from 'zustand';
 import mergeRefs from 'react-merge-refs';
 import { jsx, Fragment, jsxs } from 'react/jsx-runtime';
 import { Vector2, Color, MathUtils, Scene, TextureLoader, ImageBitmapLoader, Texture, CanvasTexture } from 'three';
-import { shaderMaterial } from '@react-three/drei/core/shaderMaterial.js';
 import { useInView } from 'react-intersection-observer';
 import { suspend } from 'suspend-react';
 import { debounce } from 'debounce';
@@ -687,36 +686,33 @@ const GlobalCanvasIfSupported = _ref2 => {
 
 var GlobalCanvasIfSupported$1 = GlobalCanvasIfSupported;
 
-const DebugMaterial = shaderMaterial({
-  color: new Color(1.0, 0.0, 0.0),
-  opacity: 1
-}, // vertex shader
-` varying vec2 vUv;
-    void main() {
-      vUv = uv;
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-  }`, // fragment shader
-`
-    uniform vec3 color;
-    uniform float opacity;
-    varying vec2 vUv;
-    void main() {
-      gl_FragColor.rgba = vec4(color, opacity);
-    }
-  `);
-extend({
-  DebugMaterial
-});
 const DebugMesh = _ref => {
   let {
     scale
   } = _ref;
   return /*#__PURE__*/jsxs("mesh", {
     scale: scale,
-    children: [/*#__PURE__*/jsx("planeBufferGeometry", {}), /*#__PURE__*/jsx("debugMaterial", {
-      color: "hotpink",
-      transparent: true,
-      opacity: 0.5
+    children: [/*#__PURE__*/jsx("planeBufferGeometry", {}), /*#__PURE__*/jsx("shaderMaterial", {
+      args: [{
+        uniforms: {
+          color: {
+            value: new Color('hotpink')
+          }
+        },
+        vertexShader: `
+            void main() {
+              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+          `,
+        fragmentShader: `
+            uniform vec3 color;
+            uniform float opacity;
+            void main() {
+              gl_FragColor.rgba = vec4(color, .5);
+            }
+          `
+      }],
+      transparent: true
     })]
   });
 };
@@ -843,8 +839,12 @@ function useTracker(args) {
   const scale = useMemo(() => {
     return [(bounds === null || bounds === void 0 ? void 0 : bounds.width) * scaleMultiplier, (bounds === null || bounds === void 0 ? void 0 : bounds.height) * scaleMultiplier, 1];
   }, [track, size, ...deps]);
-  const update = useCallback(() => {
-    if (!track.current || !scrollState.inViewport) {
+  const update = useCallback(function () {
+    let {
+      onlyUpdateInViewport = true
+    } = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+    if (!track.current || onlyUpdateInViewport && !scrollState.inViewport) {
       return;
     }
 
