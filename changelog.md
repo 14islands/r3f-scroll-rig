@@ -2,6 +2,15 @@
 
 # Changelog
 
+## v8.1.0
+
+- `useTracker` hook
+
+  - Added `threshold` prop which can used to customize the underlying Intersection Observer of the tracked DOM element
+
+- `ScrollScene` and `ViewportScrollScene`
+  - Added `inViewportThreshold` prop which is passed to `useTracker` as `threshold`
+
 ## v8.0.0
 
 Complete refactor with focus on reducing complexity.
