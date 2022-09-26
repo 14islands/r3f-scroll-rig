@@ -89,23 +89,26 @@ function useTracker(args: PropsOrElement, deps: any[] = []): ElementTracker {
     return [bounds?.width * scaleMultiplier, bounds?.height * scaleMultiplier, 1]
   }, [track, size, ...deps]) as [width: number, height: number, depth: number]
 
-  const update = useCallback(() => {
-    if (!track.current || !scrollState.inViewport) {
-      return
-    }
+  const update = useCallback(
+    ({ onlyUpdateInViewport = true } = {}) => {
+      if (!track.current || (onlyUpdateInViewport && !scrollState.inViewport)) {
+        return
+      }
 
-    position.x = (bounds.x - scroll.x) * scaleMultiplier
-    position.y = -1 * (bounds.y - scroll.y) * scaleMultiplier
-    position.top = position.y + bounds.sceneOffset.y
-    position.left = position.x + bounds.sceneOffset.x
-    position.positiveYUpBottom = size.height * 0.5 + (position.y / scaleMultiplier - bounds.height * 0.5) // inverse Y
+      position.x = (bounds.x - scroll.x) * scaleMultiplier
+      position.y = -1 * (bounds.y - scroll.y) * scaleMultiplier
+      position.top = position.y + bounds.sceneOffset.y
+      position.left = position.x + bounds.sceneOffset.x
+      position.positiveYUpBottom = size.height * 0.5 + (position.y / scaleMultiplier - bounds.height * 0.5) // inverse Y
 
-    // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
-    const pxInside = bounds.top + position.y - bounds.top + size.height - bounds.sceneOffset.y
-    scrollState.progress = MathUtils.mapLinear(pxInside, 0, size.height + bounds.height, 0, 1) // percent of total visible distance
-    scrollState.visibility = MathUtils.mapLinear(pxInside, 0, bounds.height, 0, 1) // percent of item height in view
-    scrollState.viewport = MathUtils.mapLinear(pxInside, 0, size.height, 0, 1) // percent of window height scrolled since visible
-  }, [bounds, track, size])
+      // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
+      const pxInside = bounds.top + position.y - bounds.top + size.height - bounds.sceneOffset.y
+      scrollState.progress = MathUtils.mapLinear(pxInside, 0, size.height + bounds.height, 0, 1) // percent of total visible distance
+      scrollState.visibility = MathUtils.mapLinear(pxInside, 0, bounds.height, 0, 1) // percent of item height in view
+      scrollState.viewport = MathUtils.mapLinear(pxInside, 0, size.height, 0, 1) // percent of window height scrolled since visible
+    },
+    [bounds, track, size]
+  )
 
   return {
     bounds, // HTML initial bounds

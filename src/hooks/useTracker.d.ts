@@ -19,7 +19,7 @@ export interface ElementTracker {
   scrollState: ScrollState
   position: ScrollPosition
   inViewport: Boolean
-  update: () => void
+  update: ({ onlyUpdateInViewport: boolean }) => void
 }
 
 export interface ElementTrackerProps {
