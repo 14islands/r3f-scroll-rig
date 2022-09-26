@@ -21,6 +21,7 @@ let ViewportScrollScene = ({
   children,
   margin = 0, // Margin outside viewport to avoid clipping vertex displacement (px)
   inViewportMargin,
+  inViewportThreshold,
   visible = true,
   hideOffscreen = true,
   debug = false,
@@ -42,7 +43,7 @@ let ViewportScrollScene = ({
   const scaleMultiplier = useCanvasStore((state) => state.scaleMultiplier)
 
   const { update, bounds, scale, position, scrollState, inViewport } = useTracker(
-    { track, rootMargin: inViewportMargin },
+    { track, rootMargin: inViewportMargin, threshold: inViewportThreshold },
     [pageReflow, scene]
   )
 

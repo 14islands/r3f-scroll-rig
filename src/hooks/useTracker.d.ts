@@ -25,6 +25,7 @@ export interface ElementTracker {
 export interface ElementTrackerProps {
   track: RefObject<HTMLElement>
   rootMargin?: string
+  threshold?: number
 }
 
 export type PropsOrElement = React.MutableRefObject<HTMLElement> | ElementTrackerProps

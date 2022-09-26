@@ -12,7 +12,7 @@ function isElementProps(obj: any): obj is ElementTrackerProps {
   return typeof obj === 'object' && 'track' in obj
 }
 
-const defaultArgs = { rootMargin: '50%' }
+const defaultArgs = { rootMargin: '50%', threshold: 0 }
 
 /**
  * Returns the current Scene position of the DOM element
@@ -23,10 +23,12 @@ function useTracker(args: PropsOrElement, deps: any[] = []): ElementTracker {
   const { scroll } = useScrollbar()
   const scaleMultiplier = useCanvasStore((state) => state.scaleMultiplier)
 
-  const { track, rootMargin } = isElementProps(args) ? { ...defaultArgs, ...args } : { ...defaultArgs, track: args }
+  const { track, rootMargin, threshold } = isElementProps(args)
+    ? { ...defaultArgs, ...args }
+    : { ...defaultArgs, track: args }
 
   // check if element is in viewport
-  const { ref, inView: inViewport } = useInView({ rootMargin })
+  const { ref, inView: inViewport } = useInView({ rootMargin, threshold })
 
   // bind useInView ref to current tracking element
   useLayoutEffect(() => {
