@@ -44,6 +44,7 @@
   },
   "homepage": "https://github.com/14islands/r3f-scroll-rig#readme",
   "dependencies": {
+    "@14islands/lerp": "^1.0.3",
     "@juggle/resize-observer": "^3.4.0",
     "@studio-freight/lenis": "^0.2.6",
     "@types/query-string": "^6.3.0",
