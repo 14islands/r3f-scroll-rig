@@ -744,7 +744,8 @@ function isElementProps(obj) {
 }
 
 const defaultArgs = {
-  rootMargin: '50%'
+  rootMargin: '50%',
+  threshold: 0
 };
 /**
  * Returns the current Scene position of the DOM element
@@ -760,7 +761,8 @@ function useTracker(args) {
   const scaleMultiplier = useCanvasStore(state => state.scaleMultiplier);
   const {
     track,
-    rootMargin
+    rootMargin,
+    threshold
   } = isElementProps(args) ? { ...defaultArgs,
     ...args
   } : { ...defaultArgs,
@@ -771,7 +773,8 @@ function useTracker(args) {
     ref,
     inView: inViewport
   } = useInView({
-    rootMargin
+    rootMargin,
+    threshold
   }); // bind useInView ref to current tracking element
 
   useLayoutEffect(() => {
@@ -880,6 +883,7 @@ let ScrollScene = _ref => {
     margin = 0,
     // Margin outside scissor to avoid clipping vertex displacement (px)
     inViewportMargin,
+    inViewportThreshold,
     visible = true,
     hideOffscreen = true,
     scissor = false,
@@ -910,7 +914,8 @@ let ScrollScene = _ref => {
     inViewport
   } = useTracker({
     track,
-    rootMargin: inViewportMargin
+    rootMargin: inViewportMargin,
+    threshold: inViewportThreshold
   }, [pageReflow, scene]); // Hide scene when outside of viewport if `hideOffscreen` or set to `visible` prop
 
   useLayoutEffect(() => {
@@ -985,6 +990,7 @@ let ViewportScrollScene = _ref => {
     margin = 0,
     // Margin outside viewport to avoid clipping vertex displacement (px)
     inViewportMargin,
+    inViewportThreshold,
     visible = true,
     hideOffscreen = true,
     debug = false,
@@ -1014,7 +1020,8 @@ let ViewportScrollScene = _ref => {
     inViewport
   } = useTracker({
     track,
-    rootMargin: inViewportMargin
+    rootMargin: inViewportMargin,
+    threshold: inViewportThreshold
   }, [pageReflow, scene]); // Hide scene when outside of viewport if `hideOffscreen` or set to `visible` prop
 
   useLayoutEffect(() => {

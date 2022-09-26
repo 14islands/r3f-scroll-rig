@@ -867,7 +867,8 @@ function isElementProps(obj) {
 }
 
 var defaultArgs = {
-  rootMargin: '50%'
+  rootMargin: '50%',
+  threshold: 0
 };
 /**
  * Returns the current Scene position of the DOM element
@@ -891,11 +892,13 @@ function useTracker(args) {
     track: args
   }),
       track = _ref.track,
-      rootMargin = _ref.rootMargin; // check if element is in viewport
+      rootMargin = _ref.rootMargin,
+      threshold = _ref.threshold; // check if element is in viewport
 
 
   var _useInView = reactIntersectionObserver.useInView({
-    rootMargin: rootMargin
+    rootMargin: rootMargin,
+    threshold: threshold
   }),
       ref = _useInView.ref,
       inViewport = _useInView.inView; // bind useInView ref to current tracking element
@@ -1000,7 +1003,7 @@ function useTracker(args) {
   };
 }
 
-var _excluded$3 = ["track", "children", "margin", "inViewportMargin", "visible", "hideOffscreen", "scissor", "debug", "as", "renderOrder", "priority"];
+var _excluded$3 = ["track", "children", "margin", "inViewportMargin", "inViewportThreshold", "visible", "hideOffscreen", "scissor", "debug", "as", "renderOrder", "priority"];
 
 function ownKeys$5(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
@@ -1012,6 +1015,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
       _ref$margin = _ref.margin,
       margin = _ref$margin === void 0 ? 0 : _ref$margin,
       inViewportMargin = _ref.inViewportMargin,
+      inViewportThreshold = _ref.inViewportThreshold,
       _ref$visible = _ref.visible,
       visible = _ref$visible === void 0 ? true : _ref$visible,
       _ref$hideOffscreen = _ref.hideOffscreen,
@@ -1052,7 +1056,8 @@ exports.ScrollScene = function ScrollScene(_ref) {
 
   var _useTracker = useTracker({
     track: track,
-    rootMargin: inViewportMargin
+    rootMargin: inViewportMargin,
+    threshold: inViewportThreshold
   }, [pageReflow, scene]),
       update = _useTracker.update,
       bounds = _useTracker.bounds,
@@ -1123,7 +1128,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
 
 exports.ScrollScene = /*#__PURE__*/React__default["default"].memo(exports.ScrollScene);
 
-var _excluded$2 = ["track", "children", "margin", "inViewportMargin", "visible", "hideOffscreen", "debug", "orthographic", "renderOrder", "priority"];
+var _excluded$2 = ["track", "children", "margin", "inViewportMargin", "inViewportThreshold", "visible", "hideOffscreen", "debug", "orthographic", "renderOrder", "priority"];
 
 function ownKeys$4(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
@@ -1135,6 +1140,7 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
       _ref$margin = _ref.margin,
       margin = _ref$margin === void 0 ? 0 : _ref$margin,
       inViewportMargin = _ref.inViewportMargin,
+      inViewportThreshold = _ref.inViewportThreshold,
       _ref$visible = _ref.visible,
       visible = _ref$visible === void 0 ? true : _ref$visible,
       _ref$hideOffscreen = _ref.hideOffscreen,
@@ -1174,7 +1180,8 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
 
   var _useTracker = useTracker({
     track: track,
-    rootMargin: inViewportMargin
+    rootMargin: inViewportMargin,
+    threshold: inViewportThreshold
   }, [pageReflow, scene]),
       update = _useTracker.update,
       bounds = _useTracker.bounds,
