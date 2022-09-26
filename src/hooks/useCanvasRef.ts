@@ -7,10 +7,13 @@ import useHideElementWhileMounted from '../hooks/useHideElementWhileMounted'
  *
  * Creates an HTMLElement ref and applies CSS styles and/or a classname while the the component is mounted
  */
-function useCanvasRef({ style, className }: { style?: Partial<CSSStyleDeclaration>; className?: string } = {}) {
+function useCanvasRef<T extends HTMLElement>({
+  style,
+  className,
+}: { style?: Partial<CSSStyleDeclaration>; className?: string } = {}) {
   const isCanvasAvailable = useCanvasStore((s) => s.isCanvasAvailable)
   const debug = useCanvasStore((s) => s.debug)
-  const ref = useRef<HTMLElement>(null)
+  const ref = useRef<T>(null)
 
   // Apply hidden styles/classname to DOM element
   useHideElementWhileMounted(ref, [isCanvasAvailable], { debug, style, className })
