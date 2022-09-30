@@ -314,7 +314,7 @@ The child receives similar props as the ScrollScene provides.
       <meshBasicMaterial color="turquoise" />
     </mesh>
   )}
-</ScrollScene>
+</ViewportScrollScene>
 ```
 
 The child node will be passed the following `props`:
