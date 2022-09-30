@@ -1,3 +1,4 @@
+import { vec3 } from 'vecn'
 export interface ScrollState {
   inViewport: boolean
   progress: number
@@ -5,27 +6,35 @@ export interface ScrollState {
   viewport: number
 }
 
-export interface ScrollPosition {
+export type Rect = {
+  top: number
+  bottom: number
+  left: number
+  right: number
+  width: number
+  height: number
   x: number
   y: number
-  top: number
-  left: number
+}
+export type Bounds = Rect & {
   positiveYUpBottom: number
 }
 
 export interface ElementTracker {
-  bounds: { top: number; bottom: number; left: number; right: number; width: number; height: number }
-  scale: [width: number, height: number, depth: number]
+  rect: Rect
+  bounds: Bounds
+  scale: vec3
   scrollState: ScrollState
-  position: ScrollPosition
+  position: vec3
   inViewport: Boolean
-  update: ({ onlyUpdateInViewport: boolean }) => void
+  update: () => void
 }
 
 export interface ElementTrackerProps {
   track: RefObject<HTMLElement>
   rootMargin?: string
   threshold?: number
+  autoUpdate?: boolean
 }
 
 export type PropsOrElement = React.MutableRefObject<HTMLElement> | ElementTrackerProps
