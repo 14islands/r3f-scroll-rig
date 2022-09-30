@@ -37,13 +37,13 @@ let ScrollScene = ({
 
   const [scene, setScene] = useState(scissor ? new Scene() : null)
   const { requestRender, renderScissor } = useScrollRig()
-  const pageReflow = useCanvasStore((state) => state.pageReflow)
   const globalRender = useCanvasStore((state) => state.globalRender)
 
-  const { update, bounds, scale, position, scrollState, inViewport } = useTracker(
-    { track, rootMargin: inViewportMargin, threshold: inViewportThreshold },
-    [pageReflow, scene]
-  )
+  const { bounds, scale, position, scrollState, inViewport } = useTracker({
+    track,
+    rootMargin: inViewportMargin,
+    threshold: inViewportThreshold,
+  })
 
   // Hide scene when outside of viewport if `hideOffscreen` or set to `visible` prop
   useLayoutEffect(() => {
@@ -54,9 +54,6 @@ let ScrollScene = ({
   useFrame(
     ({ gl, camera }) => {
       if (!scene || !scale) return
-
-      // update element tracker
-      update()
 
       if (scene.visible) {
         // move scene
@@ -69,7 +66,7 @@ let ScrollScene = ({
             scene,
             camera,
             left: bounds.left - margin,
-            top: position.positiveYUpBottom - margin,
+            top: bounds.positiveYUpBottom - margin,
             width: bounds.width + margin * 2,
             height: bounds.height + margin * 2,
           })

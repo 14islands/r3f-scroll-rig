@@ -33,7 +33,7 @@ const useCanvasStore = create(set => ({
   // true if WebGL initialized without errors
   isCanvasAvailable: true,
   // true if <VirtualScrollbar> is currently enabled
-  hasVirtualScrollbar: false,
+  hasSmoothScrollbar: false,
   // map of all components to render on the global canvas
   canvasChildren: {},
   // add component to canvas
@@ -159,14 +159,13 @@ const useCanvasStore = create(set => ({
 /**
  * Public interface for ScrollRig
  */
-
 const useScrollbar = () => {
-  const hasVirtualScrollbar = useCanvasStore(state => state.hasVirtualScrollbar);
+  const hasSmoothScrollbar = useCanvasStore(state => state.hasSmoothScrollbar);
   const scroll = useCanvasStore(state => state.scroll);
   const scrollTo = useCanvasStore(state => state.scrollTo);
   const onScroll = useCanvasStore(state => state.onScroll);
   return {
-    enabled: hasVirtualScrollbar,
+    enabled: hasSmoothScrollbar,
     scroll,
     scrollTo,
     onScroll

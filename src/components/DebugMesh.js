@@ -4,7 +4,7 @@ import { Color } from 'three'
 
 export const DebugMesh = ({ scale }) => (
   <mesh scale={scale}>
-    <planeBufferGeometry />
+    <planeGeometry />
     <shaderMaterial
       args={[
         {

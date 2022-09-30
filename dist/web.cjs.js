@@ -21,6 +21,7 @@ var _possibleConstructorReturn = require('@babel/runtime/helpers/possibleConstru
 var _getPrototypeOf = require('@babel/runtime/helpers/getPrototypeOf');
 var _slicedToArray = require('@babel/runtime/helpers/slicedToArray');
 var reactIntersectionObserver = require('react-intersection-observer');
+var vecn = require('vecn');
 var suspendReact = require('suspend-react');
 var debounce = require('debounce');
 var Lenis = require('@studio-freight/lenis');
@@ -84,7 +85,7 @@ var useCanvasStore = create__default["default"](function (set) {
     // true if WebGL initialized without errors
     isCanvasAvailable: true,
     // true if <VirtualScrollbar> is currently enabled
-    hasVirtualScrollbar: false,
+    hasSmoothScrollbar: false,
     // map of all components to render on the global canvas
     canvasChildren: {},
     // add component to canvas
@@ -489,8 +490,8 @@ var useScrollRig = function useScrollRig() {
   var isCanvasAvailable = useCanvasStore(function (state) {
     return state.isCanvasAvailable;
   });
-  var hasVirtualScrollbar = useCanvasStore(function (state) {
-    return state.hasVirtualScrollbar;
+  var hasSmoothScrollbar = useCanvasStore(function (state) {
+    return state.hasSmoothScrollbar;
   });
   var requestReflow = useCanvasStore(function (state) {
     return state.requestReflow;
@@ -513,7 +514,7 @@ var useScrollRig = function useScrollRig() {
     // boolean state
     debug: debug,
     isCanvasAvailable: isCanvasAvailable,
-    hasVirtualScrollbar: hasVirtualScrollbar,
+    hasSmoothScrollbar: hasSmoothScrollbar,
     // scale
     scaleMultiplier: scaleMultiplier,
     // render API
@@ -814,7 +815,7 @@ var DebugMesh = function DebugMesh(_ref) {
   var scale = _ref.scale;
   return /*#__PURE__*/jsxRuntime.jsxs("mesh", {
     scale: scale,
-    children: [/*#__PURE__*/jsxRuntime.jsx("planeBufferGeometry", {}), /*#__PURE__*/jsxRuntime.jsx("shaderMaterial", {
+    children: [/*#__PURE__*/jsxRuntime.jsx("planeGeometry", {}), /*#__PURE__*/jsxRuntime.jsx("shaderMaterial", {
       args: [{
         uniforms: {
           color: {
@@ -833,10 +834,9 @@ var DebugMesh$1 = DebugMesh;
 /**
  * Public interface for ScrollRig
  */
-
 var useScrollbar = function useScrollbar() {
-  var hasVirtualScrollbar = useCanvasStore(function (state) {
-    return state.hasVirtualScrollbar;
+  var hasSmoothScrollbar = useCanvasStore(function (state) {
+    return state.hasSmoothScrollbar;
   });
   var scroll = useCanvasStore(function (state) {
     return state.scroll;
@@ -848,7 +848,7 @@ var useScrollbar = function useScrollbar() {
     return state.onScroll;
   });
   return {
-    enabled: hasVirtualScrollbar,
+    enabled: hasSmoothScrollbar,
     scroll: scroll,
     scrollTo: scrollTo,
     onScroll: onScroll
@@ -863,9 +863,28 @@ function isElementProps(obj) {
   return _typeof__default["default"](obj) === 'object' && 'track' in obj;
 }
 
+function updateBounds(bounds, rect, scroll, size) {
+  bounds.top = rect.top - scroll.y;
+  bounds.bottom = rect.bottom - scroll.y;
+  bounds.left = rect.left - scroll.x;
+  bounds.right = rect.right - scroll.x;
+  bounds.width = rect.width;
+  bounds.height = rect.height; // move coordinate system so 0,0 is at center of screen
+
+  bounds.x = bounds.left + rect.width * 0.5 - size.width * 0.5;
+  bounds.y = bounds.top + rect.height * 0.5 - size.height * 0.5;
+  bounds.positiveYUpBottom = size.height - bounds.bottom; // inverse Y
+}
+
+function updatePosition(position, bounds, scaleMultiplier) {
+  position.x = bounds.x * scaleMultiplier;
+  position.y = -1 * bounds.y * scaleMultiplier;
+}
+
 var defaultArgs = {
   rootMargin: '50%',
-  threshold: 0
+  threshold: 0,
+  autoUpdate: true
 };
 /**
  * Returns the current Scene position of the DOM element
@@ -879,10 +898,14 @@ function useTracker(args) {
   });
 
   var _useScrollbar = useScrollbar(),
-      scroll = _useScrollbar.scroll;
+      scroll = _useScrollbar.scroll,
+      onScroll = _useScrollbar.onScroll;
 
   var scaleMultiplier = useCanvasStore(function (state) {
     return state.scaleMultiplier;
+  });
+  var pageReflow = useCanvasStore(function (state) {
+    return state.pageReflow;
   });
 
   var _ref = isElementProps(args) ? _objectSpread$6(_objectSpread$6({}, defaultArgs), args) : _objectSpread$6(_objectSpread$6({}, defaultArgs), {}, {
@@ -890,7 +913,8 @@ function useTracker(args) {
   }),
       track = _ref.track,
       rootMargin = _ref.rootMargin,
-      threshold = _ref.threshold; // check if element is in viewport
+      threshold = _ref.threshold,
+      autoUpdate = _ref.autoUpdate; // check if element is in viewport
 
 
   var _useInView = reactIntersectionObserver.useInView({
@@ -903,103 +927,105 @@ function useTracker(args) {
 
   React.useLayoutEffect(function () {
     ref(track.current);
-  }, [track]); // cache the return object
-
-  var position = React.useRef({
-    x: 0,
-    // exact position on page
-    y: 0,
-    // exact position on page
-    top: 0,
-    left: 0,
-    positiveYUpBottom: 0
-  }).current;
+  }, [track]);
   var scrollState = React.useRef({
     inViewport: false,
     progress: -1,
     visibility: -1,
     viewport: -1
-  }).current;
-  React.useLayoutEffect(function () {
-    scrollState.inViewport = inViewport;
-  }, [inViewport]); // DOM rect bounds
+  }).current; // DOM rect (initial position in pixels offset by scroll value on page load)
 
-  var bounds = React.useMemo(function () {
+  var rect = React.useMemo(function () {
     var _track$current;
 
-    var _ref2 = ((_track$current = track.current) === null || _track$current === void 0 ? void 0 : _track$current.getBoundingClientRect()) || {},
-        top = _ref2.top,
-        bottom = _ref2.bottom,
-        left = _ref2.left,
-        right = _ref2.right,
-        width = _ref2.width,
-        height = _ref2.height; // Offset to Threejs scene which has 0,0 in the center of the screen
-
-
-    var sceneOffset = {
-      x: size.width * 0.5 - width * 0.5,
-      y: size.height * 0.5 - height * 0.5
+    var rect = ((_track$current = track.current) === null || _track$current === void 0 ? void 0 : _track$current.getBoundingClientRect()) || {};
+    var top = rect.top + window.scrollY;
+    var left = rect.left + window.scrollX;
+    return {
+      top: top,
+      bottom: rect.bottom + window.scrollY,
+      left: left,
+      right: rect.right + window.scrollX,
+      width: rect.width,
+      height: rect.width,
+      x: left + rect.width * 0.5,
+      y: top + rect.height * 0.5
     };
-    var bounds = {
-      top: top + window.scrollY,
-      bottom: bottom + window.scrollY,
-      left: left + window.scrollX,
-      right: right + window.scrollX,
-      width: width,
-      height: height,
-      sceneOffset: sceneOffset,
-      x: left + window.scrollX - sceneOffset.x,
-      // 0 middle of screen
-      y: top + window.scrollY - sceneOffset.y // 0 middle of screen
+  }, [track, size, pageReflow].concat(_toConsumableArray__default["default"](deps))); // bounding rect in pixels - updated by scroll
 
-    }; // update position
+  var bounds = React.useMemo(function () {
+    var bounds = _objectSpread$6(_objectSpread$6({}, rect), {}, {
+      positiveYUpBottom: 0
+    });
 
-    position.x = ((bounds === null || bounds === void 0 ? void 0 : bounds.x) - window.scrollX) * scaleMultiplier; // exact position
-
-    position.y = -1 * ((bounds === null || bounds === void 0 ? void 0 : bounds.y) - window.scrollY) * scaleMultiplier; // exact position
-
-    position.top = position.y + bounds.sceneOffset.y;
-    position.left = position.x + bounds.sceneOffset.x;
-    position.positiveYUpBottom = 0;
+    updateBounds(bounds, rect, scroll, size);
     return bounds;
-  }, [track, size, scaleMultiplier].concat(_toConsumableArray__default["default"](deps))); // scale in viewport units and pixel
+  }, []); // position in viewport units - updated by scroll
+
+  var position = React.useMemo(function () {
+    var position = vecn.vec3(0, 0, 0);
+    updatePosition(position, bounds, scaleMultiplier);
+    return position;
+  }, []); // scale in viewport units
 
   var scale = React.useMemo(function () {
-    return [(bounds === null || bounds === void 0 ? void 0 : bounds.width) * scaleMultiplier, (bounds === null || bounds === void 0 ? void 0 : bounds.height) * scaleMultiplier, 1];
-  }, [track, size].concat(_toConsumableArray__default["default"](deps)));
-  var update = React.useCallback(function () {
-    var _ref3 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
-        _ref3$onlyUpdateInVie = _ref3.onlyUpdateInViewport,
-        onlyUpdateInViewport = _ref3$onlyUpdateInVie === void 0 ? true : _ref3$onlyUpdateInVie;
+    return vecn.vec3((rect === null || rect === void 0 ? void 0 : rect.width) * scaleMultiplier, (rect === null || rect === void 0 ? void 0 : rect.height) * scaleMultiplier, 1);
+  }, [rect, scaleMultiplier]);
+
+  var _update = React.useCallback(function () {
+    var _ref2 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+        _ref2$onlyUpdateInVie = _ref2.onlyUpdateInViewport,
+        onlyUpdateInViewport = _ref2$onlyUpdateInVie === void 0 ? true : _ref2$onlyUpdateInVie;
 
     if (!track.current || onlyUpdateInViewport && !scrollState.inViewport) {
       return;
     }
 
-    position.x = (bounds.x - scroll.x) * scaleMultiplier;
-    position.y = -1 * (bounds.y - scroll.y) * scaleMultiplier;
-    position.top = position.y + bounds.sceneOffset.y;
-    position.left = position.x + bounds.sceneOffset.x;
-    position.positiveYUpBottom = size.height * 0.5 + (position.y / scaleMultiplier - bounds.height * 0.5); // inverse Y
-    // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
+    updateBounds(bounds, rect, scroll, size);
+    updatePosition(position, bounds, scaleMultiplier); // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
 
-    var pxInside = bounds.top + position.y - bounds.top + size.height - bounds.sceneOffset.y;
+    var pxInside = size.height - bounds.top;
     scrollState.progress = three.MathUtils.mapLinear(pxInside, 0, size.height + bounds.height, 0, 1); // percent of total visible distance
 
     scrollState.visibility = three.MathUtils.mapLinear(pxInside, 0, bounds.height, 0, 1); // percent of item height in view
 
     scrollState.viewport = three.MathUtils.mapLinear(pxInside, 0, size.height, 0, 1); // percent of window height scrolled since visible
-  }, [bounds, track, size]);
+  }, [position, bounds, size, rect, scaleMultiplier, scroll]); // update scrollState in viewport
+
+
+  React.useLayoutEffect(function () {
+    scrollState.inViewport = inViewport;
+  }, [inViewport]); // re-run if the callback updated
+
+  React.useLayoutEffect(function () {
+    _update({
+      onlyUpdateInViewport: false
+    });
+  }, [_update]); // auto-update on scroll
+
+  React.useEffect(function () {
+    if (autoUpdate) return onScroll(function (_scroll) {
+      return _update();
+    });
+  }, [autoUpdate, _update, onScroll]);
   return {
+    rect: rect,
+    // Dom rect - doesn't change on scroll - reactive
     bounds: bounds,
-    // HTML initial bounds
+    // scrolled bounding rect in pixels - not reactive
     scale: scale,
-    // Scene scale - includes z-axis so it can be spread onto mesh directly
-    scrollState: scrollState,
+    // reactive scene scale - includes z-axis so it can be spread onto mesh directly
     position: position,
-    // get current Scene position with scroll taken into account
+    // scrolled element position in viewport units - not reactive
+    scrollState: scrollState,
+    // scroll progress stats - not reactive
     inViewport: inViewport,
-    update: update // call in rAF to update with latest scroll position
+    // reactive prop for when inside viewport
+    update: function update() {
+      return _update({
+        onlyUpdateInViewport: false
+      });
+    } // optional manual update
 
   };
 }
@@ -1048,9 +1074,6 @@ exports.ScrollScene = function ScrollScene(_ref) {
       requestRender = _useScrollRig.requestRender,
       renderScissor = _useScrollRig.renderScissor;
 
-  var pageReflow = useCanvasStore(function (state) {
-    return state.pageReflow;
-  });
   var globalRender = useCanvasStore(function (state) {
     return state.globalRender;
   });
@@ -1059,8 +1082,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
     track: track,
     rootMargin: inViewportMargin,
     threshold: inViewportThreshold
-  }, [pageReflow, scene]),
-      update = _useTracker.update,
+  }),
       bounds = _useTracker.bounds,
       scale = _useTracker.scale,
       position = _useTracker.position,
@@ -1075,9 +1097,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
   fiber.useFrame(function (_ref2) {
     var gl = _ref2.gl,
         camera = _ref2.camera;
-    if (!scene || !scale) return; // update element tracker
-
-    update();
+    if (!scene || !scale) return;
 
     if (scene.visible) {
       // move scene
@@ -1090,7 +1110,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
           scene: scene,
           camera: camera,
           left: bounds.left - margin,
-          top: position.positiveYUpBottom - margin,
+          top: bounds.positiveYUpBottom - margin,
           width: bounds.width + margin * 2,
           height: bounds.height + margin * 2
         });
@@ -1169,9 +1189,6 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
   var _useScrollRig = useScrollRig(),
       renderViewport = _useScrollRig.renderViewport;
 
-  var _useScrollbar = useScrollbar(),
-      scroll = _useScrollbar.scroll;
-
   var pageReflow = useCanvasStore(function (state) {
     return state.pageReflow;
   });
@@ -1183,8 +1200,8 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
     track: track,
     rootMargin: inViewportMargin,
     threshold: inViewportThreshold
-  }, [pageReflow, scene]),
-      update = _useTracker.update,
+  }),
+      rect = _useTracker.rect,
       bounds = _useTracker.bounds,
       scale = _useTracker.scale,
       position = _useTracker.position,
@@ -1203,10 +1220,10 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
 
 
   React.useLayoutEffect(function () {
-    var viewportWidth = bounds.width * scaleMultiplier;
-    var viewportHeight = bounds.height * scaleMultiplier;
+    var viewportWidth = rect.width * scaleMultiplier;
+    var viewportHeight = rect.height * scaleMultiplier;
     var cameraDistance = Math.max(viewportWidth, viewportHeight);
-    setCameraDistance(cameraDistance); // Calculate FOV to match the DOM bounds for this camera distance
+    setCameraDistance(cameraDistance); // Calculate FOV to match the DOM rect for this camera distance
 
     if (camera.current && !orthographic) {
       camera.current.aspect = (viewportWidth + margin * 2 * scaleMultiplier) / (viewportHeight + margin * 2 * scaleMultiplier);
@@ -1219,7 +1236,7 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
 
 
     fiber.invalidate();
-  }, [track, pageReflow, bounds, scaleMultiplier]);
+  }, [track, pageReflow, rect, scaleMultiplier]);
   var compute = React__default["default"].useCallback(function (event, state) {
     // limit events to DOM element bounds
     if (track.current && event.target === track.current) {
@@ -1229,8 +1246,8 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
           top = bounds.top;
       var mWidth = width + margin * 2;
       var mHeight = height + margin * 2;
-      var x = event.clientX - left + margin + scroll.x;
-      var y = event.clientY - top + margin + scroll.y;
+      var x = event.clientX - left + margin;
+      var y = event.clientY - top + margin;
       state.pointer.set(x / mWidth * 2 - 1, -(y / mHeight) * 2 + 1);
       state.raycaster.setFromCamera(state.pointer, camera.current);
     }
@@ -1247,9 +1264,7 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
 
   fiber.useFrame(function (_ref2) {
     var gl = _ref2.gl;
-    if (!scene || !scale) return; // update element tracker
-
-    update(); // Render scene to viewport using local camera and limit updates using scissor test
+    if (!scene || !scale) return; // Render scene to viewport using local camera and limit updates using scissor test
     // Performance improvement - faster than always rendering full canvas
 
     if (scene.visible) {
@@ -1258,7 +1273,7 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
         scene: scene,
         camera: camera.current,
         left: bounds.left - margin,
-        top: position.positiveYUpBottom - margin,
+        top: bounds.positiveYUpBottom - margin,
         width: bounds.width + margin * 2,
         height: bounds.height + margin * 2
       });
@@ -1308,8 +1323,8 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
       priority: priority
     },
     size: {
-      width: bounds.width,
-      height: bounds.height
+      width: rect.width,
+      height: rect.height
     }
   });
 };
@@ -1624,6 +1639,8 @@ var SmoothScrollbar = function SmoothScrollbar(_ref) {
       scrollRestoration = _ref$scrollRestoratio === void 0 ? 'auto' : _ref$scrollRestoratio,
       _ref$disablePointerOn = _ref.disablePointerOnScroll,
       disablePointerOnScroll = _ref$disablePointerOn === void 0 ? true : _ref$disablePointerOn,
+      _ref$horizontal = _ref.horizontal,
+      horizontal = _ref$horizontal === void 0 ? false : _ref$horizontal,
       config = _ref.config;
   var ref = React.useRef();
   var lenis = React.useRef();
@@ -1705,7 +1722,7 @@ var SmoothScrollbar = function SmoothScrollbar(_ref) {
 
     document.documentElement.classList.toggle('js-has-smooth-scrollbar', enabled);
     useCanvasStore.setState({
-      hasVirtualScrollbar: enabled
+      hasSmoothScrollbar: enabled
     }); // make sure R3F loop is invalidated when scrolling
 
     var invalidateOnWheelEvent = function invalidateOnWheelEvent() {
@@ -1733,6 +1750,7 @@ var SmoothScrollbar = function SmoothScrollbar(_ref) {
   return /*#__PURE__*/jsxRuntime.jsx(LenisScrollbar$1, {
     ref: lenis,
     smooth: enabled,
+    direction: horizontal ? 'horizontal' : 'vertical',
     config: config,
     children: function children(bind) {
       return _children(_objectSpread(_objectSpread({}, bind), {}, {

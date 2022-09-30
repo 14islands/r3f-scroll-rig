@@ -8,7 +8,7 @@ import { preloadScene, requestRender, renderScissor, renderViewport } from '../r
  */
 export const useScrollRig = () => {
   const isCanvasAvailable = useCanvasStore((state) => state.isCanvasAvailable)
-  const hasVirtualScrollbar = useCanvasStore((state) => state.hasVirtualScrollbar)
+  const hasSmoothScrollbar = useCanvasStore((state) => state.hasSmoothScrollbar)
   const requestReflow = useCanvasStore((state) => state.requestReflow)
   const debug = useCanvasStore((state) => state.debug)
   const scaleMultiplier = useCanvasStore((state) => state.scaleMultiplier)
@@ -26,7 +26,7 @@ export const useScrollRig = () => {
     // boolean state
     debug,
     isCanvasAvailable,
-    hasVirtualScrollbar,
+    hasSmoothScrollbar,
     // scale
     scaleMultiplier,
     // render API

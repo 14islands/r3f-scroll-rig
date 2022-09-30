@@ -1,6 +1,14 @@
 # Changelog
 
-# Changelog
+## v8.3.0
+
+- `useTracker` hook
+
+  - Added `autoUpdate` configuration which decides if the tracker automatically updates on scroll events. True by default.
+  - The `update` callback will now always recalculate positions even if element is outside viewport in case user wants to turn off autUpdate and take control.
+
+- `SmoothScrollbar`
+  - Added `horizontal` prop
 
 ## v8.1.0
 

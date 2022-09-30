@@ -116,7 +116,10 @@ How it works:
 
 # Examples
 
-- [Hello World](https://codesandbox.io/s/hello-world-ibc8y7)
+- [Hello World - basic ScrollScene](https://codesandbox.io/s/hello-world-ibc8y7)
+- [Load image from the DOM](https://codesandbox.io/s/load-image-from-dom-n120ll?file=/src/App.jsx)
+- [Load responsive picture from the DOM](https://codesandbox.io/s/load-responsive-picture-from-dom-rgcx4b?file=/src/styles.css)
+- [Events from both DOM & Canvas](https://codesandbox.io/s/event-source-demo-w4wfyw)
 
 # API
 
@@ -378,7 +381,7 @@ import { useScrollRig } from '@14islands/r3f-scroll-rig'
 
 const {
   isCanvasAvailable: boolean, // True if webgl is enabled and GlobalCanvas has been added to the page
-  hasVirtualScrollbar: boolean, // True if a smooth scrollbar is currently enabled onm the DOM content
+  hasSmoothScrollbar: boolean, // True if a smooth scrollbar is currently enabled onm the DOM content
   scaleMultiplier: number, // current viewport unit scaling = 1 by default
   reflow: () => void, // tigger re-calculation of elements position (called automatically on resize), () => void
   debug: boolean, // whether the GloblCanvas is in debug mode or not
@@ -517,9 +520,9 @@ Some effects like the Bloom also become heavy with large viewport dimensions so 
 
 Note: `ViewportScrollScene` will not be affected by global postprocessing effects since it runs in a separate render pass.
 
-## Can I use R3F events in `<ViewportScrollScene>`?
+## Can I use events from both DOM and R3F?
 
-Yes, events can be tunneled. You need to re-attach the event system to a parent of the canvas for this to work:
+Yes, you need to re-attach the event system to a parent of the canvas for this to work:
 
 ```tsx
 const ref = useRef()
@@ -535,6 +538,10 @@ return (
   </div>
 )
 ```
+
+## Can I use R3F events in `<ViewportScrollScene>`?
+
+Yes, events will be correctly tunneled into the viewport, if you follow the steps above to re-attach the event system to a parent of the canvas.
 
 ## inViewportMargin is not working in CodeSandbox
 

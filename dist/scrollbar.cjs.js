@@ -60,7 +60,7 @@ var useCanvasStore = create__default["default"](function (set) {
     // true if WebGL initialized without errors
     isCanvasAvailable: true,
     // true if <VirtualScrollbar> is currently enabled
-    hasVirtualScrollbar: false,
+    hasSmoothScrollbar: false,
     // map of all components to render on the global canvas
     canvasChildren: {},
     // add component to canvas
@@ -181,10 +181,9 @@ var useCanvasStore = create__default["default"](function (set) {
 /**
  * Public interface for ScrollRig
  */
-
 var useScrollbar = function useScrollbar() {
-  var hasVirtualScrollbar = useCanvasStore(function (state) {
-    return state.hasVirtualScrollbar;
+  var hasSmoothScrollbar = useCanvasStore(function (state) {
+    return state.hasSmoothScrollbar;
   });
   var scroll = useCanvasStore(function (state) {
     return state.scroll;
@@ -196,7 +195,7 @@ var useScrollbar = function useScrollbar() {
     return state.onScroll;
   });
   return {
-    enabled: hasVirtualScrollbar,
+    enabled: hasSmoothScrollbar,
     scroll: scroll,
     scrollTo: scrollTo,
     onScroll: onScroll

@@ -13,6 +13,7 @@ interface ISmoothScrobbar {
   locked?: boolean
   disablePointerOnScroll?: boolean
   config?: object
+  horizontal?: boolean
 }
 
 export const SmoothScrollbar = ({
@@ -21,6 +22,7 @@ export const SmoothScrollbar = ({
   locked = false,
   scrollRestoration = 'auto',
   disablePointerOnScroll = true,
+  horizontal = false,
   config,
 }: ISmoothScrobbar) => {
   const ref = useRef<HTMLElement>()
@@ -83,7 +85,7 @@ export const SmoothScrollbar = ({
 
     // Set active
     document.documentElement.classList.toggle('js-has-smooth-scrollbar', enabled)
-    useCanvasStore.setState({ hasVirtualScrollbar: enabled })
+    useCanvasStore.setState({ hasSmoothScrollbar: enabled })
 
     // make sure R3F loop is invalidated when scrolling
     const invalidateOnWheelEvent = () => invalidate()
@@ -108,8 +110,8 @@ export const SmoothScrollbar = ({
   }, [locked])
 
   return (
-    <LenisScrollbar ref={lenis} smooth={enabled} config={config}>
-      {/* Use functio child so we can spread props
+    <LenisScrollbar ref={lenis} smooth={enabled} direction={horizontal ? 'horizontal' : 'vertical'} config={config}>
+      {/* Use function child so we can spread props
         - for instance disable pointer events while scrolling */}
       {(bind: any) => children({ ...bind, ref })}
     </LenisScrollbar>

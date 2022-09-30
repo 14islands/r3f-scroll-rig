@@ -12,7 +12,7 @@ interface ScrollRigStore {
   globalClearDepth: boolean
   globalRenderQueue: boolean
   isCanvasAvailable: boolean
-  hasVirtualScrollbar: boolean
+  hasSmoothScrollbar: boolean
   canvasChildren: Record<string, any | undefined>
   updateCanvas: (key: string, newProps: any) => void
   renderToCanvas: (key: string, mesh: any, props: any) => void
@@ -50,7 +50,7 @@ const useCanvasStore = create<ScrollRigStore>((set) => ({
   isCanvasAvailable: true,
 
   // true if <VirtualScrollbar> is currently enabled
-  hasVirtualScrollbar: false,
+  hasSmoothScrollbar: false,
 
   // map of all components to render on the global canvas
   canvasChildren: {},

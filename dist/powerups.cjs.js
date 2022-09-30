@@ -69,7 +69,7 @@ var useCanvasStore = create__default["default"](function (set) {
     // true if WebGL initialized without errors
     isCanvasAvailable: true,
     // true if <VirtualScrollbar> is currently enabled
-    hasVirtualScrollbar: false,
+    hasSmoothScrollbar: false,
     // map of all components to render on the global canvas
     canvasChildren: {},
     // add component to canvas
@@ -292,8 +292,8 @@ var useScrollRig = function useScrollRig() {
   var isCanvasAvailable = useCanvasStore(function (state) {
     return state.isCanvasAvailable;
   });
-  var hasVirtualScrollbar = useCanvasStore(function (state) {
-    return state.hasVirtualScrollbar;
+  var hasSmoothScrollbar = useCanvasStore(function (state) {
+    return state.hasSmoothScrollbar;
   });
   var requestReflow = useCanvasStore(function (state) {
     return state.requestReflow;
@@ -316,7 +316,7 @@ var useScrollRig = function useScrollRig() {
     // boolean state
     debug: debug,
     isCanvasAvailable: isCanvasAvailable,
-    hasVirtualScrollbar: hasVirtualScrollbar,
+    hasSmoothScrollbar: hasSmoothScrollbar,
     // scale
     scaleMultiplier: scaleMultiplier,
     // render API
@@ -606,15 +606,18 @@ var ParallaxScrollScene = function ParallaxScrollScene(_ref2) {
 var ParallaxScrollScene$1 = ParallaxScrollScene;
 
 var _excluded = ["scale"],
-    _excluded2 = ["children", "track", "stickyLerp", "scaleToViewport"];
+    _excluded2 = ["children", "track", "stickyLerp", "fillViewport"];
 
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 var StickyChild = function StickyChild(_ref) {
   var children = _ref.children,
+      childTop = _ref.childTop,
+      childBottom = _ref.childBottom,
       scrollState = _ref.scrollState,
-      scale = _ref.scale,
+      parentScale = _ref.parentScale,
+      childScale = _ref.childScale,
       priority = _ref.priority,
       _ref$stickyLerp = _ref.stickyLerp,
       stickyLerp = _ref$stickyLerp === void 0 ? 1.0 : _ref$stickyLerp;
@@ -623,17 +626,19 @@ var StickyChild = function StickyChild(_ref) {
     return s.size;
   });
   fiber.useFrame(function (_, delta) {
-    if (!scrollState.inViewport) return; //  move to top of sticky area
+    if (!scrollState.inViewport) return;
+    var topOffset = childTop / size.height;
+    var bottomOffset = childBottom / parentScale[1]; //  move to top of sticky area
 
-    var yTop = scale[1] * 0.5 - size.height * 0.5;
-    var yBottom = -scale[1] * 0.5 + size.height * 0.5;
-    var ySticky = yTop - (scrollState.viewport - 1) * size.height;
+    var yTop = parentScale[1] * 0.5 - childScale[1] * 0.5;
+    var yBottom = -parentScale[1] * 0.5 + childScale[1] * 0.5;
+    var ySticky = -childTop + yTop - (scrollState.viewport - 1) * size.height;
     var y = group.current.position.y; // enter
 
-    if (scrollState.viewport < 1) {
+    if (scrollState.viewport + topOffset < 1) {
       y = yTop;
     } // sticky
-    else if (scrollState.visibility < 1) {
+    else if (scrollState.visibility - bottomOffset < 1) {
       y = ySticky;
     } // exit
     else {
@@ -648,24 +653,31 @@ var StickyChild = function StickyChild(_ref) {
     children: children
   });
 };
-var renderAsSticky = function renderAsSticky(children, size, _ref2) {
+var renderAsSticky = function renderAsSticky(children, size, childStyle, _ref2) {
   var stickyLerp = _ref2.stickyLerp,
-      scaleToViewport = _ref2.scaleToViewport;
+      fillViewport = _ref2.fillViewport;
   return function (_ref3) {
     var scale = _ref3.scale,
         props = _objectWithoutProperties__default["default"](_ref3, _excluded);
 
     // set child's scale to 100vh/100vw instead of the full DOM el
     // the DOM el should be taller to indicate how far the scene stays sticky
-    var childScale = scale;
+    var childScale = [parseFloat(childStyle.width), parseFloat(childStyle.height), 1];
+    var childTop = parseFloat(childStyle.top);
+    var childBottom = size.height - childTop - childScale[1];
 
-    if (scaleToViewport) {
+    if (fillViewport) {
       childScale = [size.width, size.height, 1];
+      childTop = 0;
+      childBottom = 0;
     }
 
     return /*#__PURE__*/jsxRuntime.jsx(StickyChild, _objectSpread(_objectSpread({
-      scale: scale,
-      stickyLerp: stickyLerp
+      parentScale: scale,
+      childScale: childScale,
+      stickyLerp: stickyLerp,
+      childTop: childTop,
+      childBottom: childBottom
     }, props), {}, {
       children: children(_objectSpread({
         scale: childScale
@@ -677,8 +689,7 @@ var StickyScrollScene = function StickyScrollScene(_ref4) {
   var children = _ref4.children,
       track = _ref4.track,
       stickyLerp = _ref4.stickyLerp,
-      _ref4$scaleToViewport = _ref4.scaleToViewport,
-      scaleToViewport = _ref4$scaleToViewport === void 0 ? true : _ref4$scaleToViewport,
+      fillViewport = _ref4.fillViewport,
       props = _objectWithoutProperties__default["default"](_ref4, _excluded2);
 
   var size = fiber.useThree(function (s) {
@@ -687,19 +698,23 @@ var StickyScrollScene = function StickyScrollScene(_ref4) {
   var internalRef = React.useRef(track.current); // if tracked element is position:sticky, track the parent instead
   // we want to track the progress of the entire sticky area
 
-  React.useMemo(function () {
+  var childStyle = React.useMemo(function () {
     var style = getComputedStyle(track.current);
 
     if (style.position === 'sticky') {
       internalRef.current = track.current.parentElement;
+    } else {
+      console.error('StickyScrollScene: tracked element is not position:sticky');
     }
+
+    return style;
   }, [track]);
   return /*#__PURE__*/jsxRuntime.jsx(r3fScrollRig.ScrollScene, _objectSpread(_objectSpread({
     track: internalRef
   }, props), {}, {
-    children: renderAsSticky(children, size, {
+    children: renderAsSticky(children, size, childStyle, {
       stickyLerp: stickyLerp,
-      scaleToViewport: scaleToViewport
+      fillViewport: fillViewport
     })
   }));
 };

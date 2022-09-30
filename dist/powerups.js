@@ -39,7 +39,7 @@ const useCanvasStore = create(set => ({
   // true if WebGL initialized without errors
   isCanvasAvailable: true,
   // true if <VirtualScrollbar> is currently enabled
-  hasVirtualScrollbar: false,
+  hasSmoothScrollbar: false,
   // map of all components to render on the global canvas
   canvasChildren: {},
   // add component to canvas
@@ -260,7 +260,7 @@ const preloadScene = function (scene, camera) {
 
 const useScrollRig = () => {
   const isCanvasAvailable = useCanvasStore(state => state.isCanvasAvailable);
-  const hasVirtualScrollbar = useCanvasStore(state => state.hasVirtualScrollbar);
+  const hasSmoothScrollbar = useCanvasStore(state => state.hasSmoothScrollbar);
   const requestReflow = useCanvasStore(state => state.requestReflow);
   const debug = useCanvasStore(state => state.debug);
   const scaleMultiplier = useCanvasStore(state => state.scaleMultiplier);
@@ -276,7 +276,7 @@ const useScrollRig = () => {
     // boolean state
     debug,
     isCanvasAvailable,
-    hasVirtualScrollbar,
+    hasSmoothScrollbar,
     // scale
     scaleMultiplier,
     // render API
@@ -539,25 +539,30 @@ var ParallaxScrollScene$1 = ParallaxScrollScene;
 const StickyChild = _ref => {
   let {
     children,
+    childTop,
+    childBottom,
     scrollState,
-    scale,
+    parentScale,
+    childScale,
     priority,
     stickyLerp = 1.0
   } = _ref;
   const group = useRef();
   const size = useThree(s => s.size);
   useFrame((_, delta) => {
-    if (!scrollState.inViewport) return; //  move to top of sticky area
+    if (!scrollState.inViewport) return;
+    const topOffset = childTop / size.height;
+    const bottomOffset = childBottom / parentScale[1]; //  move to top of sticky area
 
-    const yTop = scale[1] * 0.5 - size.height * 0.5;
-    const yBottom = -scale[1] * 0.5 + size.height * 0.5;
-    const ySticky = yTop - (scrollState.viewport - 1) * size.height;
+    const yTop = parentScale[1] * 0.5 - childScale[1] * 0.5;
+    const yBottom = -parentScale[1] * 0.5 + childScale[1] * 0.5;
+    const ySticky = -childTop + yTop - (scrollState.viewport - 1) * size.height;
     let y = group.current.position.y; // enter
 
-    if (scrollState.viewport < 1) {
+    if (scrollState.viewport + topOffset < 1) {
       y = yTop;
     } // sticky
-    else if (scrollState.visibility < 1) {
+    else if (scrollState.visibility - bottomOffset < 1) {
       y = ySticky;
     } // exit
     else {
@@ -572,10 +577,10 @@ const StickyChild = _ref => {
     children: children
   });
 };
-const renderAsSticky = (children, size, _ref2) => {
+const renderAsSticky = (children, size, childStyle, _ref2) => {
   let {
     stickyLerp,
-    scaleToViewport
+    fillViewport
   } = _ref2;
   return _ref3 => {
     let {
@@ -584,15 +589,22 @@ const renderAsSticky = (children, size, _ref2) => {
     } = _ref3;
     // set child's scale to 100vh/100vw instead of the full DOM el
     // the DOM el should be taller to indicate how far the scene stays sticky
-    let childScale = scale;
+    let childScale = [parseFloat(childStyle.width), parseFloat(childStyle.height), 1];
+    let childTop = parseFloat(childStyle.top);
+    let childBottom = size.height - childTop - childScale[1];
 
-    if (scaleToViewport) {
+    if (fillViewport) {
       childScale = [size.width, size.height, 1];
+      childTop = 0;
+      childBottom = 0;
     }
 
     return /*#__PURE__*/jsx(StickyChild, {
-      scale: scale,
+      parentScale: scale,
+      childScale: childScale,
       stickyLerp: stickyLerp,
+      childTop: childTop,
+      childBottom: childBottom,
       ...props,
       children: children({
         scale: childScale,
@@ -606,26 +618,30 @@ const StickyScrollScene = _ref4 => {
     children,
     track,
     stickyLerp,
-    scaleToViewport = true,
+    fillViewport,
     ...props
   } = _ref4;
   const size = useThree(s => s.size);
   const internalRef = useRef(track.current); // if tracked element is position:sticky, track the parent instead
   // we want to track the progress of the entire sticky area
 
-  useMemo(() => {
+  const childStyle = useMemo(() => {
     const style = getComputedStyle(track.current);
 
     if (style.position === 'sticky') {
       internalRef.current = track.current.parentElement;
+    } else {
+      console.error('StickyScrollScene: tracked element is not position:sticky');
     }
+
+    return style;
   }, [track]);
   return /*#__PURE__*/jsx(ScrollScene, {
     track: internalRef,
     ...props,
-    children: renderAsSticky(children, size, {
+    children: renderAsSticky(children, size, childStyle, {
       stickyLerp,
-      scaleToViewport
+      fillViewport
     })
   });
 };
