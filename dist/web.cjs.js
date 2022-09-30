@@ -947,7 +947,7 @@ function useTracker(args) {
       left: left,
       right: rect.right + window.scrollX,
       width: rect.width,
-      height: rect.width,
+      height: rect.height,
       x: left + rect.width * 0.5,
       y: top + rect.height * 0.5
     };
