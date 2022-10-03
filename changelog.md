@@ -1,5 +1,10 @@
 # Changelog
 
+## v8.4.0
+
+- `GlobalCanvas`
+  - `children` can now be a render function which accepts all global children as a single argument. Can be used if you need to wrap all canvas children with a parent.
+
 ## v8.3.0
 
 - `useTracker` hook

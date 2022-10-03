@@ -328,7 +328,7 @@ const WebGLText = _ref => {
       fontSize: parseFloat(cs.fontSize) * scaleMultiplier,
       textAlign: cs.textAlign
     }; // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [el, size, scale, color]); // recalc on resize
+  }, [el, size, scale, color, scaleMultiplier]); // recalc on resize
 
   useEffect(() => {
     if (material && overrideEmissive) {

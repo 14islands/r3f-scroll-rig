@@ -369,7 +369,7 @@ var WebGLText = function WebGLText(_ref) {
       fontSize: parseFloat(cs.fontSize) * scaleMultiplier,
       textAlign: cs.textAlign
     }; // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [el, size, scale, color]),
+  }, [el, size, scale, color, scaleMultiplier]),
       textColor = _useMemo.textColor,
       fontSize = _useMemo.fontSize,
       textAlign = _useMemo.textAlign,

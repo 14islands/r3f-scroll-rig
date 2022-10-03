@@ -12,8 +12,8 @@ var _typeof = require('@babel/runtime/helpers/typeof');
 var create = require('zustand');
 var mergeRefs = require('react-merge-refs');
 var jsxRuntime = require('react/jsx-runtime');
-var three = require('three');
 var _toConsumableArray = require('@babel/runtime/helpers/toConsumableArray');
+var three = require('three');
 var _classCallCheck = require('@babel/runtime/helpers/classCallCheck');
 var _createClass = require('@babel/runtime/helpers/createClass');
 var _inherits = require('@babel/runtime/helpers/inherits');
@@ -530,7 +530,45 @@ var useScrollRig = function useScrollRig() {
 function ownKeys$8(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread$8(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$8(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$8(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
-var col = new three.Color();
+
+var GlobalChildren = function GlobalChildren(_ref) {
+  var children = _ref.children;
+  var canvasChildren = useCanvasStore(function (state) {
+    return state.canvasChildren;
+  });
+  var scrollRig = useScrollRig();
+  React.useEffect(function () {
+    // render empty canvas automatically if all children were removed
+    if (!Object.keys(canvasChildren).length) {
+      scrollRig.debug && console.log('GlobalRenderer', 'auto render empty canvas');
+      scrollRig.requestRender();
+      fiber.invalidate();
+    }
+  }, [canvasChildren]);
+  scrollRig.debug && console.log('GlobalChildren', Object.keys(canvasChildren).length);
+  return /*#__PURE__*/jsxRuntime.jsxs(jsxRuntime.Fragment, {
+    children: [children, Object.keys(canvasChildren).map(function (key) {
+      var _canvasChildren$key = canvasChildren[key],
+          mesh = _canvasChildren$key.mesh,
+          props = _canvasChildren$key.props;
+
+      if (typeof mesh === 'function') {
+        return /*#__PURE__*/jsxRuntime.jsx(React.Fragment, {
+          children: mesh(_objectSpread$8(_objectSpread$8({
+            key: key
+          }, scrollRig), props))
+        }, key);
+      }
+
+      return /*#__PURE__*/React.cloneElement(mesh, _objectSpread$8({
+        key: key
+      }, props));
+    })]
+  });
+};
+
+var GlobalChildren$1 = GlobalChildren;
+
 /**
  * Global render loop to avoid double renders on the same frame
  */
@@ -541,12 +579,6 @@ var GlobalRenderer = function GlobalRenderer() {
   });
   var frameloop = fiber.useThree(function (s) {
     return s.frameloop;
-  });
-  var canvasChildren = useCanvasStore(function (state) {
-    return state.canvasChildren;
-  });
-  var globalRender = useCanvasStore(function (state) {
-    return state.globalRender;
   });
   var globalClearDepth = useCanvasStore(function (state) {
     return state.globalClearDepth;
@@ -561,20 +593,12 @@ var GlobalRenderer = function GlobalRenderer() {
 
   React.useLayoutEffect(function () {
     gl.debug.checkShaderErrors = scrollRig.debug;
-  }, [scrollRig.debug]);
-  React.useEffect(function () {
-    // clear canvas automatically if all children were removed
-    if (!Object.keys(canvasChildren).length) {
-      scrollRig.debug && console.log('GlobalRenderer', 'auto clear empty canvas');
-      gl.getClearColor(col);
-      gl.setClearColor(col, gl.getClearAlpha());
-      gl.clear(true, true);
-    }
-  }, [canvasChildren]); // PRELOAD RENDER LOOP
+  }, [scrollRig.debug]); // PRELOAD RENDER LOOP
 
   fiber.useFrame(function () {
     if (!config.preloadQueue.length) return;
     gl.autoClear = false; // Render preload frames first and clear directly
+    // @ts-ignore
 
     config.preloadQueue.forEach(function (render) {
       return render(gl);
@@ -587,21 +611,21 @@ var GlobalRenderer = function GlobalRenderer() {
     scrollRig.debug && console.log('GlobalRenderer', 'preload complete. trigger global render');
     scrollRig.requestRender();
     fiber.invalidate();
-  }, globalRender ? config.PRIORITY_PRELOAD : -1 //negative priority doesn't take over render loop
-  ); // GLOBAL RENDER LOOP
+  }, config.PRIORITY_PRELOAD); // GLOBAL RENDER LOOP
 
   fiber.useFrame(function (_ref) {
     var camera = _ref.camera,
         scene = _ref.scene;
     var globalRenderQueue = useCanvasStore.getState().globalRenderQueue; // Render if requested or if always on
 
-    if (globalRender && (frameloop === 'always' || globalRenderQueue)) {
+    if (frameloop === 'always' || globalRenderQueue) {
       gl.autoClear = globalAutoClear; // false will fail in Oculus Quest VR
       // render default layer, scene, camera
 
       camera.layers.disableAll();
 
       if (globalRenderQueue) {
+        // @ts-ignore
         globalRenderQueue.forEach(function (layer) {
           camera.layers.enable(layer);
         });
@@ -617,28 +641,9 @@ var GlobalRenderer = function GlobalRenderer() {
 
 
     useCanvasStore.getState().clearGlobalRenderQueue();
-  }, globalRender ? globalPriority : undefined); // Take over rendering
+  }, globalPriority); // Take over rendering
 
-  scrollRig.debug && console.log('GlobalRenderer', Object.keys(canvasChildren).length);
-  return /*#__PURE__*/jsxRuntime.jsx(jsxRuntime.Fragment, {
-    children: Object.keys(canvasChildren).map(function (key) {
-      var _canvasChildren$key = canvasChildren[key],
-          mesh = _canvasChildren$key.mesh,
-          props = _canvasChildren$key.props;
-
-      if (typeof mesh === 'function') {
-        return /*#__PURE__*/jsxRuntime.jsx(React.Fragment, {
-          children: mesh(_objectSpread$8(_objectSpread$8({
-            key: key
-          }, scrollRig), props))
-        }, key);
-      }
-
-      return /*#__PURE__*/React__default["default"].cloneElement(mesh, _objectSpread$8({
-        key: key
-      }, props));
-    })
-  });
+  return null;
 };
 
 var GlobalRenderer$1 = GlobalRenderer;
@@ -723,7 +728,10 @@ var GlobalCanvas = function GlobalCanvas(_ref) {
       loadingFallback = _ref.loadingFallback,
       props = _objectWithoutProperties__default["default"](_ref, _excluded$4);
 
-  // enable debug mode
+  var globalRenderState = useCanvasStore(function (state) {
+    return state.globalRender;
+  }); // enable debug mode
+
   React.useLayoutEffect(function () {
     // Querystring overrides
     var qs = queryString.parse(window.location.search); // show debug statements
@@ -769,10 +777,12 @@ var GlobalCanvas = function GlobalCanvas(_ref) {
     }, style) // allow to override anything of the above
 
   }, props), {}, {
-    children: [/*#__PURE__*/jsxRuntime.jsxs(React.Suspense, {
+    children: [/*#__PURE__*/jsxRuntime.jsx(React.Suspense, {
       fallback: loadingFallback,
-      children: [children, /*#__PURE__*/jsxRuntime.jsx(GlobalRenderer$1, {})]
-    }), !orthographic && /*#__PURE__*/jsxRuntime.jsx(PerspectiveCamera$1, _objectSpread$7({
+      children: typeof children === 'function' ? children( /*#__PURE__*/jsxRuntime.jsx(GlobalChildren$1, {})) : /*#__PURE__*/jsxRuntime.jsx(GlobalChildren$1, {
+        children: children
+      })
+    }), globalRenderState && /*#__PURE__*/jsxRuntime.jsx(GlobalRenderer$1, {}), !orthographic && /*#__PURE__*/jsxRuntime.jsx(PerspectiveCamera$1, _objectSpread$7({
       makeDefault: true
     }, camera)), orthographic && /*#__PURE__*/jsxRuntime.jsx(OrthographicCamera$1, _objectSpread$7({
       makeDefault: true

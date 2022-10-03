@@ -1,10 +1,10 @@
-import React, { useEffect, forwardRef, useMemo, useRef, useLayoutEffect, Fragment as Fragment$1, Suspense, useCallback, useState, useImperativeHandle } from 'react';
+import React, { useEffect, forwardRef, useMemo, useRef, useLayoutEffect, Fragment as Fragment$1, cloneElement, Suspense, useCallback, useState, useImperativeHandle } from 'react';
 import { useThree, invalidate, useFrame, Canvas, createPortal, useLoader, addEffect } from '@react-three/fiber';
 import { ResizeObserver } from '@juggle/resize-observer';
 import { parse } from 'query-string';
 import create from 'zustand';
 import mergeRefs from 'react-merge-refs';
-import { jsx, Fragment, jsxs } from 'react/jsx-runtime';
+import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import { Vector2, Color, MathUtils, Scene, TextureLoader, ImageBitmapLoader, Texture, CanvasTexture } from 'three';
 import { useInView } from 'react-intersection-observer';
 import { vec3 } from 'vecn';
@@ -436,84 +436,23 @@ const useScrollRig = () => {
   };
 };
 
-const col = new Color();
-/**
- * Global render loop to avoid double renders on the same frame
- */
-
-const GlobalRenderer = () => {
-  const gl = useThree(s => s.gl);
-  const frameloop = useThree(s => s.frameloop);
+const GlobalChildren = _ref => {
+  let {
+    children
+  } = _ref;
   const canvasChildren = useCanvasStore(state => state.canvasChildren);
-  const globalRender = useCanvasStore(state => state.globalRender);
-  const globalClearDepth = useCanvasStore(state => state.globalClearDepth);
-  const globalAutoClear = useCanvasStore(state => state.globalAutoClear);
-  const globalPriority = useCanvasStore(state => state.globalPriority);
-  const scrollRig = useScrollRig(); // https://threejs.org/docs/#api/en/renderers/WebGLRenderer.debug
-
-  useLayoutEffect(() => {
-    gl.debug.checkShaderErrors = scrollRig.debug;
-  }, [scrollRig.debug]);
+  const scrollRig = useScrollRig();
   useEffect(() => {
-    // clear canvas automatically if all children were removed
+    // render empty canvas automatically if all children were removed
     if (!Object.keys(canvasChildren).length) {
-      scrollRig.debug && console.log('GlobalRenderer', 'auto clear empty canvas');
-      gl.getClearColor(col);
-      gl.setClearColor(col, gl.getClearAlpha());
-      gl.clear(true, true);
+      scrollRig.debug && console.log('GlobalRenderer', 'auto render empty canvas');
+      scrollRig.requestRender();
+      invalidate();
     }
-  }, [canvasChildren]); // PRELOAD RENDER LOOP
-
-  useFrame(() => {
-    if (!config.preloadQueue.length) return;
-    gl.autoClear = false; // Render preload frames first and clear directly
-
-    config.preloadQueue.forEach(render => render(gl)); // cleanup
-
-    gl.clear();
-    config.preloadQueue = [];
-    gl.autoClear = true; // trigger new frame to get correct visual state after all preloads
-
-    scrollRig.debug && console.log('GlobalRenderer', 'preload complete. trigger global render');
-    scrollRig.requestRender();
-    invalidate();
-  }, globalRender ? config.PRIORITY_PRELOAD : -1 //negative priority doesn't take over render loop
-  ); // GLOBAL RENDER LOOP
-
-  useFrame(_ref => {
-    let {
-      camera,
-      scene
-    } = _ref;
-    const globalRenderQueue = useCanvasStore.getState().globalRenderQueue; // Render if requested or if always on
-
-    if (globalRender && (frameloop === 'always' || globalRenderQueue)) {
-      gl.autoClear = globalAutoClear; // false will fail in Oculus Quest VR
-      // render default layer, scene, camera
-
-      camera.layers.disableAll();
-
-      if (globalRenderQueue) {
-        globalRenderQueue.forEach(layer => {
-          camera.layers.enable(layer);
-        });
-      } else {
-        camera.layers.enable(0);
-      } // render as HUD over any other renders by default
-
-
-      globalClearDepth && gl.clearDepth();
-      gl.render(scene, camera);
-      gl.autoClear = true;
-    } // cleanup for next frame
-
-
-    useCanvasStore.getState().clearGlobalRenderQueue();
-  }, globalRender ? globalPriority : undefined); // Take over rendering
-
-  scrollRig.debug && console.log('GlobalRenderer', Object.keys(canvasChildren).length);
-  return /*#__PURE__*/jsx(Fragment, {
-    children: Object.keys(canvasChildren).map(key => {
+  }, [canvasChildren]);
+  scrollRig.debug && console.log('GlobalChildren', Object.keys(canvasChildren).length);
+  return /*#__PURE__*/jsxs(Fragment, {
+    children: [children, Object.keys(canvasChildren).map(key => {
       const {
         mesh,
         props
@@ -529,12 +468,81 @@ const GlobalRenderer = () => {
         }, key);
       }
 
-      return /*#__PURE__*/React.cloneElement(mesh, {
+      return /*#__PURE__*/cloneElement(mesh, {
         key,
         ...props
       });
-    })
+    })]
   });
+};
+
+var GlobalChildren$1 = GlobalChildren;
+
+/**
+ * Global render loop to avoid double renders on the same frame
+ */
+
+const GlobalRenderer = () => {
+  const gl = useThree(s => s.gl);
+  const frameloop = useThree(s => s.frameloop);
+  const globalClearDepth = useCanvasStore(state => state.globalClearDepth);
+  const globalAutoClear = useCanvasStore(state => state.globalAutoClear);
+  const globalPriority = useCanvasStore(state => state.globalPriority);
+  const scrollRig = useScrollRig(); // https://threejs.org/docs/#api/en/renderers/WebGLRenderer.debug
+
+  useLayoutEffect(() => {
+    gl.debug.checkShaderErrors = scrollRig.debug;
+  }, [scrollRig.debug]); // PRELOAD RENDER LOOP
+
+  useFrame(() => {
+    if (!config.preloadQueue.length) return;
+    gl.autoClear = false; // Render preload frames first and clear directly
+    // @ts-ignore
+
+    config.preloadQueue.forEach(render => render(gl)); // cleanup
+
+    gl.clear();
+    config.preloadQueue = [];
+    gl.autoClear = true; // trigger new frame to get correct visual state after all preloads
+
+    scrollRig.debug && console.log('GlobalRenderer', 'preload complete. trigger global render');
+    scrollRig.requestRender();
+    invalidate();
+  }, config.PRIORITY_PRELOAD); // GLOBAL RENDER LOOP
+
+  useFrame(_ref => {
+    let {
+      camera,
+      scene
+    } = _ref;
+    const globalRenderQueue = useCanvasStore.getState().globalRenderQueue; // Render if requested or if always on
+
+    if (frameloop === 'always' || globalRenderQueue) {
+      gl.autoClear = globalAutoClear; // false will fail in Oculus Quest VR
+      // render default layer, scene, camera
+
+      camera.layers.disableAll();
+
+      if (globalRenderQueue) {
+        // @ts-ignore
+        globalRenderQueue.forEach(layer => {
+          camera.layers.enable(layer);
+        });
+      } else {
+        camera.layers.enable(0);
+      } // render as HUD over any other renders by default
+
+
+      globalClearDepth && gl.clearDepth();
+      gl.render(scene, camera);
+      gl.autoClear = true;
+    } // cleanup for next frame
+
+
+    useCanvasStore.getState().clearGlobalRenderQueue();
+  }, globalPriority); // Take over rendering
+
+  return null;
 };
 
 var GlobalRenderer$1 = GlobalRenderer;
@@ -592,7 +600,8 @@ const GlobalCanvas = _ref => {
     loadingFallback,
     ...props
   } = _ref;
-  // enable debug mode
+  const globalRenderState = useCanvasStore(state => state.globalRender); // enable debug mode
+
   useLayoutEffect(() => {
     // Querystring overrides
     const qs = parse(window.location.search); // show debug statements
@@ -642,10 +651,12 @@ const GlobalCanvas = _ref => {
     } // allow to override anything of the above
     ,
     ...props,
-    children: [/*#__PURE__*/jsxs(Suspense, {
+    children: [/*#__PURE__*/jsx(Suspense, {
       fallback: loadingFallback,
-      children: [children, /*#__PURE__*/jsx(GlobalRenderer$1, {})]
-    }), !orthographic && /*#__PURE__*/jsx(PerspectiveCamera$1, {
+      children: typeof children === 'function' ? children( /*#__PURE__*/jsx(GlobalChildren$1, {})) : /*#__PURE__*/jsx(GlobalChildren$1, {
+        children: children
+      })
+    }), globalRenderState && /*#__PURE__*/jsx(GlobalRenderer$1, {}), !orthographic && /*#__PURE__*/jsx(PerspectiveCamera$1, {
       makeDefault: true,
       ...camera
     }), orthographic && /*#__PURE__*/jsx(OrthographicCamera$1, {
