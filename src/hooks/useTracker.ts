@@ -1,8 +1,7 @@
 import { useMemo, useRef, useCallback, useLayoutEffect, useEffect } from 'react'
-import { useThree } from '@react-three/fiber'
-import { MathUtils } from 'three'
 import { useInView } from 'react-intersection-observer'
-
+import { useWindowSize } from 'react-use'
+import { mapLinear } from '../utils/math'
 // @ts-ignore
 import { vec3 } from 'vecn'
 
@@ -40,7 +39,7 @@ const defaultArgs = { rootMargin: '50%', threshold: 0, autoUpdate: true }
  * based on initial getBoundingClientRect and scroll delta from start
  */
 function useTracker(args: PropsOrElement, deps: any[] = []): ElementTracker {
-  const size = useThree((s) => s.size)
+  const size = useWindowSize()
   const { scroll, onScroll } = useScrollbar()
   const scaleMultiplier = useCanvasStore((state) => state.scaleMultiplier)
   const pageReflow = useCanvasStore((state) => state.pageReflow)
@@ -101,7 +100,7 @@ function useTracker(args: PropsOrElement, deps: any[] = []): ElementTracker {
   // scale in viewport units
   const scale = useMemo(() => {
     return vec3(rect?.width * scaleMultiplier, rect?.height * scaleMultiplier, 1)
-  }, [rect, scaleMultiplier]) as [width: number, height: number, depth: number]
+  }, [rect, scaleMultiplier])
 
   const update = useCallback(
     ({ onlyUpdateInViewport = true } = {}) => {
@@ -112,11 +111,16 @@ function useTracker(args: PropsOrElement, deps: any[] = []): ElementTracker {
       updateBounds(bounds, rect, scroll, size)
       updatePosition(position, bounds, scaleMultiplier)
 
+      // scrollState setup based on scroll direction
+      const isVertical = scroll.direction === 'vertical'
+      const sizeProp = isVertical ? 'height' : 'width'
+      const startProp = isVertical ? 'top' : 'left'
+
       // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
-      const pxInside = size.height - bounds.top
-      scrollState.progress = MathUtils.mapLinear(pxInside, 0, size.height + bounds.height, 0, 1) // percent of total visible distance
-      scrollState.visibility = MathUtils.mapLinear(pxInside, 0, bounds.height, 0, 1) // percent of item height in view
-      scrollState.viewport = MathUtils.mapLinear(pxInside, 0, size.height, 0, 1) // percent of window height scrolled since visible
+      const pxInside = size[sizeProp] - bounds[startProp]
+      scrollState.progress = mapLinear(pxInside, 0, size[sizeProp] + bounds[sizeProp], 0, 1) // percent of total visible distance
+      scrollState.visibility = mapLinear(pxInside, 0, bounds[sizeProp], 0, 1) // percent of item height in view
+      scrollState.viewport = mapLinear(pxInside, 0, size[sizeProp], 0, 1) // percent of window height scrolled since visible
     },
     [position, bounds, size, rect, scaleMultiplier, scroll]
   )

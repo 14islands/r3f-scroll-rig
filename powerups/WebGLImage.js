@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, useEffect, forwardRef } from 'react'
+import { useRef, useMemo, useEffect, forwardRef } from 'react'
 import { useScrollRig, useImageAsTexture, useScrollbar } from '@14islands/r3f-scroll-rig'
 import { Color, Vector2 } from 'three'
 import { useFrame, useThree } from '@react-three/fiber'

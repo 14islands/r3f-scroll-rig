@@ -5,8 +5,9 @@ import { parse } from 'query-string';
 import create from 'zustand';
 import mergeRefs from 'react-merge-refs';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
-import { Vector2, Color, MathUtils, Scene, TextureLoader, ImageBitmapLoader, Texture, CanvasTexture } from 'three';
+import { Vector2, Color, Scene, MathUtils, TextureLoader, ImageBitmapLoader, Texture, CanvasTexture } from 'three';
 import { useInView } from 'react-intersection-observer';
+import { useWindowSize } from 'react-use';
 import { vec3 } from 'vecn';
 import { suspend } from 'suspend-react';
 import { debounce } from 'debounce';
@@ -730,6 +731,11 @@ const DebugMesh = _ref => {
 };
 var DebugMesh$1 = DebugMesh;
 
+// Linear mapping from range <a1, a2> to range <b1, b2>
+function mapLinear(x, a1, a2, b1, b2) {
+  return b1 + (x - a1) * (b2 - b1) / (a2 - a1);
+}
+
 /**
  * Public interface for ScrollRig
  */
@@ -780,7 +786,7 @@ const defaultArgs = {
 
 function useTracker(args) {
   let deps = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
-  const size = useThree(s => s.size);
+  const size = useWindowSize();
   const {
     scroll,
     onScroll
@@ -861,14 +867,18 @@ function useTracker(args) {
     }
 
     updateBounds(bounds, rect, scroll, size);
-    updatePosition(position, bounds, scaleMultiplier); // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
+    updatePosition(position, bounds, scaleMultiplier); // scrollState setup based on scroll direction
 
-    const pxInside = size.height - bounds.top;
-    scrollState.progress = MathUtils.mapLinear(pxInside, 0, size.height + bounds.height, 0, 1); // percent of total visible distance
+    const isVertical = scroll.direction === 'vertical';
+    const sizeProp = isVertical ? 'height' : 'width';
+    const startProp = isVertical ? 'top' : 'left'; // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
 
-    scrollState.visibility = MathUtils.mapLinear(pxInside, 0, bounds.height, 0, 1); // percent of item height in view
+    const pxInside = size[sizeProp] - bounds[startProp];
+    scrollState.progress = mapLinear(pxInside, 0, size[sizeProp] + bounds[sizeProp], 0, 1); // percent of total visible distance
 
-    scrollState.viewport = MathUtils.mapLinear(pxInside, 0, size.height, 0, 1); // percent of window height scrolled since visible
+    scrollState.visibility = mapLinear(pxInside, 0, bounds[sizeProp], 0, 1); // percent of item height in view
+
+    scrollState.viewport = mapLinear(pxInside, 0, size[sizeProp], 0, 1); // percent of window height scrolled since visible
   }, [position, bounds, size, rect, scaleMultiplier, scroll]); // update scrollState in viewport
 
   useLayoutEffect(() => {

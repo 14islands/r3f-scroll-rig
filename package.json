@@ -46,12 +46,13 @@
   "dependencies": {
     "@14islands/lerp": "^1.0.3",
     "@juggle/resize-observer": "^3.4.0",
-    "@studio-freight/lenis": "^0.2.8",
+    "@studio-freight/lenis": "^0.2.9",
     "@types/query-string": "^6.3.0",
     "debounce": "^1.2.1",
     "query-string": "^6.14.1",
     "react-intersection-observer": "^9.4.0",
     "react-merge-refs": "^1.1.0",
+    "react-use": "^17.4.0",
     "suspend-react": "^0.0.8",
     "vecn": "^1.3.1",
     "zustand": "^3.4.2"

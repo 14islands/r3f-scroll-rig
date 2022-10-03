@@ -21,6 +21,7 @@ var _possibleConstructorReturn = require('@babel/runtime/helpers/possibleConstru
 var _getPrototypeOf = require('@babel/runtime/helpers/getPrototypeOf');
 var _slicedToArray = require('@babel/runtime/helpers/slicedToArray');
 var reactIntersectionObserver = require('react-intersection-observer');
+var reactUse = require('react-use');
 var vecn = require('vecn');
 var suspendReact = require('suspend-react');
 var debounce = require('debounce');
@@ -841,6 +842,11 @@ var DebugMesh = function DebugMesh(_ref) {
 };
 var DebugMesh$1 = DebugMesh;
 
+// Linear mapping from range <a1, a2> to range <b1, b2>
+function mapLinear(x, a1, a2, b1, b2) {
+  return b1 + (x - a1) * (b2 - b1) / (a2 - a1);
+}
+
 /**
  * Public interface for ScrollRig
  */
@@ -903,9 +909,7 @@ var defaultArgs = {
 
 function useTracker(args) {
   var deps = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
-  var size = fiber.useThree(function (s) {
-    return s.size;
-  });
+  var size = reactUse.useWindowSize();
 
   var _useScrollbar = useScrollbar(),
       scroll = _useScrollbar.scroll,
@@ -992,14 +996,18 @@ function useTracker(args) {
     }
 
     updateBounds(bounds, rect, scroll, size);
-    updatePosition(position, bounds, scaleMultiplier); // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
+    updatePosition(position, bounds, scaleMultiplier); // scrollState setup based on scroll direction
 
-    var pxInside = size.height - bounds.top;
-    scrollState.progress = three.MathUtils.mapLinear(pxInside, 0, size.height + bounds.height, 0, 1); // percent of total visible distance
+    var isVertical = scroll.direction === 'vertical';
+    var sizeProp = isVertical ? 'height' : 'width';
+    var startProp = isVertical ? 'top' : 'left'; // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
 
-    scrollState.visibility = three.MathUtils.mapLinear(pxInside, 0, bounds.height, 0, 1); // percent of item height in view
+    var pxInside = size[sizeProp] - bounds[startProp];
+    scrollState.progress = mapLinear(pxInside, 0, size[sizeProp] + bounds[sizeProp], 0, 1); // percent of total visible distance
 
-    scrollState.viewport = three.MathUtils.mapLinear(pxInside, 0, size.height, 0, 1); // percent of window height scrolled since visible
+    scrollState.visibility = mapLinear(pxInside, 0, bounds[sizeProp], 0, 1); // percent of item height in view
+
+    scrollState.viewport = mapLinear(pxInside, 0, size[sizeProp], 0, 1); // percent of window height scrolled since visible
   }, [position, bounds, size, rect, scaleMultiplier, scroll]); // update scrollState in viewport
 
 

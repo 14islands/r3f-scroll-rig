@@ -2,7 +2,8 @@ import { useMemo, useEffect } from 'react'
 import { Color } from 'three'
 import { useThree } from '@react-three/fiber'
 import { Text } from '@react-three/drei/core/Text.js'
-import { useScrollRig } from '../src'
+
+import { useScrollRig } from '@14islands/r3f-scroll-rig'
 
 /**
  * Returns a WebGL Troika text mesh styled as the source DOM element
