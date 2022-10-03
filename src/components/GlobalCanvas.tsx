@@ -1,4 +1,4 @@
-import { useLayoutEffect, Suspense } from 'react'
+import { ReactNode, useLayoutEffect, Suspense } from 'react'
 import { Canvas, Props } from '@react-three/fiber'
 import { ResizeObserver } from '@juggle/resize-observer'
 import { parse } from 'query-string'
@@ -8,13 +8,15 @@ import ResizeManager from './ResizeManager'
 import PerspectiveCamera from './PerspectiveCamera'
 import OrthographicCamera from './OrthographicCamera'
 
+import GlobalChildren from './GlobalChildren'
 import GlobalRenderer from './GlobalRenderer'
 import CanvasErrorBoundary from './CanvasErrorBoundary'
 
 import config from '../config'
 
-interface IGlobalCanvas extends Props {
+interface IGlobalCanvas extends Omit<Props, 'children'> {
   as?: any
+  children?: ReactNode | ((globalChildren: ReactNode) => ReactNode)
   orthographic?: boolean
   onError?: (props: any) => void
   camera?: any
@@ -44,6 +46,8 @@ const GlobalCanvas = ({
   loadingFallback,
   ...props
 }: Omit<IGlobalCanvas, 'onError'>) => {
+  const globalRenderState = useCanvasStore((state) => state.globalRender)
+
   // enable debug mode
   useLayoutEffect(() => {
     // Querystring overrides
@@ -93,9 +97,10 @@ const GlobalCanvas = ({
       {...props}
     >
       <Suspense fallback={loadingFallback}>
-        {children}
-        <GlobalRenderer />
+        {typeof children === 'function' ? children(<GlobalChildren />) : <GlobalChildren>{children}</GlobalChildren>}
       </Suspense>
+
+      {globalRenderState && <GlobalRenderer />}
 
       {/* @ts-ignore */}
       {!orthographic && <PerspectiveCamera makeDefault={true} {...camera} />}

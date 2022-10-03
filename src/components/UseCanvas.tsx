@@ -1,8 +1,8 @@
-import { forwardRef, ReactElement } from 'react'
+import { forwardRef, ReactNode } from 'react'
 import { useCanvas } from '../hooks/useCanvas'
 
 interface IUseCanvas {
-  children: ReactElement
+  children: ReactNode
   id?: string // persistent layout id
 }
 

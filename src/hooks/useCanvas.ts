@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useCallback, ReactElement } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useCallback, ReactNode } from 'react'
 import { MathUtils } from 'three'
 import { useCanvasStore } from '../store'
 
@@ -7,7 +7,7 @@ import { useCanvasStore } from '../store'
  * @param {object} object THREE.js object3d
  */
 function useCanvas(
-  object: ReactElement,
+  object: ReactNode,
   deps: any = {},
   { key, dispose = true }: { key?: string; dispose?: boolean } = {}
 ) {

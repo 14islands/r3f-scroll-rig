@@ -1,9 +1,9 @@
 // @ts-nocheck
-import React, { ReactElement } from 'react'
+import React, { ReactNode } from 'react'
 import PropTypes from 'prop-types'
 
 interface ICanvasErrorBoundary {
-  children: ReactElement
+  children: ReactNode
   onError: () => void
 }
 
