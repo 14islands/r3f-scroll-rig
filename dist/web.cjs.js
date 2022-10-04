@@ -952,7 +952,16 @@ function useTracker(args) {
   var rect = React.useMemo(function () {
     var _track$current;
 
-    var rect = ((_track$current = track.current) === null || _track$current === void 0 ? void 0 : _track$current.getBoundingClientRect()) || {};
+    var rect = ((_track$current = track.current) === null || _track$current === void 0 ? void 0 : _track$current.getBoundingClientRect()) || {
+      top: 0,
+      bottom: 0,
+      left: 0,
+      right: 0,
+      width: 0,
+      height: 0,
+      x: 0,
+      y: 0
+    };
     var top = rect.top + window.scrollY;
     var left = rect.left + window.scrollX;
     return {

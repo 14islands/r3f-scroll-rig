@@ -65,7 +65,16 @@ function useTracker(args: PropsOrElement, deps: any[] = []): ElementTracker {
 
   // DOM rect (initial position in pixels offset by scroll value on page load)
   const rect = useMemo(() => {
-    const rect = track.current?.getBoundingClientRect() || {}
+    const rect = track.current?.getBoundingClientRect() || {
+      top: 0,
+      bottom: 0,
+      left: 0,
+      right: 0,
+      width: 0,
+      height: 0,
+      x: 0,
+      y: 0,
+    }
     const top = rect.top + window.scrollY
     const left = rect.left + window.scrollX
     return {
