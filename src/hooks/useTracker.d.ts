@@ -21,9 +21,9 @@ export type Bounds = Rect & {
 }
 
 export interface ElementTracker {
-  rect: Rect
+  rect: Rect | undefined
   bounds: Bounds
-  scale: vec3
+  scale: vec3 | undefined
   scrollState: ScrollState
   position: vec3
   inViewport: Boolean

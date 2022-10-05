@@ -920,7 +920,11 @@ function useTracker(args) {
   });
   var pageReflow = useCanvasStore(function (state) {
     return state.pageReflow;
-  });
+  }); // scrollState setup based on scroll direction
+
+  var isVertical = scroll.direction === 'vertical';
+  var sizeProp = isVertical ? 'height' : 'width';
+  var startProp = isVertical ? 'top' : 'left';
 
   var _ref = isElementProps(args) ? _objectSpread$6(_objectSpread$6({}, defaultArgs), args) : _objectSpread$6(_objectSpread$6({}, defaultArgs), {}, {
     track: args
@@ -941,59 +945,69 @@ function useTracker(args) {
 
   React.useLayoutEffect(function () {
     ref(track.current);
-  }, [track]);
+  }, [track]); // Using state so it's reactive
+
+  var _useState = React.useState(),
+      _useState2 = _slicedToArray__default["default"](_useState, 2),
+      scale = _useState2[0],
+      setScale = _useState2[1]; // Using ref because
+
+
   var scrollState = React.useRef({
     inViewport: false,
     progress: -1,
     visibility: -1,
     viewport: -1
   }).current; // DOM rect (initial position in pixels offset by scroll value on page load)
+  // Using ref so we can calculate bounds & position without a re-render
 
-  var rect = React.useMemo(function () {
+  var rect = React.useRef({
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    width: 0,
+    height: 0,
+    x: 0,
+    y: 0
+  }).current; // expose internal ref as a reactive state as well
+
+  var _useState3 = React.useState(rect),
+      _useState4 = _slicedToArray__default["default"](_useState3, 2),
+      reactiveRect = _useState4[0],
+      setReactiveRect = _useState4[1]; // bounding rect in pixels - updated by scroll
+
+
+  var bounds = React.useRef({
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    width: 0,
+    height: 0,
+    x: 0,
+    y: 0,
+    positiveYUpBottom: 0
+  }).current; // position in viewport units - updated by scroll
+
+  var position = React.useRef(vecn.vec3(0, 0, 0)).current; // Calculate bounding Rect as soon as it's available
+
+  React.useLayoutEffect(function () {
     var _track$current;
 
-    var rect = ((_track$current = track.current) === null || _track$current === void 0 ? void 0 : _track$current.getBoundingClientRect()) || {
-      top: 0,
-      bottom: 0,
-      left: 0,
-      right: 0,
-      width: 0,
-      height: 0,
-      x: 0,
-      y: 0
-    };
-    var top = rect.top + window.scrollY;
-    var left = rect.left + window.scrollX;
-    return {
-      top: top,
-      bottom: rect.bottom + window.scrollY,
-      left: left,
-      right: rect.right + window.scrollX,
-      width: rect.width,
-      height: rect.height,
-      x: left + rect.width * 0.5,
-      y: top + rect.height * 0.5
-    };
-  }, [track, size, pageReflow].concat(_toConsumableArray__default["default"](deps))); // bounding rect in pixels - updated by scroll
+    var _rect = (_track$current = track.current) === null || _track$current === void 0 ? void 0 : _track$current.getBoundingClientRect();
 
-  var bounds = React.useMemo(function () {
-    var bounds = _objectSpread$6(_objectSpread$6({}, rect), {}, {
-      positiveYUpBottom: 0
-    });
-
-    updateBounds(bounds, rect, scroll, size);
-    return bounds;
-  }, []); // position in viewport units - updated by scroll
-
-  var position = React.useMemo(function () {
-    var position = vecn.vec3(0, 0, 0);
-    updatePosition(position, bounds, scaleMultiplier);
-    return position;
-  }, []); // scale in viewport units
-
-  var scale = React.useMemo(function () {
-    return vecn.vec3((rect === null || rect === void 0 ? void 0 : rect.width) * scaleMultiplier, (rect === null || rect === void 0 ? void 0 : rect.height) * scaleMultiplier, 1);
-  }, [rect, scaleMultiplier]);
+    rect.top = _rect.top + window.scrollY;
+    rect.bottom = _rect.bottom + window.scrollY;
+    rect.left = _rect.left + window.scrollX;
+    rect.right = _rect.right + window.scrollX;
+    rect.width = _rect.width;
+    rect.height = _rect.height;
+    rect.x = rect.left + _rect.width * 0.5;
+    rect.y = rect.top + _rect.height * 0.5;
+    setReactiveRect(_objectSpread$6({}, rect));
+    setScale(vecn.vec3((rect === null || rect === void 0 ? void 0 : rect.width) * scaleMultiplier, (rect === null || rect === void 0 ? void 0 : rect.height) * scaleMultiplier, 1));
+  }, [track, size, pageReflow, scaleMultiplier].concat(_toConsumableArray__default["default"](deps)));
 
   var _update = React.useCallback(function () {
     var _ref2 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
@@ -1005,11 +1019,7 @@ function useTracker(args) {
     }
 
     updateBounds(bounds, rect, scroll, size);
-    updatePosition(position, bounds, scaleMultiplier); // scrollState setup based on scroll direction
-
-    var isVertical = scroll.direction === 'vertical';
-    var sizeProp = isVertical ? 'height' : 'width';
-    var startProp = isVertical ? 'top' : 'left'; // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
+    updatePosition(position, bounds, scaleMultiplier); // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
 
     var pxInside = size[sizeProp] - bounds[startProp];
     scrollState.progress = mapLinear(pxInside, 0, size[sizeProp] + bounds[sizeProp], 0, 1); // percent of total visible distance
@@ -1017,11 +1027,15 @@ function useTracker(args) {
     scrollState.visibility = mapLinear(pxInside, 0, bounds[sizeProp], 0, 1); // percent of item height in view
 
     scrollState.viewport = mapLinear(pxInside, 0, size[sizeProp], 0, 1); // percent of window height scrolled since visible
-  }, [position, bounds, size, rect, scaleMultiplier, scroll]); // update scrollState in viewport
+  }, [track, size, scaleMultiplier, scroll]); // update scrollState in viewport
 
 
   React.useLayoutEffect(function () {
-    scrollState.inViewport = inViewport;
+    scrollState.inViewport = inViewport; // update once more in case it went out of view
+
+    _update({
+      onlyUpdateInViewport: false
+    });
   }, [inViewport]); // re-run if the callback updated
 
   React.useLayoutEffect(function () {
@@ -1036,8 +1050,8 @@ function useTracker(args) {
     });
   }, [autoUpdate, _update, onScroll]);
   return {
-    rect: rect,
-    // Dom rect - doesn't change on scroll - reactive
+    rect: reactiveRect,
+    // Dom rect - doesn't change on scroll - not - reactive
     bounds: bounds,
     // scrolled bounding rect in pixels - not reactive
     scale: scale,
@@ -1745,7 +1759,9 @@ var SmoothScrollbar = function SmoothScrollbar(_ref) {
 
     useCanvasStore.setState({
       onScroll: onScroll
-    }); // Set active
+    }); // set initial scroll direction
+
+    scrollState.direction = horizontal ? 'horizontal' : 'vertical'; // Set active
 
     document.documentElement.classList.toggle('js-has-smooth-scrollbar', enabled);
     useCanvasStore.setState({

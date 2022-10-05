@@ -200,7 +200,7 @@ var WebGLImage = function WebGLImage(_ref, ref) {
   react.useEffect(function () {
     if (!material.current) return;
     material.current.uniforms.u_res.value.set(size.width, size.height);
-    material.current.uniforms.u_rect.value.set(scale[0], scale[1]);
+    material.current.uniforms.u_rect.value.set(scale === null || scale === void 0 ? void 0 : scale[0], scale === null || scale === void 0 ? void 0 : scale[1]);
   }, [size, scale]);
   fiber.useFrame(function (_, delta) {
     if (!scrollState.inViewport || !mesh.current || !material.current) return;

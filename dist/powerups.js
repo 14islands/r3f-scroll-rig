@@ -168,7 +168,7 @@ const WebGLImage = (_ref, ref) => {
   useEffect(() => {
     if (!material.current) return;
     material.current.uniforms.u_res.value.set(size.width, size.height);
-    material.current.uniforms.u_rect.value.set(scale[0], scale[1]);
+    material.current.uniforms.u_rect.value.set(scale === null || scale === void 0 ? void 0 : scale[0], scale === null || scale === void 0 ? void 0 : scale[1]);
   }, [size, scale]);
   useFrame((_, delta) => {
     if (!scrollState.inViewport || !mesh.current || !material.current) return;

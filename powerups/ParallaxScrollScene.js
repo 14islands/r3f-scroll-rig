@@ -10,7 +10,6 @@ export const ParallaxGroup = ({ children, scrollState, parallax }) => {
 
   useFrame(() => {
     if (!scrollState.inViewport) return
-
     const parallaxProgress = scrollState.progress * 2 - 1
     mesh.current.position.y = parallax * parallaxProgress * scaleMultiplier * size.height
   })

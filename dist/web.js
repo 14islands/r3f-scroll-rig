@@ -1,4 +1,4 @@
-import React, { useEffect, forwardRef, useMemo, useRef, useLayoutEffect, Fragment as Fragment$1, cloneElement, Suspense, useCallback, useState, useImperativeHandle } from 'react';
+import React, { useEffect, forwardRef, useMemo, useRef, useLayoutEffect, Fragment as Fragment$1, cloneElement, Suspense, useState, useCallback, useImperativeHandle } from 'react';
 import { useThree, invalidate, useFrame, Canvas, createPortal, useLoader, addEffect } from '@react-three/fiber';
 import { ResizeObserver } from '@juggle/resize-observer';
 import { parse } from 'query-string';
@@ -792,7 +792,11 @@ function useTracker(args) {
     onScroll
   } = useScrollbar();
   const scaleMultiplier = useCanvasStore(state => state.scaleMultiplier);
-  const pageReflow = useCanvasStore(state => state.pageReflow);
+  const pageReflow = useCanvasStore(state => state.pageReflow); // scrollState setup based on scroll direction
+
+  const isVertical = scroll.direction === 'vertical';
+  const sizeProp = isVertical ? 'height' : 'width';
+  const startProp = isVertical ? 'top' : 'left';
   const {
     track,
     rootMargin,
@@ -814,58 +818,62 @@ function useTracker(args) {
 
   useLayoutEffect(() => {
     ref(track.current);
-  }, [track]);
+  }, [track]); // Using state so it's reactive
+
+  const [scale, setScale] = useState(); // Using ref because
+
   const scrollState = useRef({
     inViewport: false,
     progress: -1,
     visibility: -1,
     viewport: -1
   }).current; // DOM rect (initial position in pixels offset by scroll value on page load)
+  // Using ref so we can calculate bounds & position without a re-render
 
-  const rect = useMemo(() => {
+  const rect = useRef({
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    width: 0,
+    height: 0,
+    x: 0,
+    y: 0
+  }).current; // expose internal ref as a reactive state as well
+
+  const [reactiveRect, setReactiveRect] = useState(rect); // bounding rect in pixels - updated by scroll
+
+  const bounds = useRef({
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    width: 0,
+    height: 0,
+    x: 0,
+    y: 0,
+    positiveYUpBottom: 0
+  }).current; // position in viewport units - updated by scroll
+
+  const position = useRef(vec3(0, 0, 0)).current; // Calculate bounding Rect as soon as it's available
+
+  useLayoutEffect(() => {
     var _track$current;
 
-    const rect = ((_track$current = track.current) === null || _track$current === void 0 ? void 0 : _track$current.getBoundingClientRect()) || {
-      top: 0,
-      bottom: 0,
-      left: 0,
-      right: 0,
-      width: 0,
-      height: 0,
-      x: 0,
-      y: 0
-    };
-    const top = rect.top + window.scrollY;
-    const left = rect.left + window.scrollX;
-    return {
-      top,
-      bottom: rect.bottom + window.scrollY,
-      left,
-      right: rect.right + window.scrollX,
-      width: rect.width,
-      height: rect.height,
-      x: left + rect.width * 0.5,
-      y: top + rect.height * 0.5
-    };
-  }, [track, size, pageReflow, ...deps]); // bounding rect in pixels - updated by scroll
+    const _rect = (_track$current = track.current) === null || _track$current === void 0 ? void 0 : _track$current.getBoundingClientRect();
 
-  const bounds = useMemo(() => {
-    const bounds = { ...rect,
-      positiveYUpBottom: 0
-    };
-    updateBounds(bounds, rect, scroll, size);
-    return bounds;
-  }, []); // position in viewport units - updated by scroll
-
-  const position = useMemo(() => {
-    const position = vec3(0, 0, 0);
-    updatePosition(position, bounds, scaleMultiplier);
-    return position;
-  }, []); // scale in viewport units
-
-  const scale = useMemo(() => {
-    return vec3((rect === null || rect === void 0 ? void 0 : rect.width) * scaleMultiplier, (rect === null || rect === void 0 ? void 0 : rect.height) * scaleMultiplier, 1);
-  }, [rect, scaleMultiplier]);
+    rect.top = _rect.top + window.scrollY;
+    rect.bottom = _rect.bottom + window.scrollY;
+    rect.left = _rect.left + window.scrollX;
+    rect.right = _rect.right + window.scrollX;
+    rect.width = _rect.width;
+    rect.height = _rect.height;
+    rect.x = rect.left + _rect.width * 0.5;
+    rect.y = rect.top + _rect.height * 0.5;
+    setReactiveRect({ ...rect
+    });
+    setScale(vec3((rect === null || rect === void 0 ? void 0 : rect.width) * scaleMultiplier, (rect === null || rect === void 0 ? void 0 : rect.height) * scaleMultiplier, 1));
+  }, [track, size, pageReflow, scaleMultiplier, ...deps]);
   const update = useCallback(function () {
     let {
       onlyUpdateInViewport = true
@@ -876,11 +884,7 @@ function useTracker(args) {
     }
 
     updateBounds(bounds, rect, scroll, size);
-    updatePosition(position, bounds, scaleMultiplier); // scrollState setup based on scroll direction
-
-    const isVertical = scroll.direction === 'vertical';
-    const sizeProp = isVertical ? 'height' : 'width';
-    const startProp = isVertical ? 'top' : 'left'; // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
+    updatePosition(position, bounds, scaleMultiplier); // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
 
     const pxInside = size[sizeProp] - bounds[startProp];
     scrollState.progress = mapLinear(pxInside, 0, size[sizeProp] + bounds[sizeProp], 0, 1); // percent of total visible distance
@@ -888,10 +892,14 @@ function useTracker(args) {
     scrollState.visibility = mapLinear(pxInside, 0, bounds[sizeProp], 0, 1); // percent of item height in view
 
     scrollState.viewport = mapLinear(pxInside, 0, size[sizeProp], 0, 1); // percent of window height scrolled since visible
-  }, [position, bounds, size, rect, scaleMultiplier, scroll]); // update scrollState in viewport
+  }, [track, size, scaleMultiplier, scroll]); // update scrollState in viewport
 
   useLayoutEffect(() => {
-    scrollState.inViewport = inViewport;
+    scrollState.inViewport = inViewport; // update once more in case it went out of view
+
+    update({
+      onlyUpdateInViewport: false
+    });
   }, [inViewport]); // re-run if the callback updated
 
   useLayoutEffect(() => {
@@ -904,8 +912,8 @@ function useTracker(args) {
     if (autoUpdate) return onScroll(_scroll => update());
   }, [autoUpdate, update, onScroll]);
   return {
-    rect,
-    // Dom rect - doesn't change on scroll - reactive
+    rect: reactiveRect,
+    // Dom rect - doesn't change on scroll - not - reactive
     bounds,
     // scrolled bounding rect in pixels - not reactive
     scale,
@@ -1522,7 +1530,9 @@ const SmoothScrollbar = _ref => {
 
     useCanvasStore.setState({
       onScroll
-    }); // Set active
+    }); // set initial scroll direction
+
+    scrollState.direction = horizontal ? 'horizontal' : 'vertical'; // Set active
 
     document.documentElement.classList.toggle('js-has-smooth-scrollbar', enabled);
     useCanvasStore.setState({

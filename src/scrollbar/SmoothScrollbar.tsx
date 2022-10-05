@@ -83,6 +83,9 @@ export const SmoothScrollbar = ({
     // @ts-ignore
     useCanvasStore.setState({ onScroll })
 
+    // set initial scroll direction
+    scrollState.direction = horizontal ? 'horizontal' : 'vertical'
+
     // Set active
     document.documentElement.classList.toggle('js-has-smooth-scrollbar', enabled)
     useCanvasStore.setState({ hasSmoothScrollbar: enabled })

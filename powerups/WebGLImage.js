@@ -59,7 +59,7 @@ const WebGLImage = (
   useEffect(() => {
     if (!material.current) return
     material.current.uniforms.u_res.value.set(size.width, size.height)
-    material.current.uniforms.u_rect.value.set(scale[0], scale[1])
+    material.current.uniforms.u_rect.value.set(scale?.[0], scale?.[1])
   }, [size, scale])
 
   useFrame((_, delta) => {
