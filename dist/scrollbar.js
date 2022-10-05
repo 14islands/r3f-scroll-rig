@@ -1,6 +1,12 @@
 import create from 'zustand';
-import { useRef, useImperativeHandle, useEffect } from 'react';
+import { forwardRef, useRef, useImperativeHandle, useEffect, useCallback, useLayoutEffect, useState } from 'react';
+import { debounce } from 'debounce';
+import { addEffect, invalidate } from '@react-three/fiber';
 import Lenis from '@studio-freight/lenis';
+import { jsx } from 'react/jsx-runtime';
+import { useInView } from 'react-intersection-observer';
+import { useWindowSize } from 'react-use';
+import { vec3 } from 'vecn';
 
 // Transient shared state for canvas components
 // usContext() causes re-rendering which can drop frames
@@ -155,6 +161,7 @@ const useCanvasStore = create(set => ({
   scrollTo: target => window.scrollTo(0, target),
   onScroll: () => () => {}
 }));
+var useCanvasStore$1 = useCanvasStore;
 
 /**
  * Public interface for ScrollRig
@@ -240,5 +247,368 @@ function LenisScrollbar(_ref, ref) {
 
   return children && children(props);
 }
+var LenisScrollbar$1 = /*#__PURE__*/forwardRef(LenisScrollbar);
 
-export { LenisScrollbar, useScrollbar };
+const SmoothScrollbar = _ref => {
+  let {
+    children,
+    enabled = true,
+    locked = false,
+    scrollRestoration = 'auto',
+    disablePointerOnScroll = true,
+    horizontal = false,
+    config
+  } = _ref;
+  const ref = useRef();
+  const lenis = useRef();
+  const preventPointer = useRef(false);
+  const scrollState = useCanvasStore$1(state => state.scroll); // disable pointer events while scrolling to avoid slow event handlers
+
+  const preventPointerEvents = prevent => {
+    if (!disablePointerOnScroll) return;
+
+    if (ref.current && preventPointer.current !== prevent) {
+      preventPointer.current = prevent;
+      ref.current.style.pointerEvents = prevent ? 'none' : 'auto';
+    }
+  }; // reset pointer events when moving mouse
+
+
+  const onMouseMove = useCallback(() => {
+    preventPointerEvents(false);
+  }, []); // function to bind to scroll event
+  // return function that will unbind same callback
+
+  const onScroll = useCallback(cb => {
+    var _lenis$current;
+
+    (_lenis$current = lenis.current) === null || _lenis$current === void 0 ? void 0 : _lenis$current.on('scroll', cb);
+    return () => {
+      var _lenis$current2;
+
+      return (_lenis$current2 = lenis.current) === null || _lenis$current2 === void 0 ? void 0 : _lenis$current2.off('scroll', cb);
+    };
+  }, []);
+  useEffect(() => {
+    var _lenis$current4, _lenis$current5;
+
+    // let r3f drive the frameloop
+    const removeEffect = addEffect(time => {
+      var _lenis$current3;
+
+      return (_lenis$current3 = lenis.current) === null || _lenis$current3 === void 0 ? void 0 : _lenis$current3.raf(time);
+    }); // update global scroll store
+
+    (_lenis$current4 = lenis.current) === null || _lenis$current4 === void 0 ? void 0 : _lenis$current4.on('scroll', _ref2 => {
+      let {
+        scroll,
+        limit,
+        velocity,
+        direction,
+        progress
+      } = _ref2;
+      scrollState.y = direction === 'vertical' ? scroll : 0;
+      scrollState.x = direction === 'horizontal' ? scroll : 0;
+      scrollState.limit = limit;
+      scrollState.velocity = velocity;
+      scrollState.direction = direction;
+      scrollState.progress = progress; // disable pointer logic
+
+      const disablePointer = debounce(() => preventPointerEvents(true), 100, true);
+
+      if (Math.abs(velocity) > 1.4) {
+        disablePointer();
+      } else {
+        preventPointerEvents(false);
+      }
+
+      invalidate();
+    }); // expose global scrollTo function
+    // @ts-ignore
+
+    useCanvasStore$1.setState({
+      scrollTo: (_lenis$current5 = lenis.current) === null || _lenis$current5 === void 0 ? void 0 : _lenis$current5.scrollTo
+    }); // expose global onScroll function to subscribe to scroll events
+    // @ts-ignore
+
+    useCanvasStore$1.setState({
+      onScroll
+    }); // set initial scroll direction
+
+    scrollState.direction = horizontal ? 'horizontal' : 'vertical'; // Set active
+
+    document.documentElement.classList.toggle('js-has-smooth-scrollbar', enabled);
+    useCanvasStore$1.setState({
+      hasSmoothScrollbar: enabled
+    }); // make sure R3F loop is invalidated when scrolling
+
+    const invalidateOnWheelEvent = () => invalidate();
+
+    window.addEventListener('pointermove', onMouseMove);
+    window.addEventListener('wheel', invalidateOnWheelEvent);
+    return () => {
+      removeEffect();
+      window.removeEventListener('pointermove', onMouseMove);
+      window.removeEventListener('wheel', invalidateOnWheelEvent);
+    };
+  }, [enabled]);
+  useLayoutEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = scrollRestoration;
+    }
+  }, []);
+  useEffect(() => {
+    var _lenis$current6, _lenis$current7;
+
+    locked ? (_lenis$current6 = lenis.current) === null || _lenis$current6 === void 0 ? void 0 : _lenis$current6.stop() : (_lenis$current7 = lenis.current) === null || _lenis$current7 === void 0 ? void 0 : _lenis$current7.start();
+  }, [locked]);
+  return /*#__PURE__*/jsx(LenisScrollbar$1, {
+    ref: lenis,
+    smooth: enabled,
+    direction: horizontal ? 'horizontal' : 'vertical',
+    config: config,
+    children: bind => children({ ...bind,
+      ref
+    })
+  });
+};
+
+// Linear mapping from range <a1, a2> to range <b1, b2>
+function mapLinear(x, a1, a2, b1, b2) {
+  return b1 + (x - a1) * (b2 - b1) / (a2 - a1);
+}
+
+function isElementProps(obj) {
+  return typeof obj === 'object' && 'track' in obj;
+}
+
+function updateBounds(bounds, rect, scroll, size) {
+  bounds.top = rect.top - scroll.y;
+  bounds.bottom = rect.bottom - scroll.y;
+  bounds.left = rect.left - scroll.x;
+  bounds.right = rect.right - scroll.x;
+  bounds.width = rect.width;
+  bounds.height = rect.height; // move coordinate system so 0,0 is at center of screen
+
+  bounds.x = bounds.left + rect.width * 0.5 - size.width * 0.5;
+  bounds.y = bounds.top + rect.height * 0.5 - size.height * 0.5;
+  bounds.positiveYUpBottom = size.height - bounds.bottom; // inverse Y
+}
+
+function updatePosition(position, bounds, scaleMultiplier) {
+  position.x = bounds.x * scaleMultiplier;
+  position.y = -1 * bounds.y * scaleMultiplier;
+}
+
+const defaultArgs = {
+  rootMargin: '50%',
+  threshold: 0,
+  autoUpdate: true
+};
+/**
+ * Returns the current Scene position of the DOM element
+ * based on initial getBoundingClientRect and scroll delta from start
+ */
+
+function useTracker(args) {
+  let deps = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+  const size = useWindowSize();
+  const {
+    scroll,
+    onScroll
+  } = useScrollbar();
+  const scaleMultiplier = useCanvasStore(state => state.scaleMultiplier);
+  const pageReflow = useCanvasStore(state => state.pageReflow); // scrollState setup based on scroll direction
+
+  const isVertical = scroll.direction === 'vertical';
+  const sizeProp = isVertical ? 'height' : 'width';
+  const startProp = isVertical ? 'top' : 'left';
+  const {
+    track,
+    rootMargin,
+    threshold,
+    autoUpdate
+  } = isElementProps(args) ? { ...defaultArgs,
+    ...args
+  } : { ...defaultArgs,
+    track: args
+  }; // check if element is in viewport
+
+  const {
+    ref,
+    inView: inViewport
+  } = useInView({
+    rootMargin,
+    threshold
+  }); // bind useInView ref to current tracking element
+
+  useLayoutEffect(() => {
+    ref(track.current);
+  }, [track]); // Using state so it's reactive
+
+  const [scale, setScale] = useState(); // Using ref because
+
+  const scrollState = useRef({
+    inViewport: false,
+    progress: -1,
+    visibility: -1,
+    viewport: -1
+  }).current; // DOM rect (initial position in pixels offset by scroll value on page load)
+  // Using ref so we can calculate bounds & position without a re-render
+
+  const rect = useRef({
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    width: 0,
+    height: 0,
+    x: 0,
+    y: 0
+  }).current; // expose internal ref as a reactive state as well
+
+  const [reactiveRect, setReactiveRect] = useState(rect); // bounding rect in pixels - updated by scroll
+
+  const bounds = useRef({
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    width: 0,
+    height: 0,
+    x: 0,
+    y: 0,
+    positiveYUpBottom: 0
+  }).current; // position in viewport units - updated by scroll
+
+  const position = useRef(vec3(0, 0, 0)).current; // Calculate bounding Rect as soon as it's available
+
+  useLayoutEffect(() => {
+    var _track$current;
+
+    const _rect = (_track$current = track.current) === null || _track$current === void 0 ? void 0 : _track$current.getBoundingClientRect();
+
+    rect.top = _rect.top + window.scrollY;
+    rect.bottom = _rect.bottom + window.scrollY;
+    rect.left = _rect.left + window.scrollX;
+    rect.right = _rect.right + window.scrollX;
+    rect.width = _rect.width;
+    rect.height = _rect.height;
+    rect.x = rect.left + _rect.width * 0.5;
+    rect.y = rect.top + _rect.height * 0.5;
+    setReactiveRect({ ...rect
+    });
+    setScale(vec3((rect === null || rect === void 0 ? void 0 : rect.width) * scaleMultiplier, (rect === null || rect === void 0 ? void 0 : rect.height) * scaleMultiplier, 1));
+  }, [track, size, pageReflow, scaleMultiplier, ...deps]);
+  const update = useCallback(function () {
+    let {
+      onlyUpdateInViewport = true
+    } = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+    if (!track.current || onlyUpdateInViewport && !scrollState.inViewport) {
+      return;
+    }
+
+    updateBounds(bounds, rect, scroll, size);
+    updatePosition(position, bounds, scaleMultiplier); // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
+
+    const pxInside = size[sizeProp] - bounds[startProp];
+    scrollState.progress = mapLinear(pxInside, 0, size[sizeProp] + bounds[sizeProp], 0, 1); // percent of total visible distance
+
+    scrollState.visibility = mapLinear(pxInside, 0, bounds[sizeProp], 0, 1); // percent of item height in view
+
+    scrollState.viewport = mapLinear(pxInside, 0, size[sizeProp], 0, 1); // percent of window height scrolled since visible
+  }, [track, size, scaleMultiplier, scroll]); // update scrollState in viewport
+
+  useLayoutEffect(() => {
+    scrollState.inViewport = inViewport; // update once more in case it went out of view
+
+    update({
+      onlyUpdateInViewport: false
+    });
+  }, [inViewport]); // re-run if the callback updated
+
+  useLayoutEffect(() => {
+    update({
+      onlyUpdateInViewport: false
+    });
+  }, [update]); // auto-update on scroll
+
+  useEffect(() => {
+    if (autoUpdate) return onScroll(_scroll => update());
+  }, [autoUpdate, update, onScroll]);
+  return {
+    rect: reactiveRect,
+    // Dom rect - doesn't change on scroll - not - reactive
+    bounds,
+    // scrolled bounding rect in pixels - not reactive
+    scale,
+    // reactive scene scale - includes z-axis so it can be spread onto mesh directly
+    position,
+    // scrolled element position in viewport units - not reactive
+    scrollState,
+    // scroll progress stats - not reactive
+    inViewport,
+    // reactive prop for when inside viewport
+    update: () => update({
+      onlyUpdateInViewport: false
+    }) // optional manual update
+
+  };
+}
+
+function useHideElementWhileMounted(el) {
+  let deps = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+  let {
+    debug,
+    style = {
+      opacity: '0'
+    },
+    className
+  } = arguments.length > 2 ? arguments[2] : undefined;
+  // Hide DOM element
+  useLayoutEffect(() => {
+    // hide image - leave in DOM to measure and get events
+    if (!(el !== null && el !== void 0 && el.current)) return;
+
+    if (debug) {
+      el.current.style.opacity = '0.5';
+    } else {
+      className && el.current.classList.add(className);
+      Object.assign(el.current.style, { ...style
+      });
+    }
+
+    return () => {
+      if (!(el !== null && el !== void 0 && el.current)) return; // @ts-ignore
+
+      Object.keys(style).forEach(key => el.current.style[key] = '');
+      className && el.current.classList.remove(className);
+    };
+  }, deps);
+}
+
+/**
+ * Purpose: Hide tracked DOM elements on mount if GlobalCanvas is in use
+ *
+ * Creates an HTMLElement ref and applies CSS styles and/or a classname while the the component is mounted
+ */
+
+function useCanvasRef() {
+  let {
+    style,
+    className
+  } = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  const isCanvasAvailable = useCanvasStore(s => s.isCanvasAvailable);
+  const debug = useCanvasStore(s => s.debug);
+  const ref = useRef(null); // Apply hidden styles/classname to DOM element
+
+  useHideElementWhileMounted(ref, [isCanvasAvailable], {
+    debug,
+    style,
+    className
+  });
+  return ref;
+}
+
+export { SmoothScrollbar, useCanvasRef, useScrollbar, useTracker };

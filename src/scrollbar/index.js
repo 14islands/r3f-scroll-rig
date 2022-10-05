@@ -1,2 +1,5 @@
 export { useScrollbar } from './useScrollbar'
-export { LenisScrollbar } from './LenisScrollbar'
+export { SmoothScrollbar } from './SmoothScrollbar'
+
+export { useTracker } from '../hooks/useTracker'
+export { useCanvasRef } from '../hooks/useCanvasRef'

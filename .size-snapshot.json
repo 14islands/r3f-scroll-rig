@@ -38,23 +38,23 @@
     "gzipped": 2419
   },
   "scrollbar.js": {
-    "bundled": 6847,
-    "minified": 2766,
-    "gzipped": 1108,
+    "bundled": 18826,
+    "minified": 7935,
+    "gzipped": 2792,
     "treeshaked": {
       "rollup": {
-        "code": 1512,
-        "import_statements": 67
+        "code": 1649,
+        "import_statements": 204
       },
       "webpack": {
-        "code": 2572
+        "code": 2907
       }
     }
   },
   "scrollbar.cjs.js": {
-    "bundled": 11814,
-    "minified": 5874,
-    "gzipped": 1771
+    "bundled": 28948,
+    "minified": 14166,
+    "gzipped": 3728
   },
   "examples.js": {
     "bundled": 2866,
