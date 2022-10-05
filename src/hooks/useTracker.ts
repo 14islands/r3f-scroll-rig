@@ -44,11 +44,6 @@ function useTracker(args: PropsOrElement, deps: any[] = []): ElementTracker {
   const scaleMultiplier = useCanvasStore((state) => state.scaleMultiplier)
   const pageReflow = useCanvasStore((state) => state.pageReflow)
 
-  // scrollState setup based on scroll direction
-  const isVertical = scroll.direction === 'vertical'
-  const sizeProp = isVertical ? 'height' : 'width'
-  const startProp = isVertical ? 'top' : 'left'
-
   const { track, rootMargin, threshold, autoUpdate } = isElementProps(args)
     ? { ...defaultArgs, ...args }
     : { ...defaultArgs, track: args }
@@ -127,6 +122,11 @@ function useTracker(args: PropsOrElement, deps: any[] = []): ElementTracker {
 
       updateBounds(bounds, rect, scroll, size)
       updatePosition(position, bounds, scaleMultiplier)
+
+      // scrollState setup based on scroll direction
+      const isHorizontal = scroll.direction === 'horizontal'
+      const sizeProp = isHorizontal ? 'width' : 'height'
+      const startProp = isHorizontal ? 'left' : 'top'
 
       // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
       const pxInside = size[sizeProp] - bounds[startProp]

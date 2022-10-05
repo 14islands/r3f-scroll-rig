@@ -920,11 +920,7 @@ function useTracker(args) {
   });
   var pageReflow = useCanvasStore(function (state) {
     return state.pageReflow;
-  }); // scrollState setup based on scroll direction
-
-  var isVertical = scroll.direction === 'vertical';
-  var sizeProp = isVertical ? 'height' : 'width';
-  var startProp = isVertical ? 'top' : 'left';
+  });
 
   var _ref = isElementProps(args) ? _objectSpread$6(_objectSpread$6({}, defaultArgs), args) : _objectSpread$6(_objectSpread$6({}, defaultArgs), {}, {
     track: args
@@ -1019,7 +1015,11 @@ function useTracker(args) {
     }
 
     updateBounds(bounds, rect, scroll, size);
-    updatePosition(position, bounds, scaleMultiplier); // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
+    updatePosition(position, bounds, scaleMultiplier); // scrollState setup based on scroll direction
+
+    var isHorizontal = scroll.direction === 'horizontal';
+    var sizeProp = isHorizontal ? 'width' : 'height';
+    var startProp = isHorizontal ? 'left' : 'top'; // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
 
     var pxInside = size[sizeProp] - bounds[startProp];
     scrollState.progress = mapLinear(pxInside, 0, size[sizeProp] + bounds[sizeProp], 0, 1); // percent of total visible distance
@@ -1686,9 +1686,12 @@ var SmoothScrollbar = function SmoothScrollbar(_ref) {
   var ref = React.useRef();
   var lenis = React.useRef();
   var preventPointer = React.useRef(false);
-  var scrollState = useCanvasStore(function (state) {
+  var globalScrollState = useCanvasStore(function (state) {
     return state.scroll;
-  }); // disable pointer events while scrolling to avoid slow event handlers
+  }); // set initial scroll direction
+  // need to be updated before children render
+
+  globalScrollState.direction = horizontal ? 'horizontal' : 'vertical'; // disable pointer events while scrolling to avoid slow event handlers
 
   var preventPointerEvents = function preventPointerEvents(prevent) {
     if (!disablePointerOnScroll) return;
@@ -1714,6 +1717,12 @@ var SmoothScrollbar = function SmoothScrollbar(_ref) {
 
       return (_lenis$current2 = lenis.current) === null || _lenis$current2 === void 0 ? void 0 : _lenis$current2.off('scroll', cb);
     };
+  }, []); // apply chosen scroll restoration
+
+  React.useLayoutEffect(function () {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = scrollRestoration;
+    }
   }, []);
   React.useEffect(function () {
     var _lenis$current4, _lenis$current5;
@@ -1731,12 +1740,12 @@ var SmoothScrollbar = function SmoothScrollbar(_ref) {
           velocity = _ref2.velocity,
           direction = _ref2.direction,
           progress = _ref2.progress;
-      scrollState.y = direction === 'vertical' ? scroll : 0;
-      scrollState.x = direction === 'horizontal' ? scroll : 0;
-      scrollState.limit = limit;
-      scrollState.velocity = velocity;
-      scrollState.direction = direction;
-      scrollState.progress = progress; // disable pointer logic
+      globalScrollState.y = direction === 'vertical' ? scroll : 0;
+      globalScrollState.x = direction === 'horizontal' ? scroll : 0;
+      globalScrollState.limit = limit;
+      globalScrollState.velocity = velocity;
+      globalScrollState.direction = direction;
+      globalScrollState.progress = progress; // disable pointer logic
 
       var disablePointer = debounce.debounce(function () {
         return preventPointerEvents(true);
@@ -1759,9 +1768,7 @@ var SmoothScrollbar = function SmoothScrollbar(_ref) {
 
     useCanvasStore.setState({
       onScroll: onScroll
-    }); // set initial scroll direction
-
-    scrollState.direction = horizontal ? 'horizontal' : 'vertical'; // Set active
+    }); // Set active
 
     document.documentElement.classList.toggle('js-has-smooth-scrollbar', enabled);
     useCanvasStore.setState({
@@ -1780,11 +1787,6 @@ var SmoothScrollbar = function SmoothScrollbar(_ref) {
       window.removeEventListener('wheel', invalidateOnWheelEvent);
     };
   }, [enabled]);
-  React.useLayoutEffect(function () {
-    if ('scrollRestoration' in window.history) {
-      window.history.scrollRestoration = scrollRestoration;
-    }
-  }, []);
   React.useEffect(function () {
     var _lenis$current6, _lenis$current7;
 

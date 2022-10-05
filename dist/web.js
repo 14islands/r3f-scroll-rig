@@ -792,11 +792,7 @@ function useTracker(args) {
     onScroll
   } = useScrollbar();
   const scaleMultiplier = useCanvasStore(state => state.scaleMultiplier);
-  const pageReflow = useCanvasStore(state => state.pageReflow); // scrollState setup based on scroll direction
-
-  const isVertical = scroll.direction === 'vertical';
-  const sizeProp = isVertical ? 'height' : 'width';
-  const startProp = isVertical ? 'top' : 'left';
+  const pageReflow = useCanvasStore(state => state.pageReflow);
   const {
     track,
     rootMargin,
@@ -884,7 +880,11 @@ function useTracker(args) {
     }
 
     updateBounds(bounds, rect, scroll, size);
-    updatePosition(position, bounds, scaleMultiplier); // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
+    updatePosition(position, bounds, scaleMultiplier); // scrollState setup based on scroll direction
+
+    const isHorizontal = scroll.direction === 'horizontal';
+    const sizeProp = isHorizontal ? 'width' : 'height';
+    const startProp = isHorizontal ? 'left' : 'top'; // calculate progress of passing through viewport (0 = just entered, 1 = just exited)
 
     const pxInside = size[sizeProp] - bounds[startProp];
     scrollState.progress = mapLinear(pxInside, 0, size[sizeProp] + bounds[sizeProp], 0, 1); // percent of total visible distance
@@ -1459,7 +1459,10 @@ const SmoothScrollbar = _ref => {
   const ref = useRef();
   const lenis = useRef();
   const preventPointer = useRef(false);
-  const scrollState = useCanvasStore(state => state.scroll); // disable pointer events while scrolling to avoid slow event handlers
+  const globalScrollState = useCanvasStore(state => state.scroll); // set initial scroll direction
+  // need to be updated before children render
+
+  globalScrollState.direction = horizontal ? 'horizontal' : 'vertical'; // disable pointer events while scrolling to avoid slow event handlers
 
   const preventPointerEvents = prevent => {
     if (!disablePointerOnScroll) return;
@@ -1485,6 +1488,12 @@ const SmoothScrollbar = _ref => {
 
       return (_lenis$current2 = lenis.current) === null || _lenis$current2 === void 0 ? void 0 : _lenis$current2.off('scroll', cb);
     };
+  }, []); // apply chosen scroll restoration
+
+  useLayoutEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = scrollRestoration;
+    }
   }, []);
   useEffect(() => {
     var _lenis$current4, _lenis$current5;
@@ -1504,12 +1513,12 @@ const SmoothScrollbar = _ref => {
         direction,
         progress
       } = _ref2;
-      scrollState.y = direction === 'vertical' ? scroll : 0;
-      scrollState.x = direction === 'horizontal' ? scroll : 0;
-      scrollState.limit = limit;
-      scrollState.velocity = velocity;
-      scrollState.direction = direction;
-      scrollState.progress = progress; // disable pointer logic
+      globalScrollState.y = direction === 'vertical' ? scroll : 0;
+      globalScrollState.x = direction === 'horizontal' ? scroll : 0;
+      globalScrollState.limit = limit;
+      globalScrollState.velocity = velocity;
+      globalScrollState.direction = direction;
+      globalScrollState.progress = progress; // disable pointer logic
 
       const disablePointer = debounce(() => preventPointerEvents(true), 100, true);
 
@@ -1530,9 +1539,7 @@ const SmoothScrollbar = _ref => {
 
     useCanvasStore.setState({
       onScroll
-    }); // set initial scroll direction
-
-    scrollState.direction = horizontal ? 'horizontal' : 'vertical'; // Set active
+    }); // Set active
 
     document.documentElement.classList.toggle('js-has-smooth-scrollbar', enabled);
     useCanvasStore.setState({
@@ -1549,11 +1556,6 @@ const SmoothScrollbar = _ref => {
       window.removeEventListener('wheel', invalidateOnWheelEvent);
     };
   }, [enabled]);
-  useLayoutEffect(() => {
-    if ('scrollRestoration' in window.history) {
-      window.history.scrollRestoration = scrollRestoration;
-    }
-  }, []);
   useEffect(() => {
     var _lenis$current6, _lenis$current7;
 

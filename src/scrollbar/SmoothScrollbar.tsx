@@ -28,7 +28,11 @@ export const SmoothScrollbar = ({
   const ref = useRef<HTMLElement>()
   const lenis = useRef<ILenisScrollbar>()
   const preventPointer = useRef(false)
-  const scrollState = useCanvasStore((state) => state.scroll)
+  const globalScrollState = useCanvasStore((state) => state.scroll)
+
+  // set initial scroll direction
+  // need to be updated before children render
+  globalScrollState.direction = horizontal ? 'horizontal' : 'vertical'
 
   // disable pointer events while scrolling to avoid slow event handlers
   const preventPointerEvents = (prevent: boolean) => {
@@ -51,18 +55,25 @@ export const SmoothScrollbar = ({
     return () => lenis.current?.off('scroll', cb)
   }, [])
 
+  // apply chosen scroll restoration
+  useLayoutEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = scrollRestoration
+    }
+  }, [])
+
   useEffect(() => {
     // let r3f drive the frameloop
     const removeEffect = addEffect((time) => lenis.current?.raf(time))
 
     // update global scroll store
     lenis.current?.on('scroll', ({ scroll, limit, velocity, direction, progress }) => {
-      scrollState.y = direction === 'vertical' ? scroll : 0
-      scrollState.x = direction === 'horizontal' ? scroll : 0
-      scrollState.limit = limit
-      scrollState.velocity = velocity
-      scrollState.direction = direction
-      scrollState.progress = progress
+      globalScrollState.y = direction === 'vertical' ? scroll : 0
+      globalScrollState.x = direction === 'horizontal' ? scroll : 0
+      globalScrollState.limit = limit
+      globalScrollState.velocity = velocity
+      globalScrollState.direction = direction
+      globalScrollState.progress = progress
 
       // disable pointer logic
       const disablePointer = debounce(() => preventPointerEvents(true), 100, true)
@@ -83,9 +94,6 @@ export const SmoothScrollbar = ({
     // @ts-ignore
     useCanvasStore.setState({ onScroll })
 
-    // set initial scroll direction
-    scrollState.direction = horizontal ? 'horizontal' : 'vertical'
-
     // Set active
     document.documentElement.classList.toggle('js-has-smooth-scrollbar', enabled)
     useCanvasStore.setState({ hasSmoothScrollbar: enabled })
@@ -101,12 +109,6 @@ export const SmoothScrollbar = ({
       window.removeEventListener('wheel', invalidateOnWheelEvent)
     }
   }, [enabled])
-
-  useLayoutEffect(() => {
-    if ('scrollRestoration' in window.history) {
-      window.history.scrollRestoration = scrollRestoration
-    }
-  }, [])
 
   useEffect(() => {
     locked ? lenis.current?.stop() : lenis.current?.start()
