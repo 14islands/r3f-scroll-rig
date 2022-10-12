@@ -1,18 +1,15 @@
-import { useRef, useCallback, useLayoutEffect, useEffect, useState } from 'react'
+import { useRef, useCallback, useEffect, useState, MutableRefObject } from 'react'
 import { useInView } from 'react-intersection-observer'
 import { useWindowSize } from 'react-use'
-import { mapLinear } from '../utils/math'
 // @ts-ignore
 import { vec3 } from 'vecn'
 
+import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
+import { mapLinear } from '../utils/math'
 import { useCanvasStore } from '../store'
 import { useScrollbar, Scroll } from '../scrollbar/useScrollbar'
 
-import type { Rect, Bounds, ElementTrackerProps, ElementTracker, ScrollState, PropsOrElement } from './useTracker.d'
-
-function isElementProps(obj: any): obj is ElementTrackerProps {
-  return typeof obj === 'object' && 'track' in obj
-}
+import type { Rect, Bounds, TrackerOptions, Tracker, ScrollState } from './useTracker.d'
 
 function updateBounds(bounds: Bounds, rect: Rect, scroll: Scroll, size: any) {
   bounds.top = rect.top - scroll.y
@@ -38,15 +35,13 @@ const defaultArgs = { rootMargin: '50%', threshold: 0, autoUpdate: true }
  * Returns the current Scene position of the DOM element
  * based on initial getBoundingClientRect and scroll delta from start
  */
-function useTracker(args: PropsOrElement, deps: any[] = []): ElementTracker {
+function useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptions): Tracker {
   const size = useWindowSize()
   const { scroll, onScroll } = useScrollbar()
   const scaleMultiplier = useCanvasStore((state) => state.scaleMultiplier)
   const pageReflow = useCanvasStore((state) => state.pageReflow)
 
-  const { track, rootMargin, threshold, autoUpdate } = isElementProps(args)
-    ? { ...defaultArgs, ...args }
-    : { ...defaultArgs, track: args }
+  const { rootMargin, threshold, autoUpdate } = { ...defaultArgs, ...options }
 
   // check if element is in viewport
   const { ref, inView: inViewport } = useInView({ rootMargin, threshold })
@@ -112,7 +107,7 @@ function useTracker(args: PropsOrElement, deps: any[] = []): ElementTracker {
     rect.y = rect.top + _rect.height * 0.5
     setReactiveRect({ ...rect })
     setScale(vec3(rect?.width * scaleMultiplier, rect?.height * scaleMultiplier, 1))
-  }, [track, size, pageReflow, scaleMultiplier, ...deps])
+  }, [track, size, pageReflow, scaleMultiplier])
 
   const update = useCallback(
     ({ onlyUpdateInViewport = true } = {}) => {

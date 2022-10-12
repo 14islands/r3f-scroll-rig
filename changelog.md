@@ -1,5 +1,55 @@
 # Changelog
 
+## v8.5.0
+
+- Fixed SSR warnings by replacing `uesLayoutEffect` with `useIsomorphicLayoutEffect`
+
+- `GlobalCanvas`
+
+  - removed `loadingFallback`
+  - children can now be a render function (optional). It accepts the global canvas children from useCanvas as a single parameter. This can be used to add suspense boundaries.
+
+  ```jsx
+  <GlobalCanvas>
+    {(globalChildren) => (
+      <Suspense fallback={null}>
+        {globalChildren}
+        <AnotherPersistentComponent />
+      </Suspense>
+    )}
+  </GlobalCanvas>
+  ```
+
+- `useImageAsTexture`
+
+  - Added WebP Accept header to fetch request if supported by brower
+  - Notifies the DefaultLoadingManager that something is loading while waiting for the DOM image load.
+
+- Added global css with classes that can hide DOM elements when canvas is active
+  `import "@14islands/r3f-scroll-rig/css";`
+
+- Global export `styles` added to access CSS class names from Javascript.
+
+```jsx
+import { styles } from '@14islands/r3f-scroll-rig'
+
+function Component() {
+  return <div className={styles.hidden}>I will be `visibility: hidden` if WebGL is supported</div>
+}
+```
+
+- Removed `useCanvasRef` - use exported classnames and global CSS to hide elements via SSR instead to avoid FOUC
+
+- `SmoothScrollbar`
+
+  - Replaced global html classname `js-has-smooth-scrollbar` with two classes: `js-smooth-scrollbar-enabled` and `js-smooth-scrollbar-disabled`
+
+- `useCanvas` - improved option `dispose:false` to keep unused meshes mounted. Now passes an `inactive` prop to the component which is true if no hook is using the mesh.
+
+- `useTracker` - new call signature
+  - first argument is always the DOM ref
+  - second argument is the optional config settings for the IntersectionObserver
+
 ## v8.4.0
 
 - `GlobalCanvas`

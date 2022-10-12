@@ -1,8 +1,9 @@
-import { ReactNode, useLayoutEffect, Suspense } from 'react'
+import { ReactNode, Suspense } from 'react'
 import { Canvas, Props } from '@react-three/fiber'
 import { ResizeObserver } from '@juggle/resize-observer'
 import { parse } from 'query-string'
 
+import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
 import { useCanvasStore } from '../store'
 import ResizeManager from './ResizeManager'
 import PerspectiveCamera from './PerspectiveCamera'
@@ -96,9 +97,7 @@ const GlobalCanvas = ({
       // allow to override anything of the above
       {...props}
     >
-      <Suspense fallback={loadingFallback}>
-        {typeof children === 'function' ? children(<GlobalChildren />) : <GlobalChildren>{children}</GlobalChildren>}
-      </Suspense>
+      {typeof children === 'function' ? children(<GlobalChildren />) : <GlobalChildren>{children}</GlobalChildren>}
 
       {globalRenderState && <GlobalRenderer />}
 
@@ -128,6 +127,17 @@ const GlobalCanvasIfSupported = ({ children, onError, ...props }: IGlobalCanvas)
       }}
     >
       <GlobalCanvas {...props}>{children}</GlobalCanvas>
+      <noscript>
+        <style>
+          {`
+          .ScrollRig-visibilityHidden,
+          .ScrollRig-transparentColor {
+            visibility: unset;
+            color: unset;
+          }
+          `}
+        </style>
+      </noscript>
     </CanvasErrorBoundary>
   )
 }

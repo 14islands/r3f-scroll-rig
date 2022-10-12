@@ -102,10 +102,10 @@ const useCanvasStore = create<ScrollRigStore>((set) => ({
           const { [key]: _omit, ...obj } = canvasChildren // make a separate copy of the obj and omit
           return { canvasChildren: obj }
         } else {
-          // or tell it to "act" hidden
+          // or tell it that it is "inactive"
           canvasChildren[key].instances = 0
           canvasChildren[key].props.inactive = true
-          return { canvasChildren }
+          return { canvasChildren: { ...canvasChildren } }
         }
       }
     }),

@@ -1,5 +1,6 @@
 {
   "internal": true,
   "main": "../dist/scrollbar.cjs.js",
-  "module": "../dist/scrollbar.js"
+  "module": "../dist/scrollbar.js",
+  "types": "../dist/scrollbar.d.ts"
 }

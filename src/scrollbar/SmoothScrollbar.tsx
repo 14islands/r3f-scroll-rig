@@ -1,7 +1,8 @@
-import { useEffect, useRef, useCallback, useLayoutEffect, ReactElement } from 'react'
+import { useEffect, useRef, useCallback, ReactElement } from 'react'
 import { debounce } from 'debounce'
 import { addEffect, invalidate } from '@react-three/fiber'
 
+import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
 import useCanvasStore from '../store'
 
 import LenisScrollbar, { ILenisScrollbar, LenisScrollCallback } from './LenisScrollbar'
@@ -94,8 +95,13 @@ export const SmoothScrollbar = ({
     // @ts-ignore
     useCanvasStore.setState({ onScroll })
 
+    // Set current scroll position on load in case reloaded further down
+    useCanvasStore.getState().scroll.y = window.scrollY
+    useCanvasStore.getState().scroll.x = window.scrollX
+
     // Set active
-    document.documentElement.classList.toggle('js-has-smooth-scrollbar', enabled)
+    document.documentElement.classList.toggle('js-smooth-scrollbar-enabled', enabled)
+    document.documentElement.classList.toggle('js-smooth-scrollbar-disabled', !enabled)
     useCanvasStore.setState({ hasSmoothScrollbar: enabled })
 
     // make sure R3F loop is invalidated when scrolling

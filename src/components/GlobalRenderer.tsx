@@ -1,6 +1,6 @@
-import { useLayoutEffect } from 'react'
 import { useThree, useFrame, invalidate } from '@react-three/fiber'
 
+import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
 import config from '../config'
 import { useCanvasStore } from '../store'
 import { useScrollRig } from '../hooks/useScrollRig'

@@ -1,5 +1,4 @@
-// Transient shared state for canvas components
-// usContext() causes re-rendering which can drop frames
+// Global config
 
 export const config = {
   // Execution order for useFrames (highest = last render)

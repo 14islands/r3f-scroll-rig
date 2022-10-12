@@ -64,6 +64,7 @@ export function LenisScrollbar(
 
   useEffect(
     function initLenis() {
+      // @ts-ignore
       const lenis = (lenisImpl.current = new Lenis({
         duration,
         easing,

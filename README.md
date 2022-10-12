@@ -141,7 +141,6 @@ How it works:
           <li><a href="#usescrollbar">useScrollbar</a></li>
           <li><a href="#usecanvas">useCanvas</a></li>
           <li><a href="#useimageastexture">useImageAsTexture</a></li>
-          <li><a href="#usecanvasref">useCanvasRef</a></li>
           <li><a href="#usetracker">useTracker</a></li>
         </ul>
     </td>
@@ -452,13 +451,61 @@ The specified styles or classes will be added to the DOM element if the GlobalCa
 
 Loads a `THREE.Texture` from a DOM image source.
 
-🚧 To Be Documented 🚧
+Supports <picture> tags with multiple sources or responsive `srcset`.
+
+It will wait for the DOM image to be loaded and then use the `currentSrc` to get a cache hit and upload the texture to the GPU.
+
+It suspends until the texture is fully loaded and also notifies the Three.js `DefaultLoadingManager` that something is loading.
+
+```jsx
+function MyMesh({ imgTagRef, scale }) {
+  const texture = useImageAsTexture(imgTagRef)
+  return (
+    <mesh scale={scale}>
+      <planeGeometry />
+      <meshBasicMaterial map={texture} />
+    </mesh>
+  )
+}
+```
 
 ### `useTracker`
 
-Used internally by `ScrollScene` and `ViewportScrollScene` to track DOM elements.
+Used internally by `ScrollScene` and `ViewportScrollScene` to track DOM elements as the user scrolls.
 
-🚧 To Be Documented 🚧
+This hook makes a single call to `getBoundingClientRect` when it mounts and then uses scroll offsets to calculate the element's position during scroll.
+
+It will not detect changes to the element size - only as a result of window resize.
+
+It returns `scale` and `position` in Three.js units. `position` is not reactive to avoid expensive re-renders, so you need to read its properties in a rAF or on scroll.
+
+```ts
+
+interface TrackerOptions {
+  rootMargin?: string = "50%" // IntersectionObserver
+  threshold?: number = 0 // IntersectionObserver
+  autoUpdate?: boolean = true // auto updates position/bounds/scrollState on scroll
+}
+
+const tracker: Tracker = useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptions)
+
+interface Tracker {
+  rect: DOMRect // reactive pixel size
+  scale: vec3 // reactive viewport unti scale
+  inViewport: Boolean // reactive
+  bounds: Bounds // non-reactive pixel bounds - updates on scroll
+  position: vec3 // non-reactive viewport unit position, updates on scroll
+  scrollState: ScrollState // non-reactive scroll stats, updates on scroll
+  update: () => void // use to manually update position/bounds/scrollState
+}
+```
+
+`vec3` is 3-dimensional vector type from [vecn](https://www.npmjs.com/package/vecn) that support swizzling and object notation. You can do things like:
+
+```js
+position.x === position[0]
+position.xy => [x,y]
+```
 
 # Gotchas
 

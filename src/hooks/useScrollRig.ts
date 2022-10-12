@@ -1,7 +1,20 @@
 import { useEffect } from 'react'
 
+import type { Scene, Camera } from 'three'
 import { useCanvasStore } from '../store'
 import { preloadScene, requestRender, renderScissor, renderViewport } from '../renderer-api'
+
+export interface ScrollRigState {
+  debug: boolean
+  isCanvasAvailable: boolean
+  hasSmoothScrollbar: boolean
+  scaleMultiplier: number
+  preloadScene: (scene: Scene, camera: Camera, layer?: number, callback?: any) => void
+  requestRender: (layers?: number[]) => void
+  renderScissor: (args: any) => void
+  renderViewport: (args: any) => void
+  reflow: () => void
+}
 
 /**
  * Public interface for ScrollRig
@@ -36,7 +49,7 @@ export const useScrollRig = () => {
     renderViewport,
     // recalc all tracker positions
     reflow: requestReflow,
-  }
+  } as ScrollRigState
 }
 
 export default useScrollRig

@@ -1,11 +1,11 @@
 {
   "compilerOptions": {
-    "target": "es6",
-    "lib": ["es2019", "dom"],
-    "module": "commonjs",
+    "target": "ESNext",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "module": "ESNext",
     "moduleResolution": "node",
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": false,
+    "esModuleInterop": false,
+    "allowSyntheticDefaultImports": true,
     "jsx": "react-jsx",
     "pretty": true,
     "strict": true,

@@ -1,13 +1,16 @@
-import { useEffect, useLayoutEffect, useMemo, useCallback, ReactNode } from 'react'
+import { useEffect, useMemo, useCallback, ReactNode } from 'react'
 import { MathUtils } from 'three'
-import { useCanvasStore } from '../store'
 
+import { useCanvasStore } from '../store'
+import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
+
+import { ScrollRigState } from '../hooks/useScrollRig'
 /**
  * Adds THREE.js object to the GlobalCanvas while the component is mounted
  * @param {object} object THREE.js object3d
  */
 function useCanvas(
-  object: ReactNode,
+  object: ReactNode | ((props: ScrollRigState) => ReactNode),
   deps: any = {},
   { key, dispose = true }: { key?: string; dispose?: boolean } = {}
 ) {
@@ -47,4 +50,3 @@ function useCanvas(
 }
 
 export { useCanvas }
-export default useCanvas

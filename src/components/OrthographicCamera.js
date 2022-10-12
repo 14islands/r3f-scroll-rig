@@ -1,8 +1,9 @@
-import React, { useRef, forwardRef, useLayoutEffect, useMemo } from 'react'
+import React, { useRef, forwardRef, useMemo } from 'react'
 import PropTypes from 'prop-types'
 import { useThree } from '@react-three/fiber'
 import mergeRefs from 'react-merge-refs'
 
+import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
 import useCanvasStore from '../store'
 
 export const OrthographicCamera = forwardRef(({ makeDefault = false, ...props }, ref) => {

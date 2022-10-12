@@ -1,8 +1,10 @@
 import { forwardRef, ReactNode } from 'react'
 import { useCanvas } from '../hooks/useCanvas'
 
+import { ScrollRigState } from '../hooks/useScrollRig'
+
 interface IUseCanvas {
-  children: ReactNode
+  children: ReactNode | ((props: ScrollRigState) => ReactNode)
   id?: string // persistent layout id
 }
 

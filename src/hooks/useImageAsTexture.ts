@@ -1,7 +1,11 @@
-import { useEffect, RefObject, useMemo } from 'react'
+import { useEffect, RefObject, useMemo, useRef } from 'react'
 import { useThree, useLoader } from '@react-three/fiber'
-import { Texture, CanvasTexture, ImageBitmapLoader, TextureLoader } from 'three'
+import { Texture, CanvasTexture, ImageBitmapLoader, TextureLoader, DefaultLoadingManager } from 'three'
 import { suspend } from 'suspend-react'
+import supportsWebP from 'supports-webp'
+import equal from 'fast-deep-equal'
+
+import { useCanvasStore } from '../store'
 
 /**
  *  Create Threejs Texture from DOM image tag
@@ -15,6 +19,12 @@ import { suspend } from 'suspend-react'
  *  - NOTE: You must add the `crossOrigin` attribute
  *     <img src="" alt="" crossOrigin="anonymous"/>
  */
+
+let hasWebpSupport: boolean = false
+// this test is fast - "should" run before first image is requested
+supportsWebP.then((supported) => {
+  hasWebpSupport = supported
+})
 
 function useTextureLoader() {
   // Use an ImageBitmapLoader if imageBitmaps are supported. Moves much of the
@@ -31,24 +41,37 @@ function useImageAsTexture(
   imgRef: RefObject<HTMLImageElement>,
   { initTexture = true, premultiplyAlpha = 'default' } = {}
 ) {
-  const { gl } = useThree()
-  const { size } = useThree()
+  const gl = useThree((s) => s.gl)
+  const size = useThree((s) => s.size)
+  const debug = useCanvasStore((state) => state.debug)
 
-  const currentSrc = suspend(() => {
-    return new Promise((resolve) => {
-      const el = imgRef.current
+  // suspend until we have currentSrc for this `size`
+  const currentSrc = suspend(
+    () => {
+      DefaultLoadingManager.itemStart('waiting for DOM image')
+      return new Promise((resolve) => {
+        const el = imgRef.current
 
-      // respond to all future load events (resizing might load another image)
-      el?.addEventListener('load', () => resolve(el?.currentSrc), { once: true })
+        function returnResolve() {
+          resolve(el?.currentSrc)
+        }
 
-      // detect if loaded from browser cache
-      if (el?.complete) {
-        resolve(el?.currentSrc)
-      }
-    })
-  }, [imgRef, size]) as string
+        // respond to all future load events (resizing might load another image)
+        el?.addEventListener('load', returnResolve, { once: true })
+
+        // detect if loaded from browser cache
+        if (el?.complete) {
+          el?.removeEventListener('load', returnResolve)
+          returnResolve()
+        }
+      })
+    },
+    [imgRef, size],
+    { equal } // use deep-equal since size ref seems to update on route change
+  ) as string
 
   const LoaderProto = useTextureLoader() ? TextureLoader : ImageBitmapLoader
+
   // @ts-ignore
   const result: any = useLoader(LoaderProto, currentSrc, (loader) => {
     if (loader instanceof ImageBitmapLoader) {
@@ -56,6 +79,11 @@ function useImageAsTexture(
         colorSpaceConversion: 'none',
         premultiplyAlpha, // "none" increases blocking time in lighthouse
         imageOrientation: 'flipY',
+      })
+      // Add webp to Accept header if supported
+      // TODO: add check for AVIF
+      loader.setRequestHeader({
+        Accept: `${hasWebpSupport ? 'image/webp,' : ''}*/*`,
       })
     }
   })
@@ -74,6 +102,8 @@ function useImageAsTexture(
   useEffect(
     function uploadTextureToGPU() {
       initTexture && gl.initTexture(texture)
+      DefaultLoadingManager.itemEnd('waiting for DOM image')
+      debug && console.log('useImageAsTexture', 'initTexture()')
     },
     [gl, texture, initTexture]
   )

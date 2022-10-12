@@ -1,5 +1,5 @@
 import create from 'zustand';
-import { forwardRef, useRef, useImperativeHandle, useEffect, useCallback, useLayoutEffect, useState } from 'react';
+import { useLayoutEffect as useLayoutEffect$1, useEffect, forwardRef, useRef, useImperativeHandle, useCallback, useState } from 'react';
 import { debounce } from 'debounce';
 import { addEffect, invalidate } from '@react-three/fiber';
 import Lenis from '@studio-freight/lenis';
@@ -8,8 +8,7 @@ import { useInView } from 'react-intersection-observer';
 import { useWindowSize } from 'react-use';
 import { vec3 } from 'vecn';
 
-// Transient shared state for canvas components
-// usContext() causes re-rendering which can drop frames
+// Global config
 const config = {
   // Execution order for useFrames (highest = last render)
   PRIORITY_PRELOAD: 0,
@@ -130,11 +129,12 @@ const useCanvasStore = create(set => ({
             canvasChildren: obj
           };
         } else {
-          // or tell it to "act" hidden
+          // or tell it that it is "inactive"
           canvasChildren[key].instances = 0;
           canvasChildren[key].props.inactive = true;
           return {
-            canvasChildren
+            canvasChildren: { ...canvasChildren
+            }
           };
         }
       }
@@ -178,6 +178,9 @@ const useScrollbar = () => {
     onScroll
   };
 };
+
+const isBrowser = typeof window !== 'undefined';
+const useLayoutEffect = isBrowser ? useLayoutEffect$1 : useEffect;
 
 const EASE_EXP_OUT = t => t === 1 ? 1 : 1 - Math.pow(2, -10 * t); // https://easings.net/
 
@@ -232,6 +235,7 @@ function LenisScrollbar(_ref, ref) {
     }
   }));
   useEffect(function initLenis() {
+    // @ts-ignore
     const lenis = lenisImpl.current = new Lenis({
       duration,
       easing,
@@ -342,9 +346,13 @@ const SmoothScrollbar = _ref => {
 
     useCanvasStore$1.setState({
       onScroll
-    }); // Set active
+    }); // Set current scroll position on load in case reloaded further down
 
-    document.documentElement.classList.toggle('js-has-smooth-scrollbar', enabled);
+    useCanvasStore$1.getState().scroll.y = window.scrollY;
+    useCanvasStore$1.getState().scroll.x = window.scrollX; // Set active
+
+    document.documentElement.classList.toggle('js-smooth-scrollbar-enabled', enabled);
+    document.documentElement.classList.toggle('js-smooth-scrollbar-disabled', !enabled);
     useCanvasStore$1.setState({
       hasSmoothScrollbar: enabled
     }); // make sure R3F loop is invalidated when scrolling
@@ -380,10 +388,6 @@ function mapLinear(x, a1, a2, b1, b2) {
   return b1 + (x - a1) * (b2 - b1) / (a2 - a1);
 }
 
-function isElementProps(obj) {
-  return typeof obj === 'object' && 'track' in obj;
-}
-
 function updateBounds(bounds, rect, scroll, size) {
   bounds.top = rect.top - scroll.y;
   bounds.bottom = rect.bottom - scroll.y;
@@ -412,8 +416,7 @@ const defaultArgs = {
  * based on initial getBoundingClientRect and scroll delta from start
  */
 
-function useTracker(args) {
-  let deps = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+function useTracker(track, options) {
   const size = useWindowSize();
   const {
     scroll,
@@ -422,14 +425,11 @@ function useTracker(args) {
   const scaleMultiplier = useCanvasStore(state => state.scaleMultiplier);
   const pageReflow = useCanvasStore(state => state.pageReflow);
   const {
-    track,
     rootMargin,
     threshold,
     autoUpdate
-  } = isElementProps(args) ? { ...defaultArgs,
-    ...args
-  } : { ...defaultArgs,
-    track: args
+  } = { ...defaultArgs,
+    ...options
   }; // check if element is in viewport
 
   const {
@@ -497,7 +497,7 @@ function useTracker(args) {
     setReactiveRect({ ...rect
     });
     setScale(vec3((rect === null || rect === void 0 ? void 0 : rect.width) * scaleMultiplier, (rect === null || rect === void 0 ? void 0 : rect.height) * scaleMultiplier, 1));
-  }, [track, size, pageReflow, scaleMultiplier, ...deps]);
+  }, [track, size, pageReflow, scaleMultiplier]);
   const update = useCallback(function () {
     let {
       onlyUpdateInViewport = true
@@ -559,58 +559,4 @@ function useTracker(args) {
   };
 }
 
-function useHideElementWhileMounted(el) {
-  let deps = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
-  let {
-    debug,
-    style = {
-      opacity: '0'
-    },
-    className
-  } = arguments.length > 2 ? arguments[2] : undefined;
-  // Hide DOM element
-  useLayoutEffect(() => {
-    // hide image - leave in DOM to measure and get events
-    if (!(el !== null && el !== void 0 && el.current)) return;
-
-    if (debug) {
-      el.current.style.opacity = '0.5';
-    } else {
-      className && el.current.classList.add(className);
-      Object.assign(el.current.style, { ...style
-      });
-    }
-
-    return () => {
-      if (!(el !== null && el !== void 0 && el.current)) return; // @ts-ignore
-
-      Object.keys(style).forEach(key => el.current.style[key] = '');
-      className && el.current.classList.remove(className);
-    };
-  }, deps);
-}
-
-/**
- * Purpose: Hide tracked DOM elements on mount if GlobalCanvas is in use
- *
- * Creates an HTMLElement ref and applies CSS styles and/or a classname while the the component is mounted
- */
-
-function useCanvasRef() {
-  let {
-    style,
-    className
-  } = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-  const isCanvasAvailable = useCanvasStore(s => s.isCanvasAvailable);
-  const debug = useCanvasStore(s => s.debug);
-  const ref = useRef(null); // Apply hidden styles/classname to DOM element
-
-  useHideElementWhileMounted(ref, [isCanvasAvailable], {
-    debug,
-    style,
-    className
-  });
-  return ref;
-}
-
-export { SmoothScrollbar, useCanvasRef, useScrollbar, useTracker };
+export { SmoothScrollbar, useScrollbar, useTracker };

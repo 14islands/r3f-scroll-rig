@@ -20,21 +20,18 @@ export type Bounds = Rect & {
   positiveYUpBottom: number
 }
 
-export interface ElementTracker {
+export interface Tracker {
   rect: Rect | undefined
-  bounds: Bounds
   scale: vec3 | undefined
+  inViewport: Boolean
+  bounds: Bounds
   scrollState: ScrollState
   position: vec3
-  inViewport: Boolean
   update: () => void
 }
 
-export interface ElementTrackerProps {
-  track: RefObject<HTMLElement>
+export interface TrackerOptions {
   rootMargin?: string
   threshold?: number
   autoUpdate?: boolean
 }
-
-export type PropsOrElement = React.MutableRefObject<HTMLElement> | ElementTrackerProps

@@ -4,10 +4,10 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var _defineProperty = require('@babel/runtime/helpers/defineProperty');
 var _objectWithoutProperties = require('@babel/runtime/helpers/objectWithoutProperties');
-var React = require('react');
 var fiber = require('@react-three/fiber');
 var resizeObserver = require('@juggle/resize-observer');
 var queryString = require('query-string');
+var React = require('react');
 var _typeof = require('@babel/runtime/helpers/typeof');
 var create = require('zustand');
 var mergeRefs = require('react-merge-refs');
@@ -24,6 +24,8 @@ var reactIntersectionObserver = require('react-intersection-observer');
 var reactUse = require('react-use');
 var vecn = require('vecn');
 var suspendReact = require('suspend-react');
+var supportsWebP = require('supports-webp');
+var equal = require('fast-deep-equal');
 var debounce = require('debounce');
 var Lenis = require('@studio-freight/lenis');
 
@@ -42,10 +44,14 @@ var _inherits__default = /*#__PURE__*/_interopDefaultLegacy(_inherits);
 var _possibleConstructorReturn__default = /*#__PURE__*/_interopDefaultLegacy(_possibleConstructorReturn);
 var _getPrototypeOf__default = /*#__PURE__*/_interopDefaultLegacy(_getPrototypeOf);
 var _slicedToArray__default = /*#__PURE__*/_interopDefaultLegacy(_slicedToArray);
+var supportsWebP__default = /*#__PURE__*/_interopDefaultLegacy(supportsWebP);
+var equal__default = /*#__PURE__*/_interopDefaultLegacy(equal);
 var Lenis__default = /*#__PURE__*/_interopDefaultLegacy(Lenis);
 
-// Transient shared state for canvas components
-// usContext() causes re-rendering which can drop frames
+var isBrowser = typeof window !== 'undefined';
+var useLayoutEffect = isBrowser ? React.useLayoutEffect : React.useEffect;
+
+// Global config
 var config = {
   // Execution order for useFrames (highest = last render)
   PRIORITY_PRELOAD: 0,
@@ -56,23 +62,24 @@ var config = {
   // Global rendering props
   preloadQueue: []
 };
+var config$1 = config;
 
 function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return _typeof__default["default"](key) === "symbol" ? key : String(key); }
 
 function _toPrimitive(input, hint) { if (_typeof__default["default"](input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (_typeof__default["default"](res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 
-function ownKeys$b(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+function ownKeys$a(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
-function _objectSpread$b(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$b(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$b(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+function _objectSpread$a(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$a(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$a(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 var useCanvasStore = create__default["default"](function (set) {
   return {
     // //////////////////////////////////////////////////////////////////////////
     // GLOBAL ScrollRig STATE
     // //////////////////////////////////////////////////////////////////////////
     debug: false,
-    scaleMultiplier: config.DEFAULT_SCALE_MULTIPLIER,
+    scaleMultiplier: config$1.DEFAULT_SCALE_MULTIPLIER,
     globalRender: true,
-    globalPriority: config.PRIORITY_GLOBAL,
+    globalPriority: config$1.PRIORITY_GLOBAL,
     globalAutoClear: false,
     globalClearDepth: true,
     globalRenderQueue: false,
@@ -105,7 +112,7 @@ var useCanvasStore = create__default["default"](function (set) {
           };
         } else {
           // otherwise mount it
-          var obj = _objectSpread$b(_objectSpread$b({}, canvasChildren), {}, _defineProperty__default["default"]({}, key, {
+          var obj = _objectSpread$a(_objectSpread$a({}, canvasChildren), {}, _defineProperty__default["default"]({}, key, {
             mesh: mesh,
             props: props,
             instances: 1
@@ -128,9 +135,9 @@ var useCanvasStore = create__default["default"](function (set) {
               props = _canvasChildren$key.props,
               instances = _canvasChildren$key.instances;
 
-          var obj = _objectSpread$b(_objectSpread$b({}, canvasChildren), {}, _defineProperty__default["default"]({}, key, {
+          var obj = _objectSpread$a(_objectSpread$a({}, canvasChildren), {}, _defineProperty__default["default"]({}, key, {
             mesh: mesh,
-            props: _objectSpread$b(_objectSpread$b({}, props), newProps),
+            props: _objectSpread$a(_objectSpread$a({}, props), newProps),
             instances: instances
           })); // console.log('updateCanvas', key, { ...props, ...newProps })
 
@@ -167,11 +174,11 @@ var useCanvasStore = create__default["default"](function (set) {
               canvasChildren: obj
             };
           } else {
-            // or tell it to "act" hidden
+            // or tell it that it is "inactive"
             canvasChildren[key].instances = 0;
             canvasChildren[key].props.inactive = true;
             return {
-              canvasChildren: canvasChildren
+              canvasChildren: _objectSpread$a({}, canvasChildren)
             };
           }
         }
@@ -245,9 +252,9 @@ var ResizeManager$1 = ResizeManager;
 
 var _excluded$6 = ["makeDefault"];
 
-function ownKeys$a(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+function ownKeys$9(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
-function _objectSpread$a(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$a(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$a(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+function _objectSpread$9(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$9(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$9(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 var PerspectiveCamera = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
   var _ref$makeDefault = _ref.makeDefault,
       makeDefault = _ref$makeDefault === void 0 ? false : _ref$makeDefault,
@@ -274,7 +281,7 @@ var PerspectiveCamera = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
     return Math.max(width, height);
   }, [size, pageReflow, scaleMultiplier]);
   var cameraRef = React.useRef();
-  React.useLayoutEffect(function () {
+  useLayoutEffect(function () {
     var width = size.width * scaleMultiplier;
     var height = size.height * scaleMultiplier; // const radToDeg = (radians) => radians * (180 / Math.PI)
     // const degToRad = (degrees) => degrees * (Math.PI / 180)
@@ -292,7 +299,7 @@ var PerspectiveCamera = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
 
     cameraRef.current.updateMatrixWorld();
   }, [distance, size, scaleMultiplier]);
-  React.useLayoutEffect(function () {
+  useLayoutEffect(function () {
     if (makeDefault && cameraRef.current) {
       var oldCam = camera;
       set({
@@ -305,7 +312,7 @@ var PerspectiveCamera = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
       };
     }
   }, [camera, cameraRef, makeDefault, set]);
-  return /*#__PURE__*/jsxRuntime.jsx("perspectiveCamera", _objectSpread$a({
+  return /*#__PURE__*/jsxRuntime.jsx("perspectiveCamera", _objectSpread$9({
     ref: mergeRefs__default["default"]([cameraRef, ref]),
     position: [0, 0, distance],
     onUpdate: function onUpdate(self) {
@@ -320,9 +327,9 @@ var PerspectiveCamera$1 = PerspectiveCamera;
 
 var _excluded$5 = ["makeDefault"];
 
-function ownKeys$9(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+function ownKeys$8(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
-function _objectSpread$9(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$9(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$9(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+function _objectSpread$8(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$8(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$8(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 var OrthographicCamera = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
   var _ref$makeDefault = _ref.makeDefault,
       makeDefault = _ref$makeDefault === void 0 ? false : _ref$makeDefault,
@@ -349,14 +356,14 @@ var OrthographicCamera = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
     return Math.max(width, height);
   }, [size, pageReflow, scaleMultiplier]);
   var cameraRef = React.useRef();
-  React.useLayoutEffect(function () {
+  useLayoutEffect(function () {
     cameraRef.current.lookAt(0, 0, 0);
     cameraRef.current.updateProjectionMatrix(); // https://github.com/react-spring/@react-three/fiber/issues/178
     // Update matrix world since the renderer is a frame late
 
     cameraRef.current.updateMatrixWorld();
   }, [distance, size]);
-  React.useLayoutEffect(function () {
+  useLayoutEffect(function () {
     if (makeDefault && cameraRef.current) {
       var oldCam = camera;
       set({
@@ -369,7 +376,7 @@ var OrthographicCamera = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
       };
     }
   }, [camera, cameraRef, makeDefault, set]);
-  return /*#__PURE__*/jsxRuntime.jsx("orthographicCamera", _objectSpread$9({
+  return /*#__PURE__*/jsxRuntime.jsx("orthographicCamera", _objectSpread$8({
     left: size.width * scaleMultiplier / -2,
     right: size.width * scaleMultiplier / 2,
     top: size.height * scaleMultiplier / 2,
@@ -471,7 +478,7 @@ var preloadScene = function preloadScene(scene, camera) {
   var layer = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
   var callback = arguments.length > 3 ? arguments[3] : undefined;
   if (!scene || !camera) return;
-  config.preloadQueue.push(function (gl) {
+  config$1.preloadQueue.push(function (gl) {
     gl.setScissorTest(false);
     setAllCulled(scene, false);
     camera.layers.set(layer);
@@ -486,7 +493,6 @@ var preloadScene = function preloadScene(scene, camera) {
 /**
  * Public interface for ScrollRig
  */
-
 var useScrollRig = function useScrollRig() {
   var isCanvasAvailable = useCanvasStore(function (state) {
     return state.isCanvasAvailable;
@@ -528,9 +534,9 @@ var useScrollRig = function useScrollRig() {
   };
 };
 
-function ownKeys$8(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+function ownKeys$7(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
-function _objectSpread$8(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$8(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$8(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+function _objectSpread$7(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$7(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$7(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 
 var GlobalChildren = function GlobalChildren(_ref) {
   var children = _ref.children;
@@ -555,13 +561,13 @@ var GlobalChildren = function GlobalChildren(_ref) {
 
       if (typeof mesh === 'function') {
         return /*#__PURE__*/jsxRuntime.jsx(React.Fragment, {
-          children: mesh(_objectSpread$8(_objectSpread$8({
+          children: mesh(_objectSpread$7(_objectSpread$7({
             key: key
           }, scrollRig), props))
         }, key);
       }
 
-      return /*#__PURE__*/React.cloneElement(mesh, _objectSpread$8({
+      return /*#__PURE__*/React.cloneElement(mesh, _objectSpread$7({
         key: key
       }, props));
     })]
@@ -592,27 +598,27 @@ var GlobalRenderer = function GlobalRenderer() {
   });
   var scrollRig = useScrollRig(); // https://threejs.org/docs/#api/en/renderers/WebGLRenderer.debug
 
-  React.useLayoutEffect(function () {
+  useLayoutEffect(function () {
     gl.debug.checkShaderErrors = scrollRig.debug;
   }, [scrollRig.debug]); // PRELOAD RENDER LOOP
 
   fiber.useFrame(function () {
-    if (!config.preloadQueue.length) return;
+    if (!config$1.preloadQueue.length) return;
     gl.autoClear = false; // Render preload frames first and clear directly
     // @ts-ignore
 
-    config.preloadQueue.forEach(function (render) {
+    config$1.preloadQueue.forEach(function (render) {
       return render(gl);
     }); // cleanup
 
     gl.clear();
-    config.preloadQueue = [];
+    config$1.preloadQueue = [];
     gl.autoClear = true; // trigger new frame to get correct visual state after all preloads
 
     scrollRig.debug && console.log('GlobalRenderer', 'preload complete. trigger global render');
     scrollRig.requestRender();
     fiber.invalidate();
-  }, config.PRIORITY_PRELOAD); // GLOBAL RENDER LOOP
+  }, config$1.PRIORITY_PRELOAD); // GLOBAL RENDER LOOP
 
   fiber.useFrame(function (_ref) {
     var camera = _ref.camera,
@@ -703,9 +709,9 @@ var CanvasErrorBoundary$1 = CanvasErrorBoundary;
 var _excluded$4 = ["as", "children", "gl", "style", "orthographic", "camera", "debug", "scaleMultiplier", "globalRender", "globalPriority", "globalAutoClear", "globalClearDepth", "loadingFallback"],
     _excluded2 = ["children", "onError"];
 
-function ownKeys$7(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+function ownKeys$6(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
-function _objectSpread$7(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$7(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$7(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+function _objectSpread$6(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$6(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$6(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 
 var GlobalCanvas = function GlobalCanvas(_ref) {
   var _ref$as = _ref.as,
@@ -717,23 +723,23 @@ var GlobalCanvas = function GlobalCanvas(_ref) {
       camera = _ref.camera,
       debug = _ref.debug,
       _ref$scaleMultiplier = _ref.scaleMultiplier,
-      scaleMultiplier = _ref$scaleMultiplier === void 0 ? config.DEFAULT_SCALE_MULTIPLIER : _ref$scaleMultiplier,
+      scaleMultiplier = _ref$scaleMultiplier === void 0 ? config$1.DEFAULT_SCALE_MULTIPLIER : _ref$scaleMultiplier,
       _ref$globalRender = _ref.globalRender,
       globalRender = _ref$globalRender === void 0 ? true : _ref$globalRender,
       _ref$globalPriority = _ref.globalPriority,
-      globalPriority = _ref$globalPriority === void 0 ? config.PRIORITY_GLOBAL : _ref$globalPriority,
+      globalPriority = _ref$globalPriority === void 0 ? config$1.PRIORITY_GLOBAL : _ref$globalPriority,
       _ref$globalAutoClear = _ref.globalAutoClear,
       globalAutoClear = _ref$globalAutoClear === void 0 ? false : _ref$globalAutoClear,
       _ref$globalClearDepth = _ref.globalClearDepth,
-      globalClearDepth = _ref$globalClearDepth === void 0 ? true : _ref$globalClearDepth,
-      loadingFallback = _ref.loadingFallback,
-      props = _objectWithoutProperties__default["default"](_ref, _excluded$4);
+      globalClearDepth = _ref$globalClearDepth === void 0 ? true : _ref$globalClearDepth;
+      _ref.loadingFallback;
+      var props = _objectWithoutProperties__default["default"](_ref, _excluded$4);
 
   var globalRenderState = useCanvasStore(function (state) {
     return state.globalRender;
   }); // enable debug mode
 
-  React.useLayoutEffect(function () {
+  useLayoutEffect(function () {
     // Querystring overrides
     var qs = queryString.parse(window.location.search); // show debug statements
 
@@ -744,7 +750,7 @@ var GlobalCanvas = function GlobalCanvas(_ref) {
     }
   }, [debug]); // update state
 
-  React.useLayoutEffect(function () {
+  useLayoutEffect(function () {
     useCanvasStore.setState({
       scaleMultiplier: scaleMultiplier,
       globalRender: globalRender,
@@ -755,10 +761,10 @@ var GlobalCanvas = function GlobalCanvas(_ref) {
   }, [scaleMultiplier, globalPriority, globalRender, globalAutoClear, globalClearDepth]);
   var CanvasElement = as;
   return /*#__PURE__*/jsxRuntime.jsxs(CanvasElement // use our own default camera
-  , _objectSpread$7(_objectSpread$7({
+  , _objectSpread$6(_objectSpread$6({
     camera: null // Some sane defaults
     ,
-    gl: _objectSpread$7({
+    gl: _objectSpread$6({
       // https://blog.tojicode.com/2013/12/failifmajorperformancecaveat-with-great.html
       failIfMajorPerformanceCaveat: true
     }, gl) // polyfill old iOS safari
@@ -769,7 +775,7 @@ var GlobalCanvas = function GlobalCanvas(_ref) {
       polyfill: resizeObserver.ResizeObserver
     } // default styles
     ,
-    style: _objectSpread$7({
+    style: _objectSpread$6({
       position: 'fixed',
       top: 0,
       left: 0,
@@ -778,14 +784,11 @@ var GlobalCanvas = function GlobalCanvas(_ref) {
     }, style) // allow to override anything of the above
 
   }, props), {}, {
-    children: [/*#__PURE__*/jsxRuntime.jsx(React.Suspense, {
-      fallback: loadingFallback,
-      children: typeof children === 'function' ? children( /*#__PURE__*/jsxRuntime.jsx(GlobalChildren$1, {})) : /*#__PURE__*/jsxRuntime.jsx(GlobalChildren$1, {
-        children: children
-      })
-    }), globalRenderState && /*#__PURE__*/jsxRuntime.jsx(GlobalRenderer$1, {}), !orthographic && /*#__PURE__*/jsxRuntime.jsx(PerspectiveCamera$1, _objectSpread$7({
+    children: [typeof children === 'function' ? children( /*#__PURE__*/jsxRuntime.jsx(GlobalChildren$1, {})) : /*#__PURE__*/jsxRuntime.jsx(GlobalChildren$1, {
+      children: children
+    }), globalRenderState && /*#__PURE__*/jsxRuntime.jsx(GlobalRenderer$1, {}), !orthographic && /*#__PURE__*/jsxRuntime.jsx(PerspectiveCamera$1, _objectSpread$6({
       makeDefault: true
-    }, camera)), orthographic && /*#__PURE__*/jsxRuntime.jsx(OrthographicCamera$1, _objectSpread$7({
+    }, camera)), orthographic && /*#__PURE__*/jsxRuntime.jsx(OrthographicCamera$1, _objectSpread$6({
       makeDefault: true
     }, camera)), /*#__PURE__*/jsxRuntime.jsx(ResizeManager$1, {})]
   }));
@@ -796,13 +799,13 @@ var GlobalCanvasIfSupported = function GlobalCanvasIfSupported(_ref2) {
       _onError = _ref2.onError,
       props = _objectWithoutProperties__default["default"](_ref2, _excluded2);
 
-  React.useLayoutEffect(function () {
+  useLayoutEffect(function () {
     document.documentElement.classList.add('js-has-global-canvas');
   }, []);
   return (
     /*#__PURE__*/
     // @ts-ignore
-    jsxRuntime.jsx(CanvasErrorBoundary$1, {
+    jsxRuntime.jsxs(CanvasErrorBoundary$1, {
       onError: function onError(err) {
         _onError && _onError(err);
         useCanvasStore.setState({
@@ -813,9 +816,13 @@ var GlobalCanvasIfSupported = function GlobalCanvasIfSupported(_ref2) {
         document.documentElement.classList.remove('js-has-global-canvas');
         document.documentElement.classList.add('js-global-canvas-error');
       },
-      children: /*#__PURE__*/jsxRuntime.jsx(GlobalCanvas, _objectSpread$7(_objectSpread$7({}, props), {}, {
+      children: [/*#__PURE__*/jsxRuntime.jsx(GlobalCanvas, _objectSpread$6(_objectSpread$6({}, props), {}, {
         children: children
-      }))
+      })), /*#__PURE__*/jsxRuntime.jsx("noscript", {
+        children: /*#__PURE__*/jsxRuntime.jsx("style", {
+          children: "\n          .ScrollRig-visibilityHidden,\n          .ScrollRig-transparentColor {\n            visibility: unset;\n            color: unset;\n          }\n          "
+        })
+      })]
     })
   );
 };
@@ -871,13 +878,9 @@ var useScrollbar = function useScrollbar() {
   };
 };
 
-function ownKeys$6(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+function ownKeys$5(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
-function _objectSpread$6(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$6(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$6(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
-
-function isElementProps(obj) {
-  return _typeof__default["default"](obj) === 'object' && 'track' in obj;
-}
+function _objectSpread$5(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$5(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$5(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 
 function updateBounds(bounds, rect, scroll, size) {
   bounds.top = rect.top - scroll.y;
@@ -907,8 +910,7 @@ var defaultArgs = {
  * based on initial getBoundingClientRect and scroll delta from start
  */
 
-function useTracker(args) {
-  var deps = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+function useTracker(track, options) {
   var size = reactUse.useWindowSize();
 
   var _useScrollbar = useScrollbar(),
@@ -922,13 +924,10 @@ function useTracker(args) {
     return state.pageReflow;
   });
 
-  var _ref = isElementProps(args) ? _objectSpread$6(_objectSpread$6({}, defaultArgs), args) : _objectSpread$6(_objectSpread$6({}, defaultArgs), {}, {
-    track: args
-  }),
-      track = _ref.track,
-      rootMargin = _ref.rootMargin,
-      threshold = _ref.threshold,
-      autoUpdate = _ref.autoUpdate; // check if element is in viewport
+  var _defaultArgs$options = _objectSpread$5(_objectSpread$5({}, defaultArgs), options),
+      rootMargin = _defaultArgs$options.rootMargin,
+      threshold = _defaultArgs$options.threshold,
+      autoUpdate = _defaultArgs$options.autoUpdate; // check if element is in viewport
 
 
   var _useInView = reactIntersectionObserver.useInView({
@@ -939,7 +938,7 @@ function useTracker(args) {
       inViewport = _useInView.inView; // bind useInView ref to current tracking element
 
 
-  React.useLayoutEffect(function () {
+  useLayoutEffect(function () {
     ref(track.current);
   }, [track]); // Using state so it's reactive
 
@@ -988,7 +987,7 @@ function useTracker(args) {
 
   var position = React.useRef(vecn.vec3(0, 0, 0)).current; // Calculate bounding Rect as soon as it's available
 
-  React.useLayoutEffect(function () {
+  useLayoutEffect(function () {
     var _track$current;
 
     var _rect = (_track$current = track.current) === null || _track$current === void 0 ? void 0 : _track$current.getBoundingClientRect();
@@ -1001,14 +1000,14 @@ function useTracker(args) {
     rect.height = _rect.height;
     rect.x = rect.left + _rect.width * 0.5;
     rect.y = rect.top + _rect.height * 0.5;
-    setReactiveRect(_objectSpread$6({}, rect));
+    setReactiveRect(_objectSpread$5({}, rect));
     setScale(vecn.vec3((rect === null || rect === void 0 ? void 0 : rect.width) * scaleMultiplier, (rect === null || rect === void 0 ? void 0 : rect.height) * scaleMultiplier, 1));
-  }, [track, size, pageReflow, scaleMultiplier].concat(_toConsumableArray__default["default"](deps)));
+  }, [track, size, pageReflow, scaleMultiplier]);
 
   var _update = React.useCallback(function () {
-    var _ref2 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
-        _ref2$onlyUpdateInVie = _ref2.onlyUpdateInViewport,
-        onlyUpdateInViewport = _ref2$onlyUpdateInVie === void 0 ? true : _ref2$onlyUpdateInVie;
+    var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+        _ref$onlyUpdateInView = _ref.onlyUpdateInViewport,
+        onlyUpdateInViewport = _ref$onlyUpdateInView === void 0 ? true : _ref$onlyUpdateInView;
 
     if (!track.current || onlyUpdateInViewport && !scrollState.inViewport) {
       return;
@@ -1030,7 +1029,7 @@ function useTracker(args) {
   }, [track, size, scaleMultiplier, scroll]); // update scrollState in viewport
 
 
-  React.useLayoutEffect(function () {
+  useLayoutEffect(function () {
     scrollState.inViewport = inViewport; // update once more in case it went out of view
 
     _update({
@@ -1038,7 +1037,7 @@ function useTracker(args) {
     });
   }, [inViewport]); // re-run if the callback updated
 
-  React.useLayoutEffect(function () {
+  useLayoutEffect(function () {
     _update({
       onlyUpdateInViewport: false
     });
@@ -1073,9 +1072,9 @@ function useTracker(args) {
 
 var _excluded$3 = ["track", "children", "margin", "inViewportMargin", "inViewportThreshold", "visible", "hideOffscreen", "scissor", "debug", "as", "renderOrder", "priority"];
 
-function ownKeys$5(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+function ownKeys$4(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
-function _objectSpread$5(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$5(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$5(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+function _objectSpread$4(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$4(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$4(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 
 exports.ScrollScene = function ScrollScene(_ref) {
   var track = _ref.track,
@@ -1097,7 +1096,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
       _ref$renderOrder = _ref.renderOrder,
       renderOrder = _ref$renderOrder === void 0 ? 1 : _ref$renderOrder,
       _ref$priority = _ref.priority,
-      priority = _ref$priority === void 0 ? config.PRIORITY_SCISSORS : _ref$priority,
+      priority = _ref$priority === void 0 ? config$1.PRIORITY_SCISSORS : _ref$priority,
       props = _objectWithoutProperties__default["default"](_ref, _excluded$3);
 
   var inlineSceneRef = React.useCallback(function (node) {
@@ -1119,8 +1118,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
     return state.globalRender;
   });
 
-  var _useTracker = useTracker({
-    track: track,
+  var _useTracker = useTracker(track, {
     rootMargin: inViewportMargin,
     threshold: inViewportThreshold
   }),
@@ -1131,7 +1129,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
       inViewport = _useTracker.inViewport; // Hide scene when outside of viewport if `hideOffscreen` or set to `visible` prop
 
 
-  React.useLayoutEffect(function () {
+  useLayoutEffect(function () {
     if (scene) scene.visible = hideOffscreen ? inViewport && visible : visible;
   }, [scene, inViewport, hideOffscreen, visible]); // RENDER FRAME
 
@@ -1165,7 +1163,7 @@ exports.ScrollScene = function ScrollScene(_ref) {
     renderOrder: renderOrder,
     children: [(!children || debug) && scale && /*#__PURE__*/jsxRuntime.jsx(DebugMesh$1, {
       scale: scale
-    }), children && scene && scale && children(_objectSpread$5({
+    }), children && scene && scale && children(_objectSpread$4({
       // inherited props
       track: track,
       margin: margin,
@@ -1192,9 +1190,9 @@ exports.ScrollScene = /*#__PURE__*/React__default["default"].memo(exports.Scroll
 
 var _excluded$2 = ["track", "children", "margin", "inViewportMargin", "inViewportThreshold", "visible", "hideOffscreen", "debug", "orthographic", "renderOrder", "priority"];
 
-function ownKeys$4(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+function ownKeys$3(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
-function _objectSpread$4(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$4(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$4(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+function _objectSpread$3(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$3(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$3(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 
 exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
   var track = _ref.track,
@@ -1214,7 +1212,7 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
       _ref$renderOrder = _ref.renderOrder,
       renderOrder = _ref$renderOrder === void 0 ? 1 : _ref$renderOrder,
       _ref$priority = _ref.priority,
-      priority = _ref$priority === void 0 ? config.PRIORITY_VIEWPORTS : _ref$priority,
+      priority = _ref$priority === void 0 ? config$1.PRIORITY_VIEWPORTS : _ref$priority,
       props = _objectWithoutProperties__default["default"](_ref, _excluded$2);
 
   var camera = React.useRef();
@@ -1237,8 +1235,7 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
     return state.scaleMultiplier;
   });
 
-  var _useTracker = useTracker({
-    track: track,
+  var _useTracker = useTracker(track, {
     rootMargin: inViewportMargin,
     threshold: inViewportThreshold
   }),
@@ -1250,7 +1247,7 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
       inViewport = _useTracker.inViewport; // Hide scene when outside of viewport if `hideOffscreen` or set to `visible` prop
 
 
-  React.useLayoutEffect(function () {
+  useLayoutEffect(function () {
     scene.visible = hideOffscreen ? inViewport && visible : visible;
   }, [inViewport, hideOffscreen, visible]);
 
@@ -1260,7 +1257,7 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
       setCameraDistance = _useState4[1]; // Find bounding box & scale mesh on resize
 
 
-  React.useLayoutEffect(function () {
+  useLayoutEffect(function () {
     var viewportWidth = rect.width * scaleMultiplier;
     var viewportHeight = rect.height * scaleMultiplier;
     var cameraDistance = Math.max(viewportWidth, viewportHeight);
@@ -1343,7 +1340,7 @@ exports.ViewportScrollScene = function ViewportScrollScene(_ref) {
       renderOrder: renderOrder,
       children: [(!children || debug) && scale && /*#__PURE__*/jsxRuntime.jsx(DebugMesh$1, {
         scale: scale
-      }), children && scene && scale && children(_objectSpread$4({
+      }), children && scene && scale && children(_objectSpread$3({
         // inherited props
         track: track,
         margin: margin,
@@ -1376,7 +1373,6 @@ exports.ViewportScrollScene = /*#__PURE__*/React__default["default"].memo(export
  * Adds THREE.js object to the GlobalCanvas while the component is mounted
  * @param {object} object THREE.js object3d
  */
-
 function useCanvas(object) {
   var deps = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
@@ -1399,7 +1395,7 @@ function useCanvas(object) {
     return key || three.MathUtils.generateUUID();
   }, []); // render to canvas if not mounted already
 
-  React.useLayoutEffect(function () {
+  useLayoutEffect(function () {
     renderToCanvas(uniqueKey, object, {
       inactive: false
     });
@@ -1423,86 +1419,22 @@ function useCanvas(object) {
 
 var _excluded$1 = ["children", "id"];
 
-function ownKeys$3(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+function ownKeys$2(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
-function _objectSpread$3(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$3(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$3(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+function _objectSpread$2(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$2(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$2(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 var UseCanvas = /*#__PURE__*/React.forwardRef(function (_ref, ref) {
   var children = _ref.children,
       id = _ref.id,
       props = _objectWithoutProperties__default["default"](_ref, _excluded$1);
 
   // auto update canvas with all props
-  useCanvas(children, _objectSpread$3(_objectSpread$3({}, props), {}, {
+  useCanvas(children, _objectSpread$2(_objectSpread$2({}, props), {}, {
     ref: ref
   }), {
     key: id
   });
   return null;
 });
-
-function ownKeys$2(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
-
-function _objectSpread$2(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$2(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$2(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
-function useHideElementWhileMounted(el) {
-  var deps = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
-
-  var _ref = arguments.length > 2 ? arguments[2] : undefined,
-      debug = _ref.debug,
-      _ref$style = _ref.style,
-      style = _ref$style === void 0 ? {
-    opacity: '0'
-  } : _ref$style,
-      className = _ref.className;
-
-  // Hide DOM element
-  React.useLayoutEffect(function () {
-    // hide image - leave in DOM to measure and get events
-    if (!(el !== null && el !== void 0 && el.current)) return;
-
-    if (debug) {
-      el.current.style.opacity = '0.5';
-    } else {
-      className && el.current.classList.add(className);
-      Object.assign(el.current.style, _objectSpread$2({}, style));
-    }
-
-    return function () {
-      if (!(el !== null && el !== void 0 && el.current)) return; // @ts-ignore
-
-      Object.keys(style).forEach(function (key) {
-        return el.current.style[key] = '';
-      });
-      className && el.current.classList.remove(className);
-    };
-  }, deps);
-}
-
-/**
- * Purpose: Hide tracked DOM elements on mount if GlobalCanvas is in use
- *
- * Creates an HTMLElement ref and applies CSS styles and/or a classname while the the component is mounted
- */
-
-function useCanvasRef() {
-  var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
-      style = _ref.style,
-      className = _ref.className;
-
-  var isCanvasAvailable = useCanvasStore(function (s) {
-    return s.isCanvasAvailable;
-  });
-  var debug = useCanvasStore(function (s) {
-    return s.debug;
-  });
-  var ref = React.useRef(null); // Apply hidden styles/classname to DOM element
-
-  useHideElementWhileMounted(ref, [isCanvasAvailable], {
-    debug: debug,
-    style: style,
-    className: className
-  });
-  return ref;
-}
 
 /**
  *  Create Threejs Texture from DOM image tag
@@ -1516,6 +1448,12 @@ function useCanvasRef() {
  *  - NOTE: You must add the `crossOrigin` attribute
  *     <img src="" alt="" crossOrigin="anonymous"/>
  */
+
+var hasWebpSupport = false; // this test is fast - "should" run before first image is requested
+
+supportsWebP__default["default"].then(function (supported) {
+  hasWebpSupport = supported;
+});
 
 function useTextureLoader() {
   // Use an ImageBitmapLoader if imageBitmaps are supported. Moves much of the
@@ -1535,27 +1473,39 @@ function useImageAsTexture(imgRef) {
       _ref$premultiplyAlpha = _ref.premultiplyAlpha,
       premultiplyAlpha = _ref$premultiplyAlpha === void 0 ? 'default' : _ref$premultiplyAlpha;
 
-  var _useThree = fiber.useThree(),
-      gl = _useThree.gl;
-
-  var _useThree2 = fiber.useThree(),
-      size = _useThree2.size;
+  var gl = fiber.useThree(function (s) {
+    return s.gl;
+  });
+  var size = fiber.useThree(function (s) {
+    return s.size;
+  });
+  var debug = useCanvasStore(function (state) {
+    return state.debug;
+  }); // suspend until we have currentSrc for this `size`
 
   var currentSrc = suspendReact.suspend(function () {
+    three.DefaultLoadingManager.itemStart('waiting for DOM image');
     return new Promise(function (resolve) {
-      var el = imgRef.current; // respond to all future load events (resizing might load another image)
+      var el = imgRef.current;
 
-      el === null || el === void 0 ? void 0 : el.addEventListener('load', function () {
-        return resolve(el === null || el === void 0 ? void 0 : el.currentSrc);
-      }, {
+      function returnResolve() {
+        resolve(el === null || el === void 0 ? void 0 : el.currentSrc);
+      } // respond to all future load events (resizing might load another image)
+
+
+      el === null || el === void 0 ? void 0 : el.addEventListener('load', returnResolve, {
         once: true
       }); // detect if loaded from browser cache
 
       if (el !== null && el !== void 0 && el.complete) {
-        resolve(el === null || el === void 0 ? void 0 : el.currentSrc);
+        el === null || el === void 0 ? void 0 : el.removeEventListener('load', returnResolve);
+        returnResolve();
       }
     });
-  }, [imgRef, size]);
+  }, [imgRef, size], {
+    equal: equal__default["default"]
+  } // use deep-equal since size ref seems to update on route change
+  );
   var LoaderProto = useTextureLoader() ? three.TextureLoader : three.ImageBitmapLoader; // @ts-ignore
 
   var result = fiber.useLoader(LoaderProto, currentSrc, function (loader) {
@@ -1565,6 +1515,11 @@ function useImageAsTexture(imgRef) {
         premultiplyAlpha: premultiplyAlpha,
         // "none" increases blocking time in lighthouse
         imageOrientation: 'flipY'
+      }); // Add webp to Accept header if supported
+      // TODO: add check for AVIF
+
+      loader.setRequestHeader({
+        Accept: "".concat(hasWebpSupport ? 'image/webp,' : '', "*/*")
       });
     }
   });
@@ -1581,6 +1536,8 @@ function useImageAsTexture(imgRef) {
 
   React.useEffect(function uploadTextureToGPU() {
     initTexture && gl.initTexture(texture);
+    three.DefaultLoadingManager.itemEnd('waiting for DOM image');
+    debug && console.log('useImageAsTexture', 'initTexture()');
   }, [gl, texture, initTexture]);
   return texture;
 }
@@ -1651,6 +1608,7 @@ function LenisScrollbar(_ref, ref) {
     };
   });
   React.useEffect(function initLenis() {
+    // @ts-ignore
     var lenis = lenisImpl.current = new Lenis__default["default"](_objectSpread$1({
       duration: duration,
       easing: easing,
@@ -1719,7 +1677,7 @@ var SmoothScrollbar = function SmoothScrollbar(_ref) {
     };
   }, []); // apply chosen scroll restoration
 
-  React.useLayoutEffect(function () {
+  useLayoutEffect(function () {
     if ('scrollRestoration' in window.history) {
       window.history.scrollRestoration = scrollRestoration;
     }
@@ -1768,9 +1726,13 @@ var SmoothScrollbar = function SmoothScrollbar(_ref) {
 
     useCanvasStore.setState({
       onScroll: onScroll
-    }); // Set active
+    }); // Set current scroll position on load in case reloaded further down
 
-    document.documentElement.classList.toggle('js-has-smooth-scrollbar', enabled);
+    useCanvasStore.getState().scroll.y = window.scrollY;
+    useCanvasStore.getState().scroll.x = window.scrollX; // Set active
+
+    document.documentElement.classList.toggle('js-smooth-scrollbar-enabled', enabled);
+    document.documentElement.classList.toggle('js-smooth-scrollbar-disabled', !enabled);
     useCanvasStore.setState({
       hasSmoothScrollbar: enabled
     }); // make sure R3F loop is invalidated when scrolling
@@ -1805,12 +1767,21 @@ var SmoothScrollbar = function SmoothScrollbar(_ref) {
   });
 };
 
+// Components
+// Matching css styles can be imported from @14islands/r3f-scrollr-rig/css
+
+var styles = {
+  hidden: 'ScrollRig-visibilityHidden',
+  hiddenWhenSmooth: 'ScrollRig-visibilityHidden ScrollRig-hiddenIfSmooth',
+  transparentColor: 'ScrollRig-transparentColor',
+  transparentColorWhenSmooth: 'ScrollRig-transparentColor ScrollRig-hiddenIfSmooth'
+}; // Private-ish
+
 exports.GlobalCanvas = GlobalCanvasIfSupported$1;
 exports.SmoothScrollbar = SmoothScrollbar;
 exports.UseCanvas = UseCanvas;
-exports._config = config;
+exports.styles = styles;
 exports.useCanvas = useCanvas;
-exports.useCanvasRef = useCanvasRef;
 exports.useCanvasStore = useCanvasStore;
 exports.useImageAsTexture = useImageAsTexture;
 exports.useScrollRig = useScrollRig;

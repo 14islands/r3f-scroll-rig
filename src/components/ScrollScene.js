@@ -1,7 +1,8 @@
-import React, { useState, useCallback, useLayoutEffect } from 'react'
+import React, { useState, useCallback } from 'react'
 import { Scene } from 'three'
 import { useFrame, createPortal } from '@react-three/fiber'
 
+import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
 import config from '../config'
 import { useCanvasStore } from '../store'
 import useScrollRig from '../hooks/useScrollRig'
@@ -39,8 +40,7 @@ let ScrollScene = ({
   const { requestRender, renderScissor } = useScrollRig()
   const globalRender = useCanvasStore((state) => state.globalRender)
 
-  const { bounds, scale, position, scrollState, inViewport } = useTracker({
-    track,
+  const { bounds, scale, position, scrollState, inViewport } = useTracker(track, {
     rootMargin: inViewportMargin,
     threshold: inViewportThreshold,
   })

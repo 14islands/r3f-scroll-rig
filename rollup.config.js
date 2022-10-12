@@ -5,6 +5,7 @@ import resolve from 'rollup-plugin-node-resolve'
 import json from 'rollup-plugin-json'
 import { sizeSnapshot } from 'rollup-plugin-size-snapshot'
 import peerDepsExternal from 'rollup-plugin-peer-deps-external'
+import copy from 'rollup-plugin-copy'
 
 const root = process.platform === 'win32' ? path.resolve('/') : '/'
 const external = (id) => !id.startsWith('.') && !id.startsWith(root)
@@ -53,6 +54,7 @@ function createConfig(entry, out) {
         resolve({ extensions }),
         targetTypings(entry, out),
         // compiler(),
+        copy({ targets: [{ src: 'src/styles/index.css', dest: 'dist/' }] }),
       ],
     },
     {
@@ -68,6 +70,10 @@ function createConfig(entry, out) {
         targetTypings(entry, out),
       ],
     },
+    // {
+    //   input: 'src/styles/scrollrig.css',
+    //   output: [{ file: 'dist/scrollrig.css' }],
+    // },
   ]
 }
 

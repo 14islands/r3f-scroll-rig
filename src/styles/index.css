@@ -1,0 +1,21 @@
+/* Use this to hide stuff when canvas is active */
+.ScrollRig-visibilityHidden {
+  visibility: hidden;
+}
+.js-global-canvas-error .ScrollRig-visibilityHidden {
+  visibility: unset;
+}
+
+/* Use this to hide text but keep it selectable  */
+.ScrollRig-transparentColor {
+  color: transparent;
+}
+.js-global-canvas-error .ScrollRig-transparentColor {
+  color: unset;
+}
+
+/* Show if smooth scrollbar disabled */
+.js-has-global-canvas.js-smooth-scrollbar-disabled .ScrollRig-hiddenIfSmooth {
+  visibility: unset;
+  color: unset;
+}

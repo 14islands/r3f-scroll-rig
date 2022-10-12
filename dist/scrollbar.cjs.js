@@ -11,7 +11,6 @@ var debounce = require('debounce');
 var fiber = require('@react-three/fiber');
 var Lenis = require('@studio-freight/lenis');
 var jsxRuntime = require('react/jsx-runtime');
-var _toConsumableArray = require('@babel/runtime/helpers/toConsumableArray');
 var _slicedToArray = require('@babel/runtime/helpers/slicedToArray');
 var reactIntersectionObserver = require('react-intersection-observer');
 var reactUse = require('react-use');
@@ -24,11 +23,9 @@ var _objectWithoutProperties__default = /*#__PURE__*/_interopDefaultLegacy(_obje
 var _defineProperty__default = /*#__PURE__*/_interopDefaultLegacy(_defineProperty);
 var create__default = /*#__PURE__*/_interopDefaultLegacy(create);
 var Lenis__default = /*#__PURE__*/_interopDefaultLegacy(Lenis);
-var _toConsumableArray__default = /*#__PURE__*/_interopDefaultLegacy(_toConsumableArray);
 var _slicedToArray__default = /*#__PURE__*/_interopDefaultLegacy(_slicedToArray);
 
-// Transient shared state for canvas components
-// usContext() causes re-rendering which can drop frames
+// Global config
 var config = {
   // Execution order for useFrames (highest = last render)
   PRIORITY_PRELOAD: 0,
@@ -45,9 +42,9 @@ function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return _ty
 
 function _toPrimitive(input, hint) { if (_typeof__default["default"](input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (_typeof__default["default"](res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 
-function ownKeys$4(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+function ownKeys$3(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
-function _objectSpread$4(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$4(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$4(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+function _objectSpread$3(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$3(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$3(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 var useCanvasStore = create__default["default"](function (set) {
   return {
     // //////////////////////////////////////////////////////////////////////////
@@ -89,7 +86,7 @@ var useCanvasStore = create__default["default"](function (set) {
           };
         } else {
           // otherwise mount it
-          var obj = _objectSpread$4(_objectSpread$4({}, canvasChildren), {}, _defineProperty__default["default"]({}, key, {
+          var obj = _objectSpread$3(_objectSpread$3({}, canvasChildren), {}, _defineProperty__default["default"]({}, key, {
             mesh: mesh,
             props: props,
             instances: 1
@@ -112,9 +109,9 @@ var useCanvasStore = create__default["default"](function (set) {
               props = _canvasChildren$key.props,
               instances = _canvasChildren$key.instances;
 
-          var obj = _objectSpread$4(_objectSpread$4({}, canvasChildren), {}, _defineProperty__default["default"]({}, key, {
+          var obj = _objectSpread$3(_objectSpread$3({}, canvasChildren), {}, _defineProperty__default["default"]({}, key, {
             mesh: mesh,
-            props: _objectSpread$4(_objectSpread$4({}, props), newProps),
+            props: _objectSpread$3(_objectSpread$3({}, props), newProps),
             instances: instances
           })); // console.log('updateCanvas', key, { ...props, ...newProps })
 
@@ -151,11 +148,11 @@ var useCanvasStore = create__default["default"](function (set) {
               canvasChildren: obj
             };
           } else {
-            // or tell it to "act" hidden
+            // or tell it that it is "inactive"
             canvasChildren[key].instances = 0;
             canvasChildren[key].props.inactive = true;
             return {
-              canvasChildren: canvasChildren
+              canvasChildren: _objectSpread$3({}, canvasChildren)
             };
           }
         }
@@ -213,11 +210,14 @@ var useScrollbar = function useScrollbar() {
   };
 };
 
+var isBrowser = typeof window !== 'undefined';
+var useLayoutEffect = isBrowser ? react.useLayoutEffect : react.useEffect;
+
 var _excluded = ["children", "duration", "easing", "smooth", "direction", "config"];
 
-function ownKeys$3(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+function ownKeys$2(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
-function _objectSpread$3(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$3(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$3(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+function _objectSpread$2(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$2(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$2(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 
 var EASE_EXP_OUT = function EASE_EXP_OUT(t) {
   return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
@@ -279,7 +279,8 @@ function LenisScrollbar(_ref, ref) {
     };
   });
   react.useEffect(function initLenis() {
-    var lenis = lenisImpl.current = new Lenis__default["default"](_objectSpread$3({
+    // @ts-ignore
+    var lenis = lenisImpl.current = new Lenis__default["default"](_objectSpread$2({
       duration: duration,
       easing: easing,
       smooth: smooth,
@@ -295,9 +296,9 @@ function LenisScrollbar(_ref, ref) {
 }
 var LenisScrollbar$1 = /*#__PURE__*/react.forwardRef(LenisScrollbar);
 
-function ownKeys$2(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+function ownKeys$1(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
-function _objectSpread$2(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$2(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$2(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+function _objectSpread$1(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$1(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$1(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 var SmoothScrollbar = function SmoothScrollbar(_ref) {
   var _children = _ref.children,
       _ref$enabled = _ref.enabled,
@@ -347,7 +348,7 @@ var SmoothScrollbar = function SmoothScrollbar(_ref) {
     };
   }, []); // apply chosen scroll restoration
 
-  react.useLayoutEffect(function () {
+  useLayoutEffect(function () {
     if ('scrollRestoration' in window.history) {
       window.history.scrollRestoration = scrollRestoration;
     }
@@ -396,9 +397,13 @@ var SmoothScrollbar = function SmoothScrollbar(_ref) {
 
     useCanvasStore$1.setState({
       onScroll: onScroll
-    }); // Set active
+    }); // Set current scroll position on load in case reloaded further down
 
-    document.documentElement.classList.toggle('js-has-smooth-scrollbar', enabled);
+    useCanvasStore$1.getState().scroll.y = window.scrollY;
+    useCanvasStore$1.getState().scroll.x = window.scrollX; // Set active
+
+    document.documentElement.classList.toggle('js-smooth-scrollbar-enabled', enabled);
+    document.documentElement.classList.toggle('js-smooth-scrollbar-disabled', !enabled);
     useCanvasStore$1.setState({
       hasSmoothScrollbar: enabled
     }); // make sure R3F loop is invalidated when scrolling
@@ -426,7 +431,7 @@ var SmoothScrollbar = function SmoothScrollbar(_ref) {
     direction: horizontal ? 'horizontal' : 'vertical',
     config: config,
     children: function children(bind) {
-      return _children(_objectSpread$2(_objectSpread$2({}, bind), {}, {
+      return _children(_objectSpread$1(_objectSpread$1({}, bind), {}, {
         ref: ref
       }));
     }
@@ -438,13 +443,9 @@ function mapLinear(x, a1, a2, b1, b2) {
   return b1 + (x - a1) * (b2 - b1) / (a2 - a1);
 }
 
-function ownKeys$1(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
-function _objectSpread$1(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$1(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$1(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
-
-function isElementProps(obj) {
-  return _typeof__default["default"](obj) === 'object' && 'track' in obj;
-}
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 
 function updateBounds(bounds, rect, scroll, size) {
   bounds.top = rect.top - scroll.y;
@@ -474,8 +475,7 @@ var defaultArgs = {
  * based on initial getBoundingClientRect and scroll delta from start
  */
 
-function useTracker(args) {
-  var deps = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+function useTracker(track, options) {
   var size = reactUse.useWindowSize();
 
   var _useScrollbar = useScrollbar(),
@@ -489,13 +489,10 @@ function useTracker(args) {
     return state.pageReflow;
   });
 
-  var _ref = isElementProps(args) ? _objectSpread$1(_objectSpread$1({}, defaultArgs), args) : _objectSpread$1(_objectSpread$1({}, defaultArgs), {}, {
-    track: args
-  }),
-      track = _ref.track,
-      rootMargin = _ref.rootMargin,
-      threshold = _ref.threshold,
-      autoUpdate = _ref.autoUpdate; // check if element is in viewport
+  var _defaultArgs$options = _objectSpread(_objectSpread({}, defaultArgs), options),
+      rootMargin = _defaultArgs$options.rootMargin,
+      threshold = _defaultArgs$options.threshold,
+      autoUpdate = _defaultArgs$options.autoUpdate; // check if element is in viewport
 
 
   var _useInView = reactIntersectionObserver.useInView({
@@ -506,7 +503,7 @@ function useTracker(args) {
       inViewport = _useInView.inView; // bind useInView ref to current tracking element
 
 
-  react.useLayoutEffect(function () {
+  useLayoutEffect(function () {
     ref(track.current);
   }, [track]); // Using state so it's reactive
 
@@ -555,7 +552,7 @@ function useTracker(args) {
 
   var position = react.useRef(vecn.vec3(0, 0, 0)).current; // Calculate bounding Rect as soon as it's available
 
-  react.useLayoutEffect(function () {
+  useLayoutEffect(function () {
     var _track$current;
 
     var _rect = (_track$current = track.current) === null || _track$current === void 0 ? void 0 : _track$current.getBoundingClientRect();
@@ -568,14 +565,14 @@ function useTracker(args) {
     rect.height = _rect.height;
     rect.x = rect.left + _rect.width * 0.5;
     rect.y = rect.top + _rect.height * 0.5;
-    setReactiveRect(_objectSpread$1({}, rect));
+    setReactiveRect(_objectSpread({}, rect));
     setScale(vecn.vec3((rect === null || rect === void 0 ? void 0 : rect.width) * scaleMultiplier, (rect === null || rect === void 0 ? void 0 : rect.height) * scaleMultiplier, 1));
-  }, [track, size, pageReflow, scaleMultiplier].concat(_toConsumableArray__default["default"](deps)));
+  }, [track, size, pageReflow, scaleMultiplier]);
 
   var _update = react.useCallback(function () {
-    var _ref2 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
-        _ref2$onlyUpdateInVie = _ref2.onlyUpdateInViewport,
-        onlyUpdateInViewport = _ref2$onlyUpdateInVie === void 0 ? true : _ref2$onlyUpdateInVie;
+    var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+        _ref$onlyUpdateInView = _ref.onlyUpdateInViewport,
+        onlyUpdateInViewport = _ref$onlyUpdateInView === void 0 ? true : _ref$onlyUpdateInView;
 
     if (!track.current || onlyUpdateInViewport && !scrollState.inViewport) {
       return;
@@ -597,7 +594,7 @@ function useTracker(args) {
   }, [track, size, scaleMultiplier, scroll]); // update scrollState in viewport
 
 
-  react.useLayoutEffect(function () {
+  useLayoutEffect(function () {
     scrollState.inViewport = inViewport; // update once more in case it went out of view
 
     _update({
@@ -605,7 +602,7 @@ function useTracker(args) {
     });
   }, [inViewport]); // re-run if the callback updated
 
-  react.useLayoutEffect(function () {
+  useLayoutEffect(function () {
     _update({
       onlyUpdateInViewport: false
     });
@@ -638,71 +635,6 @@ function useTracker(args) {
   };
 }
 
-function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
-
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
-function useHideElementWhileMounted(el) {
-  var deps = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
-
-  var _ref = arguments.length > 2 ? arguments[2] : undefined,
-      debug = _ref.debug,
-      _ref$style = _ref.style,
-      style = _ref$style === void 0 ? {
-    opacity: '0'
-  } : _ref$style,
-      className = _ref.className;
-
-  // Hide DOM element
-  react.useLayoutEffect(function () {
-    // hide image - leave in DOM to measure and get events
-    if (!(el !== null && el !== void 0 && el.current)) return;
-
-    if (debug) {
-      el.current.style.opacity = '0.5';
-    } else {
-      className && el.current.classList.add(className);
-      Object.assign(el.current.style, _objectSpread({}, style));
-    }
-
-    return function () {
-      if (!(el !== null && el !== void 0 && el.current)) return; // @ts-ignore
-
-      Object.keys(style).forEach(function (key) {
-        return el.current.style[key] = '';
-      });
-      className && el.current.classList.remove(className);
-    };
-  }, deps);
-}
-
-/**
- * Purpose: Hide tracked DOM elements on mount if GlobalCanvas is in use
- *
- * Creates an HTMLElement ref and applies CSS styles and/or a classname while the the component is mounted
- */
-
-function useCanvasRef() {
-  var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
-      style = _ref.style,
-      className = _ref.className;
-
-  var isCanvasAvailable = useCanvasStore(function (s) {
-    return s.isCanvasAvailable;
-  });
-  var debug = useCanvasStore(function (s) {
-    return s.debug;
-  });
-  var ref = react.useRef(null); // Apply hidden styles/classname to DOM element
-
-  useHideElementWhileMounted(ref, [isCanvasAvailable], {
-    debug: debug,
-    style: style,
-    className: className
-  });
-  return ref;
-}
-
 exports.SmoothScrollbar = SmoothScrollbar;
-exports.useCanvasRef = useCanvasRef;
 exports.useScrollbar = useScrollbar;
 exports.useTracker = useTracker;

@@ -1,7 +1,8 @@
-import React, { useRef, useState, useLayoutEffect } from 'react'
+import React, { useRef, useState } from 'react'
 import { Scene } from 'three'
 import { useFrame, createPortal, invalidate } from '@react-three/fiber'
 
+import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
 import config from '../config'
 import { useCanvasStore } from '../store'
 import useScrollRig from '../hooks/useScrollRig'
@@ -40,8 +41,7 @@ let ViewportScrollScene = ({
   const pageReflow = useCanvasStore((state) => state.pageReflow)
   const scaleMultiplier = useCanvasStore((state) => state.scaleMultiplier)
 
-  const { rect, bounds, scale, position, scrollState, inViewport } = useTracker({
-    track,
+  const { rect, bounds, scale, position, scrollState, inViewport } = useTracker(track, {
     rootMargin: inViewportMargin,
     threshold: inViewportThreshold,
   })
