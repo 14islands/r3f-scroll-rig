@@ -1,4 +1,4 @@
-import { useEffect, RefObject, useMemo, useRef } from 'react'
+import { useEffect, RefObject, useMemo } from 'react'
 import { useThree, useLoader } from '@react-three/fiber'
 import { Texture, CanvasTexture, ImageBitmapLoader, TextureLoader, DefaultLoadingManager } from 'three'
 import { suspend } from 'suspend-react'

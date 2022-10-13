@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "module": "ESNext",
+    "target": "es6",
+    "lib": ["es2019", "dom"],
+    "module": "commonjs",
     "moduleResolution": "node",
     "esModuleInterop": false,
     "allowSyntheticDefaultImports": true,
