@@ -603,7 +603,6 @@ const GlobalCanvas = _ref => {
     globalAutoClear = false,
     // don't clear viewports
     globalClearDepth = true,
-    loadingFallback,
     ...props
   } = _ref;
   const globalRenderState = useCanvasStore(state => state.globalRender); // enable debug mode
@@ -629,8 +628,9 @@ const GlobalCanvas = _ref => {
     });
   }, [scaleMultiplier, globalPriority, globalRender, globalAutoClear, globalClearDepth]);
   const CanvasElement = as;
-  return /*#__PURE__*/jsxs(CanvasElement // use our own default camera
-  , {
+  return /*#__PURE__*/jsxs(CanvasElement, {
+    id: "ScrollRig-canvas" // use our own default camera
+    ,
     camera: null // Some sane defaults
     ,
     gl: {

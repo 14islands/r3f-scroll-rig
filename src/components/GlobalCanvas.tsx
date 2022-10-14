@@ -1,4 +1,4 @@
-import { ReactNode, Suspense } from 'react'
+import { ReactNode } from 'react'
 import { Canvas, Props } from '@react-three/fiber'
 import { ResizeObserver } from '@juggle/resize-observer'
 import { parse } from 'query-string'
@@ -44,7 +44,6 @@ const GlobalCanvas = ({
   globalPriority = config.PRIORITY_GLOBAL,
   globalAutoClear = false, // don't clear viewports
   globalClearDepth = true,
-  loadingFallback,
   ...props
 }: Omit<IGlobalCanvas, 'onError'>) => {
   const globalRenderState = useCanvasStore((state) => state.globalRender)
@@ -75,6 +74,7 @@ const GlobalCanvas = ({
 
   return (
     <CanvasElement
+      id="ScrollRig-canvas"
       // use our own default camera
       camera={null}
       // Some sane defaults

@@ -706,7 +706,7 @@ var CanvasErrorBoundary = /*#__PURE__*/function (_React$Component) {
 
 var CanvasErrorBoundary$1 = CanvasErrorBoundary;
 
-var _excluded$4 = ["as", "children", "gl", "style", "orthographic", "camera", "debug", "scaleMultiplier", "globalRender", "globalPriority", "globalAutoClear", "globalClearDepth", "loadingFallback"],
+var _excluded$4 = ["as", "children", "gl", "style", "orthographic", "camera", "debug", "scaleMultiplier", "globalRender", "globalPriority", "globalAutoClear", "globalClearDepth"],
     _excluded2 = ["children", "onError"];
 
 function ownKeys$6(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
@@ -731,9 +731,8 @@ var GlobalCanvas = function GlobalCanvas(_ref) {
       _ref$globalAutoClear = _ref.globalAutoClear,
       globalAutoClear = _ref$globalAutoClear === void 0 ? false : _ref$globalAutoClear,
       _ref$globalClearDepth = _ref.globalClearDepth,
-      globalClearDepth = _ref$globalClearDepth === void 0 ? true : _ref$globalClearDepth;
-      _ref.loadingFallback;
-      var props = _objectWithoutProperties__default["default"](_ref, _excluded$4);
+      globalClearDepth = _ref$globalClearDepth === void 0 ? true : _ref$globalClearDepth,
+      props = _objectWithoutProperties__default["default"](_ref, _excluded$4);
 
   var globalRenderState = useCanvasStore(function (state) {
     return state.globalRender;
@@ -760,8 +759,9 @@ var GlobalCanvas = function GlobalCanvas(_ref) {
     });
   }, [scaleMultiplier, globalPriority, globalRender, globalAutoClear, globalClearDepth]);
   var CanvasElement = as;
-  return /*#__PURE__*/jsxRuntime.jsxs(CanvasElement // use our own default camera
-  , _objectSpread$6(_objectSpread$6({
+  return /*#__PURE__*/jsxRuntime.jsxs(CanvasElement, _objectSpread$6(_objectSpread$6({
+    id: "ScrollRig-canvas" // use our own default camera
+    ,
     camera: null // Some sane defaults
     ,
     gl: _objectSpread$6({
