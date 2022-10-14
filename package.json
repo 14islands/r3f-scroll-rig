@@ -7,10 +7,8 @@
   "types": "dist/web.d.ts",
   "sideEffects": false,
   "type": "module",
-  "source": "src/index.ts",
   "files": [
-    "dist",
-    "src"
+    "dist"
   ],
   "exports": {
     "./scrollbar": "./dist/scrollbar.js",
