@@ -7,7 +7,7 @@ var _objectWithoutProperties = require('@babel/runtime/helpers/objectWithoutProp
 var _defineProperty = require('@babel/runtime/helpers/defineProperty');
 var create = require('zustand');
 var react = require('react');
-var debounce = require('debounce');
+var pkgdebounce = require('debounce');
 var fiber = require('@react-three/fiber');
 var Lenis = require('@studio-freight/lenis');
 var jsxRuntime = require('react/jsx-runtime');
@@ -22,6 +22,7 @@ var _typeof__default = /*#__PURE__*/_interopDefaultLegacy(_typeof);
 var _objectWithoutProperties__default = /*#__PURE__*/_interopDefaultLegacy(_objectWithoutProperties);
 var _defineProperty__default = /*#__PURE__*/_interopDefaultLegacy(_defineProperty);
 var create__default = /*#__PURE__*/_interopDefaultLegacy(create);
+var pkgdebounce__default = /*#__PURE__*/_interopDefaultLegacy(pkgdebounce);
 var Lenis__default = /*#__PURE__*/_interopDefaultLegacy(Lenis);
 var _slicedToArray__default = /*#__PURE__*/_interopDefaultLegacy(_slicedToArray);
 
@@ -299,6 +300,7 @@ var LenisScrollbar$1 = /*#__PURE__*/react.forwardRef(LenisScrollbar);
 function ownKeys$1(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread$1(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$1(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$1(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+var debounce = pkgdebounce__default["default"].debounce;
 var SmoothScrollbar = function SmoothScrollbar(_ref) {
   var _children = _ref.children,
       _ref$enabled = _ref.enabled,
@@ -376,7 +378,7 @@ var SmoothScrollbar = function SmoothScrollbar(_ref) {
       globalScrollState.direction = direction;
       globalScrollState.progress = progress; // disable pointer logic
 
-      var disablePointer = debounce.debounce(function () {
+      var disablePointer = debounce(function () {
         return preventPointerEvents(true);
       }, 100, true);
 

@@ -1,11 +1,13 @@
 import { useEffect, useRef, useCallback, ReactElement } from 'react'
-import { debounce } from 'debounce'
+import pkgdebounce from 'debounce'
 import { addEffect, invalidate } from '@react-three/fiber'
 
 import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
 import useCanvasStore from '../store'
 
 import LenisScrollbar, { ILenisScrollbar, LenisScrollCallback } from './LenisScrollbar'
+
+const { debounce } = pkgdebounce
 
 interface ISmoothScrobbar {
   children: (props: any) => ReactElement
