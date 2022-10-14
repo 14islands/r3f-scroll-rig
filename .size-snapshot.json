@@ -1,12 +1,12 @@
 {
   "web.js": {
-    "bundled": 48006,
-    "minified": 21335,
-    "gzipped": 6733,
+    "bundled": 48008,
+    "minified": 21333,
+    "gzipped": 6737,
     "treeshaked": {
       "rollup": {
-        "code": 3379,
-        "import_statements": 514
+        "code": 3382,
+        "import_statements": 497
       },
       "webpack": {
         "code": 12370
@@ -14,9 +14,9 @@
     }
   },
   "web.cjs.js": {
-    "bundled": 73494,
-    "minified": 36736,
-    "gzipped": 8651
+    "bundled": 73487,
+    "minified": 36727,
+    "gzipped": 8653
   },
   "vscroll.js": {
     "bundled": 12612,
@@ -38,13 +38,13 @@
     "gzipped": 2419
   },
   "scrollbar.js": {
-    "bundled": 17599,
-    "minified": 7326,
-    "gzipped": 2609,
+    "bundled": 17601,
+    "minified": 7324,
+    "gzipped": 2613,
     "treeshaked": {
       "rollup": {
-        "code": 1654,
-        "import_statements": 204
+        "code": 1657,
+        "import_statements": 187
       },
       "webpack": {
         "code": 2971
@@ -52,9 +52,9 @@
     }
   },
   "scrollbar.cjs.js": {
-    "bundled": 26257,
-    "minified": 12504,
-    "gzipped": 3476
+    "bundled": 26250,
+    "minified": 12495,
+    "gzipped": 3474
   },
   "examples.js": {
     "bundled": 2866,
