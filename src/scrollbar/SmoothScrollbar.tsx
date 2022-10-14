@@ -1,12 +1,12 @@
 import { useEffect, useRef, useCallback, ReactElement } from 'react'
 import { addEffect, invalidate } from '@react-three/fiber'
 
+import { debounce } from 'debounce'
+
 import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
 import useCanvasStore from '../store'
 
 import LenisScrollbar, { ILenisScrollbar, LenisScrollCallback } from './LenisScrollbar'
-
-const debounce = require('debounce')
 interface ISmoothScrobbar {
   children: (props: any) => ReactElement
   scrollRestoration?: ScrollRestoration

@@ -12,6 +12,7 @@ import { vec3 } from 'vecn';
 import { suspend } from 'suspend-react';
 import supportsWebP from 'supports-webp';
 import equal from 'fast-deep-equal';
+import { debounce } from 'debounce';
 import Lenis from '@studio-freight/lenis';
 
 const isBrowser = typeof window !== 'undefined';
@@ -1413,8 +1414,6 @@ function LenisScrollbar(_ref, ref) {
   return children && children(props);
 }
 var LenisScrollbar$1 = /*#__PURE__*/forwardRef(LenisScrollbar);
-
-const debounce = require('debounce');
 
 const SmoothScrollbar = _ref => {
   let {

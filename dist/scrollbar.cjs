@@ -8,6 +8,7 @@ var _defineProperty = require('@babel/runtime/helpers/defineProperty');
 var create = require('zustand');
 var react = require('react');
 var fiber = require('@react-three/fiber');
+var debounce = require('debounce');
 var Lenis = require('@studio-freight/lenis');
 var jsxRuntime = require('react/jsx-runtime');
 var _slicedToArray = require('@babel/runtime/helpers/slicedToArray');
@@ -298,9 +299,6 @@ var LenisScrollbar$1 = /*#__PURE__*/react.forwardRef(LenisScrollbar);
 function ownKeys$1(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread$1(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys$1(Object(source), !0).forEach(function (key) { _defineProperty__default["default"](target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$1(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
-
-var debounce = require('debounce');
-
 var SmoothScrollbar = function SmoothScrollbar(_ref) {
   var _children = _ref.children,
       _ref$enabled = _ref.enabled,
@@ -378,7 +376,7 @@ var SmoothScrollbar = function SmoothScrollbar(_ref) {
       globalScrollState.direction = direction;
       globalScrollState.progress = progress; // disable pointer logic
 
-      var disablePointer = debounce(function () {
+      var disablePointer = debounce.debounce(function () {
         return preventPointerEvents(true);
       }, 100, true);
 

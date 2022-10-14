@@ -1,6 +1,7 @@
 import create from 'zustand';
 import { useLayoutEffect as useLayoutEffect$1, useEffect, forwardRef, useRef, useImperativeHandle, useCallback, useState } from 'react';
 import { addEffect, invalidate } from '@react-three/fiber';
+import { debounce } from 'debounce';
 import Lenis from '@studio-freight/lenis';
 import { jsx } from 'react/jsx-runtime';
 import { useInView } from 'react-intersection-observer';
@@ -251,8 +252,6 @@ function LenisScrollbar(_ref, ref) {
   return children && children(props);
 }
 var LenisScrollbar$1 = /*#__PURE__*/forwardRef(LenisScrollbar);
-
-const debounce = require('debounce');
 
 const SmoothScrollbar = _ref => {
   let {

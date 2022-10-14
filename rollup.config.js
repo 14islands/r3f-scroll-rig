@@ -59,7 +59,7 @@ function createConfig(entry, out) {
     },
     {
       input: `./${entry}`,
-      output: { file: `dist/${out}.cjs.js`, format: 'cjs' },
+      output: { file: `dist/${out}.cjs`, format: 'cjs' },
       external,
       plugins: [
         peerDepsExternal(),
