@@ -1,6 +1,5 @@
 import { useEffect, useRef, useCallback, ReactElement } from 'react'
 import { addEffect, invalidate } from '@react-three/fiber'
-
 import { debounce } from 'debounce'
 
 import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'

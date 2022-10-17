@@ -3,7 +3,6 @@ import { useThree, useLoader } from '@react-three/fiber'
 import { Texture, CanvasTexture, ImageBitmapLoader, TextureLoader, DefaultLoadingManager } from 'three'
 import { suspend } from 'suspend-react'
 import supportsWebP from 'supports-webp'
-// @ts-ignore
 import equal from 'fast-deep-equal'
 
 import { useCanvasStore } from '../store'
