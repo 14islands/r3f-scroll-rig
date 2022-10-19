@@ -1,3 +1,4 @@
+// @ts-ignore
 import { vec3 } from 'vecn'
 export interface ScrollState {
   inViewport: boolean
@@ -23,7 +24,7 @@ export type Bounds = Rect & {
 export interface Tracker {
   rect: Rect | undefined
   scale: vec3 | undefined
-  inViewport: Boolean
+  inViewport: boolean
   bounds: Bounds
   scrollState: ScrollState
   position: vec3

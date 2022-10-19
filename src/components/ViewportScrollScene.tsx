@@ -1,6 +1,8 @@
-import React, { useRef, useState } from 'react'
-import { Scene } from 'three'
+import { useRef, useState, useCallback, MutableRefObject, ReactNode } from 'react'
+import { Scene, Camera, PerspectiveCamera } from 'three'
 import { useFrame, createPortal, invalidate } from '@react-three/fiber'
+// @ts-ignore
+import { vec3 } from 'vecn'
 
 import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
 import config from '../config'
@@ -8,6 +10,34 @@ import { useCanvasStore } from '../store'
 import useScrollRig from '../hooks/useScrollRig'
 import DebugMesh from './DebugMesh'
 import useTracker from '../hooks/useTracker'
+import type { ScrollState } from '../hooks/useTracker.d'
+
+interface ViewportScrollSceneState {
+  track: MutableRefObject<HTMLElement>
+  margin: number
+  renderOrder: number
+  priority: number
+  scene: Scene
+  camera: Camera
+  scale: vec3 | undefined
+  scrollState: ScrollState
+  inViewport: boolean
+}
+
+interface ViewportScrollScene {
+  track: MutableRefObject<HTMLElement>
+  children: (state: ViewportScrollSceneState) => ReactNode
+  margin?: number
+  inViewportMargin?: string
+  inViewportThreshold?: number
+  visible?: boolean
+  hideOffscreen?: boolean
+  debug?: boolean
+  orthographic?: boolean
+  as?: string
+  renderOrder?: number
+  priority?: number
+}
 
 /**
  * Generic THREE.js Scene that tracks the dimensions and position of a DOM element while scrolling
@@ -16,7 +46,7 @@ import useTracker from '../hooks/useTracker'
  * Adapted to @react-three/fiber from https://threejsfundamentals.org/threejs/lessons/threejs-multiple-scenes.html
  * @author david@14islands.com
  */
-let ViewportScrollScene = ({
+const ViewportScrollScene = ({
   track,
   children,
   margin = 0, // Margin outside viewport to avoid clipping vertex displacement (px)
@@ -29,8 +59,8 @@ let ViewportScrollScene = ({
   renderOrder = 1,
   priority = config.PRIORITY_VIEWPORTS,
   ...props
-}) => {
-  const camera = useRef()
+}: ViewportScrollScene) => {
+  const camera = useRef<PerspectiveCamera>(null!)
   const [scene] = useState(() => new Scene())
 
   // const get = useThree((state) => state.get)
@@ -55,6 +85,7 @@ let ViewportScrollScene = ({
 
   // Find bounding box & scale mesh on resize
   useLayoutEffect(() => {
+    if (!rect) return
     const viewportWidth = rect.width * scaleMultiplier
     const viewportHeight = rect.height * scaleMultiplier
     const cameraDistance = Math.max(viewportWidth, viewportHeight)
@@ -75,8 +106,8 @@ let ViewportScrollScene = ({
     invalidate()
   }, [track, pageReflow, rect, scaleMultiplier])
 
-  const compute = React.useCallback(
-    (event, state) => {
+  const compute = useCallback(
+    (event: any, state: any) => {
       // limit events to DOM element bounds
       if (track.current && event.target === track.current) {
         const { width, height, left, top } = bounds
@@ -132,8 +163,9 @@ let ViewportScrollScene = ({
             onUpdate={(self) => self.updateProjectionMatrix()}
           />
         )}
-        {orthographic && (
+        {orthographic && scale && (
           <orthographicCamera
+            // @ts-ignore
             ref={camera}
             position={[0, 0, cameraDistance]}
             onUpdate={(self) => self.updateProjectionMatrix()}
@@ -170,12 +202,17 @@ let ViewportScrollScene = ({
         </group>
       </>,
       scene,
+      // @ts-ignore
       { events: { compute, priority }, size: { width: rect.width, height: rect.height } }
     )
   )
 }
 
-ViewportScrollScene = React.memo(ViewportScrollScene)
+// const ViewportScrollScene = memo<ViewportScrollScene>(ViewportScrollSceneImpl)
+
+// const ViewportScrollSceneImpl = () => null
+
+// const ViewportScrollScene = memo(ViewportScrollSceneImpl)
 
 export { ViewportScrollScene }
 export default ViewportScrollScene

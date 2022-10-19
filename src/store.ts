@@ -10,7 +10,7 @@ interface ScrollRigStore {
   globalPriority: number
   globalAutoClear: boolean
   globalClearDepth: boolean
-  globalRenderQueue: boolean | any[]
+  globalRenderQueue: false | any[]
   clearGlobalRenderQueue: () => void
   isCanvasAvailable: boolean
   hasSmoothScrollbar: boolean

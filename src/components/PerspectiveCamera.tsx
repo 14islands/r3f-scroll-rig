@@ -1,12 +1,16 @@
-import React, { useRef, forwardRef, useMemo } from 'react'
-import PropTypes from 'prop-types'
+import { useRef, forwardRef, useMemo } from 'react'
 import { useThree } from '@react-three/fiber'
+import { PerspectiveCamera as PerspectiveCameraImpl } from 'three'
 import mergeRefs from 'react-merge-refs'
 
 import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
 import useCanvasStore from '../store'
 
-export const OrthographicCamera = forwardRef(({ makeDefault = false, ...props }, ref) => {
+type Props = JSX.IntrinsicElements['perspectiveCamera'] & {
+  makeDefault?: boolean
+}
+
+export const PerspectiveCamera = forwardRef(({ makeDefault = false, ...props }: Props, ref) => {
   const set = useThree((state) => state.set)
   const camera = useThree((state) => state.camera)
   const size = useThree((state) => state.size)
@@ -20,14 +24,29 @@ export const OrthographicCamera = forwardRef(({ makeDefault = false, ...props },
     return Math.max(width, height)
   }, [size, pageReflow, scaleMultiplier])
 
-  const cameraRef = useRef()
+  const cameraRef = useRef<PerspectiveCameraImpl>(null!)
   useLayoutEffect(() => {
+    const width = size.width * scaleMultiplier
+    const height = size.height * scaleMultiplier
+
+    // const radToDeg = (radians) => radians * (180 / Math.PI)
+    // const degToRad = (degrees) => degrees * (Math.PI / 180)
+
+    cameraRef.current.aspect = width / height
+    cameraRef.current.fov = 2 * (180 / Math.PI) * Math.atan(height / (2 * cameraRef.current.position.z))
+    // cameraRef.current.fov = props.fov
+
+    // const vFOV = props.fov * (Math.PI / 180)
+    // const hFOV = 2 * Math.atan(Math.tan(vFOV / 2) * cameraRef.current.aspect)
+    // cameraRef.current.position.z = cameraRef.current.getFilmHeight() / cameraRef.current.getFocalLength()
+    // cameraRef.current.position.z = Math.tan(((hFOV / 2.0) * Math.PI) / 180.0) * 2.0
+
     cameraRef.current.lookAt(0, 0, 0)
     cameraRef.current.updateProjectionMatrix()
     // https://github.com/react-spring/@react-three/fiber/issues/178
     // Update matrix world since the renderer is a frame late
     cameraRef.current.updateMatrixWorld()
-  }, [distance, size])
+  }, [distance, size, scaleMultiplier])
 
   useLayoutEffect(() => {
     if (makeDefault && cameraRef.current) {
@@ -38,26 +57,15 @@ export const OrthographicCamera = forwardRef(({ makeDefault = false, ...props },
   }, [camera, cameraRef, makeDefault, set])
 
   return (
-    <orthographicCamera
-      left={(size.width * scaleMultiplier) / -2}
-      right={(size.width * scaleMultiplier) / 2}
-      top={(size.height * scaleMultiplier) / 2}
-      bottom={(size.height * scaleMultiplier) / -2}
-      far={distance * 2}
-      position={[0, 0, distance]}
-      near={0.001}
+    <perspectiveCamera
       ref={mergeRefs([cameraRef, ref])}
+      position={[0, 0, distance]}
       onUpdate={(self) => self.updateProjectionMatrix()}
+      near={0.1}
+      far={distance * 2}
       {...props}
     />
   )
 })
 
-OrthographicCamera.propTypes = {
-  makeDefault: PropTypes.bool,
-  scaleMultiplier: PropTypes.number,
-}
-
-OrthographicCamera.displayName = 'OrthographicCamera'
-
-export default OrthographicCamera
+export default PerspectiveCamera

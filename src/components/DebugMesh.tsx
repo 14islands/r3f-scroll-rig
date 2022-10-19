@@ -1,8 +1,6 @@
-import React from 'react'
-import PropTypes from 'prop-types'
 import { Color } from 'three'
 
-export const DebugMesh = ({ scale }) => (
+export const DebugMesh = ({ scale }: { scale: [x: number, y: number, z: number] }) => (
   <mesh scale={scale}>
     <planeGeometry />
     <shaderMaterial
@@ -29,12 +27,5 @@ export const DebugMesh = ({ scale }) => (
     />
   </mesh>
 )
-
-DebugMesh.propTypes = {
-  scale: PropTypes.shape({
-    width: PropTypes.number,
-    height: PropTypes.number,
-  }),
-}
 
 export default DebugMesh

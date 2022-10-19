@@ -1,5 +1,5 @@
 import config from './config'
-import { Vector2 } from 'three'
+import { Vector2, WebGLRenderer, Scene, Camera } from 'three'
 import { invalidate } from '@react-three/fiber'
 
 import { setAllCulled } from './utils/helpers'
@@ -10,7 +10,7 @@ const viewportSize = new Vector2()
 // Flag that we need global rendering (full screen)
 export const requestRender = (layers = [0]) => {
   useCanvasStore.getState().globalRenderQueue = useCanvasStore.getState().globalRenderQueue || [0]
-  useCanvasStore.getState().globalRenderQueue = [...useCanvasStore.getState().globalRenderQueue, ...layers]
+  useCanvasStore.getState().globalRenderQueue = [...(useCanvasStore.getState().globalRenderQueue || []), ...layers]
 }
 
 export const renderScissor = ({
@@ -24,7 +24,7 @@ export const renderScissor = ({
   layer = 0,
   autoClear = false,
   clearDepth = true,
-}) => {
+}: any) => {
   if (!scene || !camera) return
   const _autoClear = gl.autoClear
   gl.autoClear = autoClear
@@ -49,7 +49,7 @@ export const renderViewport = ({
   scissor = true,
   autoClear = false,
   clearDepth = true,
-}) => {
+}: any) => {
   if (!scene || !camera) return
   const _autoClear = gl.autoClear
   gl.getSize(viewportSize)
@@ -65,9 +65,9 @@ export const renderViewport = ({
   gl.autoClear = _autoClear
 }
 
-export const preloadScene = (scene, camera, layer = 0, callback) => {
+export const preloadScene = (scene: Scene, camera: Camera, layer = 0, callback?: () => void) => {
   if (!scene || !camera) return
-  config.preloadQueue.push((gl) => {
+  config.preloadQueue.push((gl: WebGLRenderer) => {
     gl.setScissorTest(false)
     setAllCulled(scene, false)
     camera.layers.set(layer)

@@ -1,5 +1,9 @@
 // Global config
 
+import { WebGLRenderer } from 'three'
+
+type PreloadCallback = (gl: WebGLRenderer) => void
+
 export const config = {
   // Execution order for useFrames (highest = last render)
   PRIORITY_PRELOAD: 0,
@@ -10,7 +14,7 @@ export const config = {
   DEFAULT_SCALE_MULTIPLIER: 1,
 
   // Global rendering props
-  preloadQueue: [],
+  preloadQueue: [] as PreloadCallback[],
 }
 
 export default config

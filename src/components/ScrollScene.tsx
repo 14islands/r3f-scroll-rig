@@ -1,6 +1,8 @@
-import React, { useState, useCallback } from 'react'
+import { useState, useCallback, MutableRefObject, ReactNode } from 'react'
 import { Scene } from 'three'
 import { useFrame, createPortal } from '@react-three/fiber'
+// @ts-ignore
+import { vec3 } from 'vecn'
 
 import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
 import config from '../config'
@@ -8,6 +10,33 @@ import { useCanvasStore } from '../store'
 import useScrollRig from '../hooks/useScrollRig'
 import DebugMesh from './DebugMesh'
 import useTracker from '../hooks/useTracker'
+import type { ScrollState } from '../hooks/useTracker.d'
+
+interface ScrollSceneState {
+  track: MutableRefObject<HTMLElement>
+  margin: number
+  renderOrder: number
+  priority: number
+  scene: Scene
+  scale: vec3 | undefined
+  scrollState: ScrollState
+  inViewport: boolean
+}
+
+interface ScrollSceneProps {
+  track: MutableRefObject<HTMLElement>
+  children: (state: ScrollSceneState) => ReactNode
+  margin: number
+  inViewportMargin: string
+  inViewportThreshold: number
+  visible: boolean
+  hideOffscreen: boolean
+  scissor: boolean
+  debug: boolean
+  as: string
+  renderOrder: number
+  priority: number
+}
 
 /**
  * Generic THREE.js Scene that tracks the dimensions and position of a DOM element while scrolling
@@ -15,7 +44,7 @@ import useTracker from '../hooks/useTracker'
  *
  * @author david@14islands.com
  */
-let ScrollScene = ({
+const ScrollScene = ({
   track,
   children,
   margin = 0, // Margin outside scissor to avoid clipping vertex displacement (px)
@@ -29,8 +58,8 @@ let ScrollScene = ({
   renderOrder = 1,
   priority = config.PRIORITY_SCISSORS,
   ...props
-}) => {
-  const inlineSceneRef = useCallback((node) => {
+}: ScrollSceneProps) => {
+  const inlineSceneRef = useCallback((node: any) => {
     if (node !== null) {
       setScene(node)
     }
@@ -103,11 +132,11 @@ let ScrollScene = ({
   )
 
   // portal if scissor or inline nested scene
-  const InlineElement = as
-  return scissor ? createPortal(content, scene) : <InlineElement ref={inlineSceneRef}>{content}</InlineElement>
+  const InlineElement: any = as
+  return scissor && scene ? createPortal(content, scene) : <InlineElement ref={inlineSceneRef}>{content}</InlineElement>
 }
 
-ScrollScene = React.memo(ScrollScene)
+// const ScrollScene = memo(ScrollSceneImpl)
 
 export { ScrollScene }
 export default ScrollScene

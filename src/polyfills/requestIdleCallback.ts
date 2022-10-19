@@ -1,7 +1,7 @@
 /**
  * runtime check for requestIdleCallback
  */
-export const requestIdleCallback = (callback, { timeout = 100 } = {}) => {
+export const requestIdleCallback = (callback: () => void, { timeout = 100 } = {}) => {
   if ('requestIdleCallback' in window) {
     window.requestIdleCallback(callback, { timeout })
   } else {
@@ -9,7 +9,7 @@ export const requestIdleCallback = (callback, { timeout = 100 } = {}) => {
   }
 }
 
-export const cancelIdleCallback = (id) => {
+export const cancelIdleCallback = (id: any) => {
   if ('cancelIdleCallback' in window) {
     window.cancelIdleCallback(id)
   } else {
