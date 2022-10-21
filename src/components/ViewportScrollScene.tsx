@@ -1,8 +1,6 @@
 import React, { memo, useRef, useState, useCallback, MutableRefObject, ReactNode } from 'react'
 import { Scene, Camera, PerspectiveCamera } from 'three'
 import { useFrame, createPortal, invalidate } from '@react-three/fiber'
-// @ts-ignore
-import { vec3 } from 'vecn'
 
 import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
 import { config } from '../config'

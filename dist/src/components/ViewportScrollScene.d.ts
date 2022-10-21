@@ -1,6 +1,5 @@
 import React, { MutableRefObject, ReactNode } from 'react';
 import { Scene, Camera } from 'three';
-import { vec3 } from 'vecn';
 import type { ScrollState } from '../hooks/useTracker.d';
 interface ViewportScrollSceneState {
     track: MutableRefObject<HTMLElement>;

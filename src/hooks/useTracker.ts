@@ -1,7 +1,6 @@
 import { useRef, useCallback, useEffect, useState, MutableRefObject } from 'react'
 import { useInView } from 'react-intersection-observer'
 import { useWindowSize } from './useWindowSize'
-
 import vecn from 'vecn'
 
 import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
