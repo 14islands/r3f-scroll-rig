@@ -1,10 +1,10 @@
-import { useRef, forwardRef, useMemo } from 'react'
+import React, { useRef, forwardRef, useMemo } from 'react'
 import { OrthographicCamera as OrthographicCameraImpl } from 'three'
 import { useThree } from '@react-three/fiber'
 import mergeRefs from 'react-merge-refs'
 
 import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
-import useCanvasStore from '../store'
+import { useCanvasStore } from '../store'
 
 type Props = JSX.IntrinsicElements['orthographicCamera'] & {
   makeDefault?: boolean
@@ -55,5 +55,3 @@ export const OrthographicCamera = forwardRef(({ makeDefault = false, ...props }:
     />
   )
 })
-
-export default OrthographicCamera

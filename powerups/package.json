@@ -1,0 +1,11 @@
+{
+  "main": "../dist/powerups.cjs.js",
+  "module": "../dist/powerups.js",
+  "types": "../dist/powerups/index.d.ts",
+  "type": "module",
+  "exports": {
+    "types": "./dist/powerups/index.d.ts",
+    "require": "./dist/powerups.cjs",
+    "import": "./dist/powerups.modern.js"
+  }
+}

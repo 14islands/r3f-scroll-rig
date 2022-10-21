@@ -1,4 +1,4 @@
-import { Fragment, useEffect, ReactNode, cloneElement } from 'react'
+import React, { Fragment, useEffect, ReactNode, cloneElement } from 'react'
 import { invalidate } from '@react-three/fiber'
 
 import { useCanvasStore } from '../store'
@@ -7,7 +7,7 @@ import { useScrollRig } from '../hooks/useScrollRig'
 /**
  * Renders global children from useCanvas hook
  */
-const GlobalChildren = ({ children }: { children?: ReactNode }) => {
+export const GlobalChildren = ({ children }: { children?: ReactNode }) => {
   const canvasChildren = useCanvasStore((state) => state.canvasChildren)
   const scrollRig = useScrollRig()
 
@@ -39,5 +39,3 @@ const GlobalChildren = ({ children }: { children?: ReactNode }) => {
     </>
   )
 }
-
-export default GlobalChildren

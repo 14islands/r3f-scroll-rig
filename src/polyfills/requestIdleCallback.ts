@@ -16,5 +16,3 @@ export const cancelIdleCallback = (id: any) => {
     clearTimeout(id)
   }
 }
-
-export default requestIdleCallback

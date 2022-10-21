@@ -1,12 +1,12 @@
 import { useEffect } from 'react'
 
-import requestIdleCallback from '../polyfills/requestIdleCallback'
+import { requestIdleCallback } from '../polyfills/requestIdleCallback'
 import { useCanvasStore } from '../store'
 
 /**
  * Trigger reflow when WebFonts loaded
  */
-const ResizeManager = () => {
+export const ResizeManager = () => {
   const requestReflow = useCanvasStore((state) => state.requestReflow)
 
   // reflow on webfont loaded to prevent misalignments
@@ -20,5 +20,3 @@ const ResizeManager = () => {
 
   return null
 }
-
-export default ResizeManager

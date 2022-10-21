@@ -1,19 +1,19 @@
-import { ReactNode } from 'react'
+import React, { ReactNode } from 'react'
 import { Canvas, Props } from '@react-three/fiber'
 import { ResizeObserver } from '@juggle/resize-observer'
 import { parse } from 'query-string'
 
 import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
 import { useCanvasStore } from '../store'
-import ResizeManager from './ResizeManager'
-import PerspectiveCamera from './PerspectiveCamera'
-import OrthographicCamera from './OrthographicCamera'
+import { ResizeManager } from './ResizeManager'
+import { PerspectiveCamera } from './PerspectiveCamera'
+import { OrthographicCamera } from './OrthographicCamera'
 
-import GlobalChildren from './GlobalChildren'
-import GlobalRenderer from './GlobalRenderer'
-import CanvasErrorBoundary from './CanvasErrorBoundary'
+import { GlobalChildren } from './GlobalChildren'
+import { GlobalRenderer } from './GlobalRenderer'
+import { CanvasErrorBoundary } from './CanvasErrorBoundary'
 
-import config from '../config'
+import { config } from '../config'
 
 interface IGlobalCanvas extends Omit<Props, 'children'> {
   as?: any
@@ -31,7 +31,7 @@ interface IGlobalCanvas extends Omit<Props, 'children'> {
   loadingFallback?: any
 }
 
-const GlobalCanvas = ({
+const GlobalCanvasImpl = ({
   as = Canvas,
   children,
   gl,
@@ -111,7 +111,7 @@ const GlobalCanvas = ({
   )
 }
 
-const GlobalCanvasIfSupported = ({ children, onError, ...props }: IGlobalCanvas) => {
+export const GlobalCanvas = ({ children, onError, ...props }: IGlobalCanvas) => {
   useLayoutEffect(() => {
     document.documentElement.classList.add('js-has-global-canvas')
   }, [])
@@ -119,14 +119,14 @@ const GlobalCanvasIfSupported = ({ children, onError, ...props }: IGlobalCanvas)
   return (
     // @ts-ignore
     <CanvasErrorBoundary
-      onError={(err) => {
+      onError={(err: any) => {
         onError && onError(err)
         useCanvasStore.setState({ isCanvasAvailable: false }) /* WebGL failed to init */
         document.documentElement.classList.remove('js-has-global-canvas')
         document.documentElement.classList.add('js-global-canvas-error')
       }}
     >
-      <GlobalCanvas {...props}>{children}</GlobalCanvas>
+      <GlobalCanvasImpl {...props}>{children}</GlobalCanvasImpl>
       <noscript>
         <style>
           {`
@@ -141,5 +141,3 @@ const GlobalCanvasIfSupported = ({ children, onError, ...props }: IGlobalCanvas)
     </CanvasErrorBoundary>
   )
 }
-
-export default GlobalCanvasIfSupported

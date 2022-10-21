@@ -1,3 +1,11 @@
+declare type vec3 = {
+  x: number
+  y: number
+  z: number
+  xy: [x: number, y: number]
+  xyz: [x: number, y: number, z: number]
+} & [x: number, y: number, z: number]
+
 declare module 'vecn' {
   export type vec3 = {
     x: number

@@ -16,5 +16,3 @@ export const config = {
   // Global rendering props
   preloadQueue: [] as PreloadCallback[],
 }
-
-export default config

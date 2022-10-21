@@ -1,5 +1,5 @@
 import create from 'zustand'
-import config from './config'
+import { config } from './config'
 
 import { LenisScrollCallback } from './scrollbar/LenisScrollbar'
 
@@ -132,5 +132,3 @@ const useCanvasStore = create<ScrollRigStore>((set) => ({
 }))
 
 export { useCanvasStore }
-
-export default useCanvasStore

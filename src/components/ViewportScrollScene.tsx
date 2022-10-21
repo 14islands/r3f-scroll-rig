@@ -1,15 +1,13 @@
-import { useRef, useState, useCallback, MutableRefObject, ReactNode } from 'react'
+import React, { memo, useRef, useState, useCallback, MutableRefObject, ReactNode } from 'react'
 import { Scene, Camera, PerspectiveCamera } from 'three'
 import { useFrame, createPortal, invalidate } from '@react-three/fiber'
-// @ts-ignore
-import { vec3 } from 'vecn'
 
 import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
-import config from '../config'
+import { config } from '../config'
 import { useCanvasStore } from '../store'
-import useScrollRig from '../hooks/useScrollRig'
-import DebugMesh from './DebugMesh'
-import useTracker from '../hooks/useTracker'
+import { useScrollRig } from '../hooks/useScrollRig'
+import { DebugMesh } from './DebugMesh'
+import { useTracker } from '../hooks/useTracker'
 import type { ScrollState } from '../hooks/useTracker.d'
 
 interface ViewportScrollSceneState {
@@ -46,7 +44,7 @@ interface ViewportScrollScene {
  * Adapted to @react-three/fiber from https://threejsfundamentals.org/threejs/lessons/threejs-multiple-scenes.html
  * @author david@14islands.com
  */
-const ViewportScrollScene = ({
+const ViewportScrollSceneImpl = ({
   track,
   children,
   margin = 0, // Margin outside viewport to avoid clipping vertex displacement (px)
@@ -208,11 +206,6 @@ const ViewportScrollScene = ({
   )
 }
 
-// const ViewportScrollScene = memo<ViewportScrollScene>(ViewportScrollSceneImpl)
-
-// const ViewportScrollSceneImpl = () => null
-
-// const ViewportScrollScene = memo(ViewportScrollSceneImpl)
+const ViewportScrollScene = memo(ViewportScrollSceneImpl)
 
 export { ViewportScrollScene }
-export default ViewportScrollScene

@@ -1,6 +1,11 @@
 {
-  "internal": true,
   "main": "../dist/scrollbar.cjs.js",
   "module": "../dist/scrollbar.js",
-  "types": "../dist/scrollbar.d.ts"
+  "types": "../dist/scrollbar/index.d.ts",
+  "type": "module",
+  "exports": {
+    "types": "./dist/scrollbar/index.d.ts",
+    "require": "./dist/scrollbar.cjs",
+    "import": "./dist/scrollbar.modern.js"
+  }
 }

@@ -1,14 +1,14 @@
 import { useThree, useFrame, invalidate } from '@react-three/fiber'
 
 import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
-import config from '../config'
+import { config } from '../config'
 import { useCanvasStore } from '../store'
 import { useScrollRig } from '../hooks/useScrollRig'
 
 /**
  * Global render loop to avoid double renders on the same frame
  */
-const GlobalRenderer = () => {
+export const GlobalRenderer = () => {
   const gl = useThree((s) => s.gl)
   const frameloop = useThree((s) => s.frameloop)
   const globalClearDepth = useCanvasStore((state) => state.globalClearDepth)
@@ -69,5 +69,3 @@ const GlobalRenderer = () => {
 
   return null
 }
-
-export default GlobalRenderer

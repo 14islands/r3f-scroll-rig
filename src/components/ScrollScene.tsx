@@ -1,18 +1,16 @@
-import { useState, useCallback, MutableRefObject, ReactNode } from 'react'
+import React, { memo, useState, useCallback, MutableRefObject, ReactNode } from 'react'
 import { Scene } from 'three'
 import { useFrame, createPortal } from '@react-three/fiber'
-// @ts-ignore
-import { vec3 } from 'vecn'
 
 import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
-import config from '../config'
+import { config } from '../config'
 import { useCanvasStore } from '../store'
-import useScrollRig from '../hooks/useScrollRig'
-import DebugMesh from './DebugMesh'
-import useTracker from '../hooks/useTracker'
+import { useScrollRig } from '../hooks/useScrollRig'
+import { DebugMesh } from './DebugMesh'
+import { useTracker } from '../hooks/useTracker'
 import type { ScrollState } from '../hooks/useTracker.d'
 
-interface ScrollSceneState {
+export interface ScrollSceneState {
   track: MutableRefObject<HTMLElement>
   margin: number
   renderOrder: number
@@ -26,16 +24,16 @@ interface ScrollSceneState {
 interface ScrollSceneProps {
   track: MutableRefObject<HTMLElement>
   children: (state: ScrollSceneState) => ReactNode
-  margin: number
-  inViewportMargin: string
-  inViewportThreshold: number
-  visible: boolean
-  hideOffscreen: boolean
-  scissor: boolean
-  debug: boolean
-  as: string
-  renderOrder: number
-  priority: number
+  margin?: number
+  inViewportMargin?: string
+  inViewportThreshold?: number
+  visible?: boolean
+  hideOffscreen?: boolean
+  scissor?: boolean
+  debug?: boolean
+  as?: string
+  renderOrder?: number
+  priority?: number
 }
 
 /**
@@ -44,7 +42,7 @@ interface ScrollSceneProps {
  *
  * @author david@14islands.com
  */
-const ScrollScene = ({
+const ScrollSceneImpl = ({
   track,
   children,
   margin = 0, // Margin outside scissor to avoid clipping vertex displacement (px)
@@ -136,7 +134,6 @@ const ScrollScene = ({
   return scissor && scene ? createPortal(content, scene) : <InlineElement ref={inlineSceneRef}>{content}</InlineElement>
 }
 
-// const ScrollScene = memo(ScrollSceneImpl)
+const ScrollScene = memo(ScrollSceneImpl)
 
 export { ScrollScene }
-export default ScrollScene

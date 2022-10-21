@@ -1,3 +1,4 @@
+import React from 'react'
 import { Color } from 'three'
 
 export const DebugMesh = ({ scale }: { scale: [x: number, y: number, z: number] }) => (
@@ -27,5 +28,3 @@ export const DebugMesh = ({ scale }: { scale: [x: number, y: number, z: number] 
     />
   </mesh>
 )
-
-export default DebugMesh

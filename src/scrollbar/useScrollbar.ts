@@ -33,5 +33,3 @@ export const useScrollbar = () => {
     onScroll,
   } as UseScrollbarProps
 }
-
-export default useScrollbar

@@ -7,7 +7,7 @@ interface ICanvasErrorBoundary {
   onError: () => void
 }
 
-class CanvasErrorBoundary extends React.Component<{}, ICanvasErrorBoundary> {
+export class CanvasErrorBoundary extends React.Component<{}, ICanvasErrorBoundary> {
   constructor(props) {
     super(props)
     this.state = { error: false }
@@ -37,5 +37,3 @@ class CanvasErrorBoundary extends React.Component<{}, ICanvasErrorBoundary> {
     return this.props.children
   }
 }
-
-export default CanvasErrorBoundary
