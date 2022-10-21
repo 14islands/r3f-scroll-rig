@@ -1,8 +1,8 @@
 import { useRef, useCallback, useEffect, useState, MutableRefObject } from 'react'
 import { useInView } from 'react-intersection-observer'
-import { useWindowSize } from 'react-use'
-// @ts-ignore
-import { vec3 } from 'vecn'
+import { useWindowSize } from './useWindowSize'
+
+import vecn from 'vecn'
 
 import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
 import { mapLinear } from '../utils/math'
@@ -92,7 +92,7 @@ function useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptio
   }).current
 
   // position in viewport units - updated by scroll
-  const position = useRef(vec3(0, 0, 0)).current
+  const position = useRef(vecn.vec3(0, 0, 0)).current
 
   // Calculate bounding Rect as soon as it's available
   useLayoutEffect(() => {
@@ -106,7 +106,7 @@ function useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptio
     rect.x = rect.left + _rect.width * 0.5
     rect.y = rect.top + _rect.height * 0.5
     setReactiveRect({ ...rect })
-    setScale(vec3(rect?.width * scaleMultiplier, rect?.height * scaleMultiplier, 1))
+    setScale(vecn.vec3(rect?.width * scaleMultiplier, rect?.height * scaleMultiplier, 1))
   }, [track, size, pageReflow, scaleMultiplier])
 
   const update = useCallback(
@@ -161,4 +161,3 @@ function useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptio
 }
 
 export { useTracker }
-export default useTracker

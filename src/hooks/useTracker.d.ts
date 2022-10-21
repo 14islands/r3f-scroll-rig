@@ -1,5 +1,3 @@
-// @ts-ignore
-import { vec3 } from 'vecn'
 export interface ScrollState {
   inViewport: boolean
   progress: number

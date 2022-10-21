@@ -1,9 +1,9 @@
-import { useEffect, useRef, useCallback, ReactElement } from 'react'
+import React, { useEffect, useRef, useCallback, ReactElement } from 'react'
 import { addEffect, invalidate } from '@react-three/fiber'
-import { debounce } from 'debounce'
+import pkg from 'debounce'
 
 import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
-import useCanvasStore from '../store'
+import { useCanvasStore } from '../store'
 
 import LenisScrollbar, { ILenisScrollbar, LenisScrollCallback } from './LenisScrollbar'
 interface ISmoothScrobbar {
@@ -76,7 +76,7 @@ export const SmoothScrollbar = ({
       globalScrollState.progress = progress
 
       // disable pointer logic
-      const disablePointer = debounce(() => preventPointerEvents(true), 100, true)
+      const disablePointer = pkg.debounce(() => preventPointerEvents(true), 100, true)
       if (Math.abs(velocity) > 1.4) {
         disablePointer()
       } else {

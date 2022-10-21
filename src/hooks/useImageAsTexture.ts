@@ -112,4 +112,3 @@ function useImageAsTexture(
 }
 
 export { useImageAsTexture }
-export default useImageAsTexture

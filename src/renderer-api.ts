@@ -1,4 +1,4 @@
-import config from './config'
+import { config } from './config'
 import { Vector2, WebGLRenderer, Scene, Camera } from 'three'
 import { invalidate } from '@react-three/fiber'
 

@@ -4,7 +4,7 @@
     "module": "ESNext",
     "target": "ESNext",
     "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
+    "allowJs": false,
     "skipLibCheck": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
@@ -14,10 +14,12 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "downlevelIteration": true,
-    "jsx": "react-jsx",
+    "jsx": "react",
     "jsxFactory": "",
     "jsxFragmentFactory": "",
-    "incremental": true
+    "incremental": true,
+    "noImplicitAny": true,
+    "typeRoots": ["./node_modules/@types", "./src/types/global.d.ts"]
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx"],
   "exclude": ["node_modules"]

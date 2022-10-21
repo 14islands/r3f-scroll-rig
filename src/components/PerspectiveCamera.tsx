@@ -1,10 +1,10 @@
-import { useRef, forwardRef, useMemo } from 'react'
+import React, { useRef, forwardRef, useMemo } from 'react'
 import { useThree } from '@react-three/fiber'
 import { PerspectiveCamera as PerspectiveCameraImpl } from 'three'
 import mergeRefs from 'react-merge-refs'
 
 import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
-import useCanvasStore from '../store'
+import { useCanvasStore } from '../store'
 
 type Props = JSX.IntrinsicElements['perspectiveCamera'] & {
   makeDefault?: boolean
@@ -67,5 +67,3 @@ export const PerspectiveCamera = forwardRef(({ makeDefault = false, ...props }: 
     />
   )
 })
-
-export default PerspectiveCamera

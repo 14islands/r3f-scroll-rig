@@ -51,5 +51,3 @@ export const useScrollRig = () => {
     reflow: requestReflow,
   } as ScrollRigState
 }
-
-export default useScrollRig
