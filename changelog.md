@@ -1,5 +1,9 @@
 # Changelog
 
+## v8.6.0
+
+- All files converted to TypeScript
+
 ## v8.5.0
 
 - Fixed SSR warnings by replacing `uesLayoutEffect` with `useIsomorphicLayoutEffect`
