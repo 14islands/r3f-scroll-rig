@@ -29,6 +29,11 @@
       "import": "./dist/scrollrig.modern.js"
     }
   },
+  "files": [
+    "dist",
+    "scrollbar",
+    "powerups"
+  ],
   "scripts": {
     "build": "yarn build-default & yarn build-scrollbar & yarn build-powerups",
     "build-default": "microbundle --globals @react-three/fiber=@react-three/fiber,@juggle/resize-observer=@juggle/resize-observer,@studio-freight/lenis=@studio-freight/lenis",
