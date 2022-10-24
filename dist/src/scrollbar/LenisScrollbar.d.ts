@@ -21,6 +21,7 @@ declare type LenisScrollbarProps = {
     smooth?: boolean;
     direction?: string;
     config?: any;
+    smoothTouch?: boolean;
 };
 export interface ILenisScrollbar {
     stop: () => void;
@@ -28,6 +29,7 @@ export interface ILenisScrollbar {
     on: (event: string, cb: LenisScrollCallback) => void;
     once: (event: string, cb: LenisScrollCallback) => void;
     off: (event: string, cb: LenisScrollCallback) => void;
+    notify: () => void;
     scrollTo: LenisScrollTo;
     raf: (time: number) => void;
 }

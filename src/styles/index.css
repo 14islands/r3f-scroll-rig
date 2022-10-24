@@ -19,3 +19,13 @@
   visibility: unset;
   color: unset;
 }
+
+/* Used on scroll wrapper */
+.ScrollRig-scrollHtml {
+  overflow: hidden;
+  height: 100%;
+}
+.ScrollRig-scrollWrapper {
+  height: 100%;
+  overflow-y: scroll;
+}

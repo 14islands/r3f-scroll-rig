@@ -1,5 +1,14 @@
 # Changelog
 
+## v8.7.0
+
+- `scrollInContainer`
+
+  - Feat: Added experimental `scrollInContainer` prop which scrolls inside the body element instead of the default window. This can be used to avoid scrolling away the URL bar on mobile. It also enables the `smoothTouch` setting in Lenis which emulates scroll using touch events.
+
+- `useTracker`
+  - Fix: Matches height of canvas element instead of window.innerHeight if possible. (Fixes position problems on mobile where canvas is 100vh)
+
 ## v8.6.0
 
 - All files converted to TypeScript

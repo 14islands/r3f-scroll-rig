@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback, ReactElement } from 'react'
+import React, { useEffect, useRef, useCallback, ReactElement, useMemo } from 'react'
 import { addEffect, invalidate } from '@react-three/fiber'
 import pkg from 'debounce'
 
@@ -14,6 +14,7 @@ interface ISmoothScrobbar {
   disablePointerOnScroll?: boolean
   config?: object
   horizontal?: boolean
+  scrollInContainer?: boolean
 }
 
 export const SmoothScrollbar = ({
@@ -23,6 +24,7 @@ export const SmoothScrollbar = ({
   scrollRestoration = 'auto',
   disablePointerOnScroll = true,
   horizontal = false,
+  scrollInContainer = false,
   config,
 }: ISmoothScrobbar) => {
   const ref = useRef<HTMLElement>()
@@ -64,7 +66,7 @@ export const SmoothScrollbar = ({
 
   useEffect(() => {
     // let r3f drive the frameloop
-    const removeEffect = addEffect((time) => lenis.current?.raf(time))
+    const removeEffect = addEffect((time: number) => lenis.current?.raf(time))
 
     // update global scroll store
     lenis.current?.on('scroll', ({ scroll, limit, velocity, direction, progress }) => {
@@ -85,6 +87,7 @@ export const SmoothScrollbar = ({
 
       invalidate()
     })
+    lenis.current?.notify()
 
     // expose global scrollTo function
     // @ts-ignore
@@ -119,8 +122,38 @@ export const SmoothScrollbar = ({
     locked ? lenis.current?.stop() : lenis.current?.start()
   }, [locked])
 
+  // Set up scroll containers - allows scrolling without resizing window on iOS/mobile
+  const { wrapper, content } = useMemo(() => {
+    if (typeof document === 'undefined') return {}
+    const html = document.documentElement
+    const wrapper = document.body
+    const content = document.body.firstElementChild
+
+    html.classList.toggle('ScrollRig-scrollHtml', scrollInContainer)
+    wrapper.classList.toggle('ScrollRig-scrollWrapper', scrollInContainer)
+
+    return {
+      wrapper,
+      content,
+    }
+  }, [scrollInContainer])
+
   return (
-    <LenisScrollbar ref={lenis} smooth={enabled} direction={horizontal ? 'horizontal' : 'vertical'} config={config}>
+    <LenisScrollbar
+      ref={lenis}
+      smooth={enabled}
+      direction={horizontal ? 'horizontal' : 'vertical'}
+      config={
+        scrollInContainer
+          ? {
+              smoothTouch: true,
+              wrapper,
+              content,
+              ...config,
+            }
+          : { ...config }
+      }
+    >
       {/* Use function child so we can spread props
         - for instance disable pointer events while scrolling */}
       {(bind: any) => children({ ...bind, ref })}
