@@ -4,16 +4,13 @@ declare type vec3 = {
   z: number
   xy: [x: number, y: number]
   xyz: [x: number, y: number, z: number]
+  times: (n: number) => vec3
+  div: (n: number) => vec3
+  max: () => number
+  min: () => number
+  sum: () => number
 } & [x: number, y: number, z: number]
 
 declare module 'vecn' {
-  export type vec3 = {
-    x: number
-    y: number
-    z: number
-    xy: [x: number, y: number]
-    xyz: [x: number, y: number, z: number]
-  } & [x: number, y: number, z: number]
-
   export function vec3(number, number, number): vec3
 }
