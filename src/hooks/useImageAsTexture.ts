@@ -5,6 +5,7 @@ import { suspend } from 'suspend-react'
 import supportsWebP from 'supports-webp'
 import equal from 'fast-deep-equal'
 
+import { useWindowSize } from './useWindowSize'
 import { useCanvasStore } from '../store'
 
 /**
@@ -42,7 +43,7 @@ function useImageAsTexture(
   { initTexture = true, premultiplyAlpha = 'default' } = {}
 ) {
   const gl = useThree((s) => s.gl)
-  const size = useThree((s) => s.size)
+  const size = useWindowSize()
   const debug = useCanvasStore((state) => state.debug)
 
   // suspend until we have currentSrc for this `size`

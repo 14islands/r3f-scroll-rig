@@ -10,6 +10,10 @@ export interface WindowSize {
   height: number
 }
 
+/*
+ * Triggers a resize only if the Canvas DOM element changed dimensions - not on window resize event
+ */
+
 export function useWindowSize() {
   // Initialize state with undefined width/height so server and client renders match
   // Learn more here: https://joshwcomeau.com/react/the-perils-of-rehydration/
