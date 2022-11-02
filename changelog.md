@@ -1,5 +1,18 @@
 # Changelog
 
+## v8.8.0
+
+Added some properties to help support having multiple SmoothScrollbar on the page at the same time. The usecase is to open a Modal on top of the current page which also needs to be smooth scrolled.
+
+- `useTracker`
+
+  - Added `wrapper` option to get initial scroll offset from DOM element instead of the window object.
+  - Added `scroll` prop to `update({ scroll })` to update tracker with custom scroll state. Useful when having a secondary scrollbar mounted.
+
+- `SmoothScrollbar`
+  - Added `onScroll` prop to register a scroll event callback.
+  - Added `updateGlobalState` prop. True by default. Set it to false to disable updating the global scroll state. Useful when having a secondary scrollbar mounted.
+
 ## v8.7.0
 
 - `scrollInContainer`
