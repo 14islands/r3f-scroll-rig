@@ -34,4 +34,5 @@ export interface TrackerOptions {
   threshold?: number
   autoUpdate?: boolean
   wrapper?: Window | HTMLDivElement
+  [key: string]: any
 }

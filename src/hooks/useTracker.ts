@@ -1,4 +1,4 @@
-import { useRef, useCallback, useEffect, useState, MutableRefObject } from 'react'
+import { useRef, useCallback, useEffect, useMemo, useState, MutableRefObject } from 'react'
 import { useInView } from 'react-intersection-observer'
 import { useWindowSize } from './useWindowSize'
 import vecn from 'vecn'
@@ -38,8 +38,15 @@ function useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptio
   const scaleMultiplier = useCanvasStore((state) => state.scaleMultiplier)
   const pageReflow = useCanvasStore((state) => state.pageReflow)
 
-  const defaultArgs = { rootMargin: '50%', threshold: 0, autoUpdate: true, wrapper: window }
-  const { rootMargin, threshold, autoUpdate, wrapper } = { ...defaultArgs, ...options }
+  // extend defaults with optional options
+  const { rootMargin, threshold, autoUpdate, wrapper } = useMemo(() => {
+    const target = { rootMargin: '50%', threshold: 0, autoUpdate: true, wrapper: window } as TrackerOptions
+    const opts = options || {}
+    Object.keys(opts).map((key: string, index) => {
+      if (opts[key] !== undefined) target[key] = opts[key]
+    })
+    return target
+  }, [options])
 
   // check if element is in viewport
   const { ref, inView: inViewport } = useInView({ rootMargin, threshold })
