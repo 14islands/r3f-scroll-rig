@@ -15,6 +15,8 @@ interface ISmoothScrobbar {
   config?: object
   horizontal?: boolean
   scrollInContainer?: boolean
+  updateGlobalState?: boolean
+  onScroll?: LenisScrollCallback
 }
 
 export const SmoothScrollbar = ({
@@ -25,16 +27,14 @@ export const SmoothScrollbar = ({
   disablePointerOnScroll = true,
   horizontal = false,
   scrollInContainer = false,
+  updateGlobalState = true,
+  onScroll,
   config,
 }: ISmoothScrobbar) => {
   const ref = useRef<HTMLElement>()
   const lenis = useRef<ILenisScrollbar>()
   const preventPointer = useRef(false)
   const globalScrollState = useCanvasStore((state) => state.scroll)
-
-  // set initial scroll direction
-  // need to be updated before children render
-  globalScrollState.direction = horizontal ? 'horizontal' : 'vertical'
 
   // disable pointer events while scrolling to avoid slow event handlers
   const preventPointerEvents = (prevent: boolean) => {
@@ -52,7 +52,7 @@ export const SmoothScrollbar = ({
 
   // function to bind to scroll event
   // return function that will unbind same callback
-  const onScroll = useCallback((cb: LenisScrollCallback) => {
+  const globalOnScroll = useCallback((cb: LenisScrollCallback) => {
     lenis.current?.on('scroll', cb)
     return () => lenis.current?.off('scroll', cb)
   }, [])
@@ -70,12 +70,14 @@ export const SmoothScrollbar = ({
 
     // update global scroll store
     lenis.current?.on('scroll', ({ scroll, limit, velocity, direction, progress }) => {
-      globalScrollState.y = direction === 'vertical' ? scroll : 0
-      globalScrollState.x = direction === 'horizontal' ? scroll : 0
-      globalScrollState.limit = limit
-      globalScrollState.velocity = velocity
-      globalScrollState.direction = direction
-      globalScrollState.progress = progress
+      if (updateGlobalState) {
+        globalScrollState.y = direction === 'vertical' ? scroll : 0
+        globalScrollState.x = direction === 'horizontal' ? scroll : 0
+        globalScrollState.limit = limit
+        globalScrollState.velocity = velocity
+        globalScrollState.direction = direction
+        globalScrollState.progress = progress
+      }
 
       // disable pointer logic
       const disablePointer = pkg.debounce(() => preventPointerEvents(true), 100, true)
@@ -85,21 +87,28 @@ export const SmoothScrollbar = ({
         preventPointerEvents(false)
       }
 
+      onScroll && onScroll({ scroll, limit, velocity, direction, progress })
+
       invalidate()
     })
+
+    // trigger initial scroll event to update global state
     lenis.current?.notify()
 
-    // expose global scrollTo function
-    // @ts-ignore
-    useCanvasStore.setState({ scrollTo: lenis.current?.scrollTo })
+    // update global state
+    if (updateGlobalState) {
+      // expose global scrollTo function
+      // @ts-ignore
+      useCanvasStore.setState({ scrollTo: lenis.current?.scrollTo })
 
-    // expose global onScroll function to subscribe to scroll events
-    // @ts-ignore
-    useCanvasStore.setState({ onScroll })
+      // expose global onScroll function to subscribe to scroll events
+      // @ts-ignore
+      useCanvasStore.setState({ onScroll: globalOnScroll })
 
-    // Set current scroll position on load in case reloaded further down
-    useCanvasStore.getState().scroll.y = window.scrollY
-    useCanvasStore.getState().scroll.x = window.scrollX
+      // Set current scroll position on load in case reloaded further down
+      useCanvasStore.getState().scroll.y = window.scrollY
+      useCanvasStore.getState().scroll.x = window.scrollX
+    }
 
     // Set active
     document.documentElement.classList.toggle('js-smooth-scrollbar-enabled', enabled)
