@@ -28,8 +28,6 @@ function updatePosition(position: vec3, bounds: Bounds, scaleMultiplier: number)
   position.y = -1 * bounds.y * scaleMultiplier
 }
 
-const defaultArgs = { rootMargin: '50%', threshold: 0, autoUpdate: true }
-
 /**
  * Returns the current Scene position of the DOM element
  * based on initial getBoundingClientRect and scroll delta from start
@@ -40,7 +38,8 @@ function useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptio
   const scaleMultiplier = useCanvasStore((state) => state.scaleMultiplier)
   const pageReflow = useCanvasStore((state) => state.pageReflow)
 
-  const { rootMargin, threshold, autoUpdate } = { ...defaultArgs, ...options }
+  const defaultArgs = { rootMargin: '50%', threshold: 0, autoUpdate: true, wrapper: window }
+  const { rootMargin, threshold, autoUpdate, wrapper } = { ...defaultArgs, ...options }
 
   // check if element is in viewport
   const { ref, inView: inViewport } = useInView({ rootMargin, threshold })
@@ -96,10 +95,12 @@ function useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptio
   // Calculate bounding Rect as soon as it's available
   useLayoutEffect(() => {
     const _rect = track.current?.getBoundingClientRect()
-    rect.top = _rect.top + window.scrollY
-    rect.bottom = _rect.bottom + window.scrollY
-    rect.left = _rect.left + window.scrollX
-    rect.right = _rect.right + window.scrollX
+    const initialY = wrapper === window ? wrapper.scrollY : (wrapper as HTMLDivElement).scrollTop
+    const initialX = wrapper === window ? wrapper.scrollX : (wrapper as HTMLDivElement).scrollLeft
+    rect.top = _rect.top + initialY
+    rect.bottom = _rect.bottom + initialY
+    rect.left = _rect.left + initialX
+    rect.right = _rect.right + initialX
     rect.width = _rect.width
     rect.height = _rect.height
     rect.x = rect.left + _rect.width * 0.5
@@ -109,16 +110,16 @@ function useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptio
   }, [track, size, pageReflow, scaleMultiplier])
 
   const update = useCallback(
-    ({ onlyUpdateInViewport = true } = {}) => {
+    ({ onlyUpdateInViewport = true, scroll: _scroll = scroll } = {}) => {
       if (!track.current || (onlyUpdateInViewport && !scrollState.inViewport)) {
         return
       }
 
-      updateBounds(bounds, rect, scroll, size)
+      updateBounds(bounds, rect, _scroll, size)
       updatePosition(position, bounds, scaleMultiplier)
 
       // scrollState setup based on scroll direction
-      const isHorizontal = scroll.direction === 'horizontal'
+      const isHorizontal = _scroll.direction === 'horizontal'
       const sizeProp = isHorizontal ? 'width' : 'height'
       const startProp = isHorizontal ? 'left' : 'top'
 
@@ -155,7 +156,7 @@ function useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptio
     position, // scrolled element position in viewport units - not reactive
     scrollState, // scroll progress stats - not reactive
     inViewport, // reactive prop for when inside viewport
-    update: () => update({ onlyUpdateInViewport: false }), // optional manual update
+    update: (args) => update({ onlyUpdateInViewport: false, ...args }), // optional manual update
   }
 }
 

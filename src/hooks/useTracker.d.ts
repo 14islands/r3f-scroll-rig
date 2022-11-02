@@ -26,11 +26,12 @@ export interface Tracker {
   bounds: Bounds
   scrollState: ScrollState
   position: vec3
-  update: () => void
+  update: (args?: { onlyUpdateInViewport?: boolean; scroll?: any }) => void
 }
 
 export interface TrackerOptions {
   rootMargin?: string
   threshold?: number
   autoUpdate?: boolean
+  wrapper?: Window | HTMLDivElement
 }
