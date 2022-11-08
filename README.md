@@ -183,7 +183,7 @@ Worth noting:
 - `SmoothScrollbar` uses `@studio-freight/lenis` internally. Make sure to read through their section on [considerations](https://github.com/studio-freight/lenis#considerations) when adding `SmoothScrollbar` to your project.
 
 ```jsx
-import { SmoothScrolbar } from '@14islands/r3f-scroll-rig'
+import { SmoothScrollbar } from '@14islands/r3f-scroll-rig'
 
 export const HomePage = () => (
   <SmoothScrollbar>
