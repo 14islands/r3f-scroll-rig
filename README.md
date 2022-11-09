@@ -174,18 +174,16 @@ How it works:
 
 The `SmoothScrollbar` component will animate `window.scrollY` smoothly. This allows us to match the speed of objects moving on the fixed GlobalCanvas.
 
-It **does not** use JS to move the content using transforms.
+Worth noting:
 
-We can use `position: sticky` etc. 👌
-
-Uses `@studio-freight/lenis` internally.
-
-Sets `pointer-events: none` on the immediate child while scrolling to avoid jank caused by hover states.
-
-The R3F event loop is used to animate scroll.
+- it **does not** use JS to move the content using transforms
+- we can use `position: sticky` etc 👌
+- the component sets `pointer-events: none` on the immediate child while scrolling to avoid jank caused by hover states
+- the R3F event loop is used to animate scroll
+- `SmoothScrollbar` uses `@studio-freight/lenis` internally. Make sure to read through their section on [considerations](https://github.com/studio-freight/lenis#considerations) when adding `SmoothScrollbar` to your project.
 
 ```jsx
-import { SmoothScrolbar } from '@14islands/r3f-scroll-rig'
+import { SmoothScrollbar } from '@14islands/r3f-scroll-rig'
 
 export const HomePage = () => (
   <SmoothScrollbar>
