@@ -8,7 +8,7 @@ export type LenisScrollCallback = (props: {
   scroll: number
   limit: number
   velocity: number
-  direction: string
+  direction: number
   progress: number
 }) => void
 

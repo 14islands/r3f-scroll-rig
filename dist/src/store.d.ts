@@ -22,7 +22,8 @@ interface ScrollRigStore {
         limit: number;
         velocity: number;
         progress: number;
-        direction: string;
+        direction: number;
+        scrollDirection?: 'vertical' | 'horizontal';
     };
     scrollTo: (target: any) => void;
     onScroll: (cb: LenisScrollCallback) => () => void;

@@ -126,7 +126,7 @@ function useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptio
       updatePosition(position, bounds, scaleMultiplier)
 
       // scrollState setup based on scroll direction
-      const isHorizontal = _scroll.direction === 'horizontal'
+      const isHorizontal = _scroll.scrollDirection === 'horizontal'
       const sizeProp = isHorizontal ? 'width' : 'height'
       const startProp = isHorizontal ? 'left' : 'top'
 

@@ -71,8 +71,8 @@ export const SmoothScrollbar = ({
     // update global scroll store
     lenis.current?.on('scroll', ({ scroll, limit, velocity, direction, progress }) => {
       if (updateGlobalState) {
-        globalScrollState.y = direction === 'vertical' ? scroll : 0
-        globalScrollState.x = direction === 'horizontal' ? scroll : 0
+        globalScrollState.y = !horizontal ? scroll : 0
+        globalScrollState.x = horizontal ? scroll : 0
         globalScrollState.limit = limit
         globalScrollState.velocity = velocity
         globalScrollState.direction = direction
@@ -97,6 +97,8 @@ export const SmoothScrollbar = ({
 
     // update global state
     if (updateGlobalState) {
+      globalScrollState.scrollDirection = horizontal ? 'horizontal' : 'vertical'
+
       // expose global scrollTo function
       // @ts-ignore
       useCanvasStore.setState({ scrollTo: lenis.current?.scrollTo })

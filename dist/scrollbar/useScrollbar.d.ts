@@ -5,7 +5,8 @@ export interface Scroll {
     limit: number;
     velocity: number;
     progress: number;
-    direction: string;
+    direction: number;
+    scrollDirection: string;
 }
 interface UseScrollbarProps {
     enabled: boolean;

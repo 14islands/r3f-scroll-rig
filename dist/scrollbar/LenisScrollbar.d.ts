@@ -3,7 +3,7 @@ export declare type LenisScrollCallback = (props: {
     scroll: number;
     limit: number;
     velocity: number;
-    direction: string;
+    direction: number;
     progress: number;
 }) => void;
 declare type LenisScrollToTarget = number | HTMLElement | string;

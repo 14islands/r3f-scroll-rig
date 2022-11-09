@@ -26,7 +26,8 @@ interface ScrollRigStore {
     limit: number
     velocity: number
     progress: number
-    direction: string
+    direction: number
+    scrollDirection?: 'vertical' | 'horizontal'
   }
   scrollTo: (target: any) => void
   onScroll: (cb: LenisScrollCallback) => () => void
@@ -125,7 +126,8 @@ const useCanvasStore = create<ScrollRigStore>((set) => ({
     limit: 0,
     velocity: 0,
     progress: 0,
-    direction: '',
+    direction: 0,
+    scrollDirection: undefined,
   },
   scrollTo: (target) => window.scrollTo(0, target),
   onScroll: () => () => {},
