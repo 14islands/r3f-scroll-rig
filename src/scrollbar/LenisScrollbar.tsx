@@ -12,8 +12,13 @@ export type LenisScrollCallback = (props: {
   progress: number
 }) => void
 
-type LenisScrollToTarget = number | HTMLElement | string
-type LenisScrollToConfig = { offset: number; immediate: boolean; duration: number; easing: (t: number) => number }
+export type LenisScrollToTarget = number | HTMLElement | string
+export type LenisScrollToConfig = {
+  offset: number
+  immediate: boolean
+  duration: number
+  easing: (t: number) => number
+}
 type LenisScrollTo = (target: LenisScrollToTarget, props: LenisScrollToConfig) => void
 
 type LenisScrollbarProps = {

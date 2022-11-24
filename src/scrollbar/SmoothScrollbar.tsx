@@ -1,11 +1,16 @@
-import React, { useEffect, useRef, useCallback, ReactElement, useMemo } from 'react'
+import React, { useEffect, useRef, useCallback, ReactElement, useMemo, forwardRef, useImperativeHandle } from 'react'
 import { addEffect, invalidate } from '@react-three/fiber'
 import pkg from 'debounce'
 
 import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
 import { useCanvasStore } from '../store'
 
-import LenisScrollbar, { ILenisScrollbar, LenisScrollCallback } from './LenisScrollbar'
+import LenisScrollbar, {
+  ILenisScrollbar,
+  LenisScrollCallback,
+  LenisScrollToTarget,
+  LenisScrollToConfig,
+} from './LenisScrollbar'
 interface ISmoothScrobbar {
   children: (props: any) => ReactElement
   scrollRestoration?: ScrollRestoration
@@ -19,29 +24,37 @@ interface ISmoothScrobbar {
   onScroll?: LenisScrollCallback
 }
 
-export const SmoothScrollbar = ({
-  children,
-  enabled = true,
-  locked = false,
-  scrollRestoration = 'auto',
-  disablePointerOnScroll = true,
-  horizontal = false,
-  scrollInContainer = false,
-  updateGlobalState = true,
-  onScroll,
-  config,
-}: ISmoothScrobbar) => {
-  const ref = useRef<HTMLElement>()
+const SmoothScrollbarImpl = (
+  {
+    children,
+    enabled = true,
+    locked = false,
+    scrollRestoration = 'auto',
+    disablePointerOnScroll = true,
+    horizontal = false,
+    scrollInContainer = false,
+    updateGlobalState = true,
+    onScroll,
+    config,
+  }: ISmoothScrobbar,
+  ref: any
+) => {
+  const innerRef = useRef<HTMLElement>()
   const lenis = useRef<ILenisScrollbar>()
   const preventPointer = useRef(false)
   const globalScrollState = useCanvasStore((state) => state.scroll)
 
+  // expose scrollTo imperatively
+  useImperativeHandle(ref, () => ({
+    scrollTo: (target: LenisScrollToTarget, props: LenisScrollToConfig) => lenis.current?.scrollTo(target, props),
+  }))
+
   // disable pointer events while scrolling to avoid slow event handlers
   const preventPointerEvents = (prevent: boolean) => {
     if (!disablePointerOnScroll) return
-    if (ref.current && preventPointer.current !== prevent) {
+    if (innerRef.current && preventPointer.current !== prevent) {
       preventPointer.current = prevent
-      ref.current.style.pointerEvents = prevent ? 'none' : 'auto'
+      innerRef.current.style.pointerEvents = prevent ? 'none' : 'auto'
     }
   }
 
@@ -167,7 +180,9 @@ export const SmoothScrollbar = ({
     >
       {/* Use function child so we can spread props
         - for instance disable pointer events while scrolling */}
-      {(bind: any) => children({ ...bind, ref })}
+      {(bind: any) => children({ ...bind, ref: innerRef })}
     </LenisScrollbar>
   )
 }
+
+export const SmoothScrollbar = forwardRef(SmoothScrollbarImpl)

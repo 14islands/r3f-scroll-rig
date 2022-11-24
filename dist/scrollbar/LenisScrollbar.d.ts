@@ -6,8 +6,8 @@ export declare type LenisScrollCallback = (props: {
     direction: number;
     progress: number;
 }) => void;
-declare type LenisScrollToTarget = number | HTMLElement | string;
-declare type LenisScrollToConfig = {
+export declare type LenisScrollToTarget = number | HTMLElement | string;
+export declare type LenisScrollToConfig = {
     offset: number;
     immediate: boolean;
     duration: number;

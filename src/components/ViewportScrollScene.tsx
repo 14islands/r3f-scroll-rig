@@ -156,6 +156,7 @@ const ViewportScrollSceneImpl = ({
         {/* Use local camera for viewport rendering */}
         {!orthographic && (
           <perspectiveCamera
+            // @ts-ignore
             ref={camera}
             position={[0, 0, cameraDistance]}
             onUpdate={(self) => self.updateProjectionMatrix()}
@@ -199,6 +200,7 @@ const ViewportScrollSceneImpl = ({
             })}
         </group>
       </>,
+      // @ts-ignore
       scene,
       // @ts-ignore
       { events: { compute, priority }, size: { width: rect.width, height: rect.height } }

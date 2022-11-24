@@ -63,7 +63,7 @@ const ScrollSceneImpl = ({
     }
   }, [])
 
-  const [scene, setScene] = useState(scissor ? new Scene() : null)
+  const [scene, setScene] = useState<Scene | null>(scissor ? new Scene() : null)
   const { requestRender, renderScissor } = useScrollRig()
   const globalRender = useCanvasStore((state) => state.globalRender)
 
@@ -131,6 +131,7 @@ const ScrollSceneImpl = ({
 
   // portal if scissor or inline nested scene
   const InlineElement: any = as
+  // @ts-ignore
   return scissor && scene ? createPortal(content, scene) : <InlineElement ref={inlineSceneRef}>{content}</InlineElement>
 }
 
