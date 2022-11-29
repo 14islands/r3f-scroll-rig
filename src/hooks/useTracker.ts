@@ -40,7 +40,7 @@ function useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptio
 
   // extend defaults with optional options
   const { rootMargin, threshold, autoUpdate, wrapper } = useMemo(() => {
-    const target = { rootMargin: '50%', threshold: 0, autoUpdate: true, wrapper: window } as TrackerOptions
+    const target = { rootMargin: '50%', threshold: 0, autoUpdate: true } as TrackerOptions
     const opts = options || {}
     Object.keys(opts).map((key: string, index) => {
       if (opts[key] !== undefined) target[key] = opts[key]
@@ -102,8 +102,8 @@ function useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptio
   // Calculate bounding Rect as soon as it's available
   useLayoutEffect(() => {
     const _rect = track.current?.getBoundingClientRect()
-    const initialY = wrapper === window ? wrapper.scrollY : (wrapper as HTMLDivElement).scrollTop
-    const initialX = wrapper === window ? wrapper.scrollX : (wrapper as HTMLDivElement).scrollLeft
+    const initialY = wrapper ? (wrapper as HTMLElement).scrollTop : window.scrollY
+    const initialX = wrapper ? (wrapper as HTMLElement).scrollLeft : window.scrollX
     rect.top = _rect.top + initialY
     rect.bottom = _rect.bottom + initialY
     rect.left = _rect.left + initialX
