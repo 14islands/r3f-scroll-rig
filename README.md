@@ -92,7 +92,7 @@ export const HtmlComponent = () => (
   const el = useRef()
   return (
     <>
-      <div ref={el}>Track me!</a>
+      <div ref={el}>Track me!</div>
       <UseCanvas>
         <ScrollScene track={el}>
           {(props) => (
@@ -103,6 +103,7 @@ export const HtmlComponent = () => (
           )}
         </ScrollScene>
       </UseCanvas>
+    </>
   )
 )
 ```
