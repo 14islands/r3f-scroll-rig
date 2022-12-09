@@ -14,6 +14,7 @@ export const PerspectiveCamera = forwardRef(({ makeDefault = false, ...props }: 
   const set = useThree((state) => state.set)
   const camera = useThree((state) => state.camera)
   const size = useThree((state) => state.size)
+  const viewport = useThree((state) => state.viewport)
 
   const pageReflow = useCanvasStore((state) => state.pageReflow)
   const scaleMultiplier = useCanvasStore((state) => state.scaleMultiplier)
@@ -29,13 +30,13 @@ export const PerspectiveCamera = forwardRef(({ makeDefault = false, ...props }: 
     const width = size.width * scaleMultiplier
     const height = size.height * scaleMultiplier
 
-    // const radToDeg = (radians) => radians * (180 / Math.PI)
-    // const degToRad = (degrees) => degrees * (Math.PI / 180)
-
     cameraRef.current.aspect = width / height
     cameraRef.current.fov = 2 * (180 / Math.PI) * Math.atan(height / (2 * cameraRef.current.position.z))
-    // cameraRef.current.fov = props.fov
 
+    // TODO: allow specifying desired FoV and set distance accordingly - random WIP stuff belwo
+    // cameraRef.current.fov = props.fov
+    // const radToDeg = (radians) => radians * (180 / Math.PI)
+    // const degToRad = (degrees) => degrees * (Math.PI / 180)
     // const vFOV = props.fov * (Math.PI / 180)
     // const hFOV = 2 * Math.atan(Math.tan(vFOV / 2) * cameraRef.current.aspect)
     // cameraRef.current.position.z = cameraRef.current.getFilmHeight() / cameraRef.current.getFocalLength()
@@ -46,6 +47,8 @@ export const PerspectiveCamera = forwardRef(({ makeDefault = false, ...props }: 
     // https://github.com/react-spring/@react-three/fiber/issues/178
     // Update matrix world since the renderer is a frame late
     cameraRef.current.updateMatrixWorld()
+    // update r3f viewport
+    viewport.getCurrentViewport()
   }, [distance, size, scaleMultiplier])
 
   useLayoutEffect(() => {
