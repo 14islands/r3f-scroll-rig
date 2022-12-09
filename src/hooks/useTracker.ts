@@ -102,6 +102,7 @@ function useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptio
   // Calculate bounding Rect as soon as it's available
   useLayoutEffect(() => {
     const _rect = track.current?.getBoundingClientRect()
+    if (!_rect) return
     const initialY = wrapper ? (wrapper as HTMLElement).scrollTop : window.scrollY
     const initialX = wrapper ? (wrapper as HTMLElement).scrollLeft : window.scrollX
     rect.top = _rect.top + initialY
