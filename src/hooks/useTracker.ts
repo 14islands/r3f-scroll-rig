@@ -40,7 +40,7 @@ function useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptio
 
   // extend defaults with optional options
   const { rootMargin, threshold, autoUpdate, wrapper } = useMemo(() => {
-    const target = { rootMargin: '50%', threshold: 0, autoUpdate: true } as TrackerOptions
+    const target = { rootMargin: '0%', threshold: 0, autoUpdate: true } as TrackerOptions
     const opts = options || {}
     Object.keys(opts).map((key: string, index) => {
       if (opts[key] !== undefined) target[key] = opts[key]
