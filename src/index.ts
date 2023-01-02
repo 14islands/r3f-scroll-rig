@@ -30,3 +30,6 @@ export const styles = {
 // Private-ish
 // ----------------------------------
 export { useCanvasStore } from './store'
+
+// Types
+export type { ScrollState } from './hooks/useTracker.d'
