@@ -10,11 +10,15 @@ export interface WindowSize {
   height: number
 }
 
+type ConfigProps = {
+  debounce?: number
+}
+
 /*
  * Triggers a resize only if the Canvas DOM element changed dimensions - not on window resize event
  */
 
-export function useWindowSize() {
+export function useWindowSize({ debounce = 0 }: ConfigProps = {}) {
   // Initialize state with undefined width/height so server and client renders match
   // Learn more here: https://joshwcomeau.com/react/the-perils-of-rehydration/
   const [windowSize, setWindowSize] = useState<WindowSize>({
@@ -28,14 +32,19 @@ export function useWindowSize() {
 
     // Handler to call on window resize
     function handleResize() {
-      // Set window width/height to state
-      setWindowSize({
-        width: canvasEl ? canvasEl.clientWidth : window.innerWidth,
-        height: canvasEl ? canvasEl.clientHeight : window.innerHeight,
-      })
+      const width = canvasEl ? canvasEl.clientWidth : window.innerWidth
+      const height = canvasEl ? canvasEl.clientHeight : window.innerHeight
+
+      if (width !== windowSize.width || height !== windowSize.height) {
+        // Set window width/height to state
+        setWindowSize({
+          width,
+          height,
+        })
+      }
     }
 
-    const debouncedResize = pkg.debounce(handleResize, 200)
+    const debouncedResize = pkg.debounce(handleResize, debounce)
 
     // Add event listener
     let observer: ResizeObserver
