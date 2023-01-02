@@ -2,4 +2,8 @@ export interface WindowSize {
     width: number;
     height: number;
 }
-export declare function useWindowSize(): WindowSize;
+declare type ConfigProps = {
+    debounce?: number;
+};
+export declare function useWindowSize({ debounce }?: ConfigProps): WindowSize;
+export {};
