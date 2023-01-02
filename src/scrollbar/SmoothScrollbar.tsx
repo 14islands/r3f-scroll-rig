@@ -45,9 +45,12 @@ const SmoothScrollbarImpl = (
   const globalScrollState = useCanvasStore((state) => state.scroll)
 
   // expose scrollTo imperatively
-  useImperativeHandle(ref, () => ({
-    scrollTo: (target: LenisScrollToTarget, props: LenisScrollToConfig) => lenis.current?.scrollTo(target, props),
-  }))
+  useImperativeHandle(ref, () => {
+    return {
+      scrollTo: (target: LenisScrollToTarget, props: LenisScrollToConfig) => lenis.current?.scrollTo(target, props),
+      __lenis: lenis.current,
+    }
+  })
 
   // disable pointer events while scrolling to avoid slow event handlers
   const preventPointerEvents = (prevent: boolean) => {
