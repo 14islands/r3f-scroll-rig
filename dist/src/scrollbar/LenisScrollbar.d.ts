@@ -28,7 +28,7 @@ export interface ILenisScrollbar {
     start: () => void;
     on: (event: string, cb: LenisScrollCallback) => void;
     once: (event: string, cb: LenisScrollCallback) => void;
-    off: (event: string, cb: LenisScrollCallback) => void;
+    off: (event: string, cb?: LenisScrollCallback) => void;
     notify: () => void;
     scrollTo: LenisScrollTo;
     raf: (time: number) => void;

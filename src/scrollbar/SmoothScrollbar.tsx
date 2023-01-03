@@ -68,13 +68,10 @@ const SmoothScrollbarImpl = (
 
   // function to bind to scroll event
   // return function that will unbind same callback
-  const globalOnScroll = useCallback(
-    (cb: LenisScrollCallback) => {
-      lenis.current?.on('scroll', cb)
-      return () => lenis.current?.off('scroll', cb)
-    },
-    [enabled]
-  )
+  const globalOnScroll = useCallback((cb: LenisScrollCallback) => {
+    lenis.current?.on('scroll', cb)
+    return () => lenis.current?.off('scroll', cb)
+  }, [])
 
   // apply chosen scroll restoration
   useLayoutEffect(() => {
@@ -142,6 +139,7 @@ const SmoothScrollbarImpl = (
     window.addEventListener('pointermove', onMouseMove)
     window.addEventListener('wheel', invalidateOnWheelEvent)
     return () => {
+      lenis.current?.off('scroll')
       removeEffect()
       window.removeEventListener('pointermove', onMouseMove)
       window.removeEventListener('wheel', invalidateOnWheelEvent)

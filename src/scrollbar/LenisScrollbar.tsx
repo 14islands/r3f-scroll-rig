@@ -36,7 +36,7 @@ export interface ILenisScrollbar {
   start: () => void
   on: (event: string, cb: LenisScrollCallback) => void
   once: (event: string, cb: LenisScrollCallback) => void
-  off: (event: string, cb: LenisScrollCallback) => void
+  off: (event: string, cb?: LenisScrollCallback) => void
   notify: () => void
   scrollTo: LenisScrollTo
   raf: (time: number) => void
@@ -59,7 +59,17 @@ export function LenisScrollbar(
   const lenisImpl = useRef<ILenisScrollbar>()
 
   // Expose lenis imperative API
-  useImperativeHandle(ref, () => lenisImpl.current)
+  useImperativeHandle(ref, () => ({
+    start: () => lenisImpl.current?.start(),
+    stop: () => lenisImpl.current?.stop(),
+    on: (event: string, cb: LenisScrollCallback) => lenisImpl.current?.on(event, cb),
+    once: (event: string, cb: LenisScrollCallback) => lenisImpl.current?.once(event, cb),
+    off: (event: string, cb?: LenisScrollCallback) => lenisImpl.current?.off(event, cb),
+    notify: () => lenisImpl.current?.notify(),
+    scrollTo: (target: LenisScrollToTarget, props: LenisScrollToConfig) => lenisImpl.current?.scrollTo(target, props),
+    raf: (time: number) => lenisImpl.current?.raf(time),
+    __lenis: lenisImpl.current,
+  }))
 
   useEffect(
     function initLenis() {
