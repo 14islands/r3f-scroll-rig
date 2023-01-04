@@ -1,3 +1,5 @@
+import type { Scroll } from '../scrollbar/useScrollbar'
+
 export interface ScrollState {
   inViewport: boolean
   progress: number
@@ -35,4 +37,9 @@ export interface TrackerOptions {
   autoUpdate?: boolean
   wrapper?: Window | HTMLDivElement
   [key: string]: any
+}
+
+export type UpdateCallback = {
+  onlyUpdateInViewport?: boolean
+  scroll?: Scroll
 }

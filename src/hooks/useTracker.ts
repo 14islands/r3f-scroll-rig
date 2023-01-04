@@ -8,7 +8,7 @@ import { mapLinear } from '../utils/math'
 import { useCanvasStore } from '../store'
 import { useScrollbar, Scroll } from '../scrollbar/useScrollbar'
 
-import type { Rect, Bounds, TrackerOptions, Tracker, ScrollState } from './useTracker.d'
+import type { Rect, Bounds, TrackerOptions, Tracker, ScrollState, UpdateCallback } from './useTracker.d'
 
 function updateBounds(bounds: Bounds, rect: Rect, scroll: Scroll, size: any) {
   bounds.top = rect.top - scroll.y
@@ -118,10 +118,12 @@ function useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptio
   }, [track, size, pageReflow, scaleMultiplier])
 
   const update = useCallback(
-    ({ onlyUpdateInViewport = true, scroll: _scroll = scroll } = {}) => {
+    ({ onlyUpdateInViewport = true, scroll: overrideScroll }: UpdateCallback = {}) => {
       if (!track.current || (onlyUpdateInViewport && !scrollState.inViewport)) {
         return
       }
+
+      const _scroll = overrideScroll || scroll
 
       updateBounds(bounds, rect, _scroll, size)
       updatePosition(position, bounds, scaleMultiplier)

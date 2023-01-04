@@ -11,6 +11,7 @@ import LenisScrollbar, {
   LenisScrollToTarget,
   LenisScrollToConfig,
 } from './LenisScrollbar'
+
 interface ISmoothScrobbar {
   children: (props: any) => ReactElement
   scrollRestoration?: ScrollRestoration
@@ -89,9 +90,12 @@ const SmoothScrollbarImpl = (
 
     // update global scroll store
     lenis.current?.on('scroll', ({ scroll, limit, velocity, direction, progress }) => {
+      const y = !horizontal ? scroll : 0
+      const x = horizontal ? scroll : 0
+
       if (updateGlobalState) {
-        globalScrollState.y = !horizontal ? scroll : 0
-        globalScrollState.x = horizontal ? scroll : 0
+        globalScrollState.y = y
+        globalScrollState.x = x
         globalScrollState.limit = limit
         globalScrollState.velocity = velocity
         globalScrollState.direction = direction
@@ -129,12 +133,12 @@ const SmoothScrollbarImpl = (
       // Set current scroll position on load in case reloaded further down
       useCanvasStore.getState().scroll.y = window.scrollY
       useCanvasStore.getState().scroll.x = window.scrollX
-    }
 
-    // Set active
-    document.documentElement.classList.toggle('js-smooth-scrollbar-enabled', enabled)
-    document.documentElement.classList.toggle('js-smooth-scrollbar-disabled', !enabled)
-    useCanvasStore.setState({ hasSmoothScrollbar: enabled })
+      // Set active
+      document.documentElement.classList.toggle('js-smooth-scrollbar-enabled', enabled)
+      document.documentElement.classList.toggle('js-smooth-scrollbar-disabled', !enabled)
+      useCanvasStore.setState({ hasSmoothScrollbar: enabled })
+    }
 
     // make sure R3F loop is invalidated when scrolling
     const invalidateOnWheelEvent = () => invalidate()
