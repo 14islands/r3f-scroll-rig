@@ -69,13 +69,10 @@ const SmoothScrollbarImpl = (
 
   // function to bind to scroll event
   // return function that will unbind same callback
-  const globalOnScroll = useCallback(
-    (cb: LenisScrollCallback) => {
-      lenis.current?.on('scroll', cb)
-      return () => lenis.current?.off('scroll', cb)
-    },
-    [enabled]
-  )
+  const globalOnScroll = useCallback((cb: LenisScrollCallback) => {
+    lenis.current?.on('scroll', cb)
+    return () => lenis.current?.off('scroll', cb)
+  }, [])
 
   // apply chosen scroll restoration
   useLayoutEffect(() => {
@@ -133,11 +130,6 @@ const SmoothScrollbarImpl = (
       // Set current scroll position on load in case reloaded further down
       useCanvasStore.getState().scroll.y = window.scrollY
       useCanvasStore.getState().scroll.x = window.scrollX
-
-      // Set active
-      document.documentElement.classList.toggle('js-smooth-scrollbar-enabled', enabled)
-      document.documentElement.classList.toggle('js-smooth-scrollbar-disabled', !enabled)
-      useCanvasStore.setState({ hasSmoothScrollbar: enabled })
     }
 
     // make sure R3F loop is invalidated when scrolling
@@ -150,6 +142,15 @@ const SmoothScrollbarImpl = (
       removeEffect()
       window.removeEventListener('pointermove', onMouseMove)
       window.removeEventListener('wheel', invalidateOnWheelEvent)
+    }
+  }, [])
+
+  useEffect(() => {
+    // Mark as enabled in global state
+    if (updateGlobalState) {
+      document.documentElement.classList.toggle('js-smooth-scrollbar-enabled', enabled)
+      document.documentElement.classList.toggle('js-smooth-scrollbar-disabled', !enabled)
+      useCanvasStore.setState({ hasSmoothScrollbar: enabled })
     }
   }, [enabled])
 
@@ -176,7 +177,6 @@ const SmoothScrollbarImpl = (
   return (
     <LenisScrollbar
       ref={lenis}
-      smooth={enabled}
       direction={horizontal ? 'horizontal' : 'vertical'}
       config={
         scrollInContainer
