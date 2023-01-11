@@ -118,7 +118,7 @@ function useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptio
   }, [track, size, pageReflow, scaleMultiplier])
 
   const update = useCallback(
-    ({ onlyUpdateInViewport = true, scroll: overrideScroll }: UpdateCallback = {}) => {
+    ({ onlyUpdateInViewport = false, scroll: overrideScroll }: UpdateCallback = {}) => {
       if (!track.current || (onlyUpdateInViewport && !scrollState.inViewport)) {
         return
       }
@@ -156,7 +156,7 @@ function useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptio
 
   // auto-update on scroll
   useEffect(() => {
-    if (autoUpdate) return onScroll((_scroll) => update())
+    if (autoUpdate) return onScroll((_scroll) => update({ onlyUpdateInViewport: true }))
   }, [autoUpdate, update, onScroll])
 
   return {
@@ -166,7 +166,7 @@ function useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptio
     position, // scrolled element position in viewport units - not reactive
     scrollState, // scroll progress stats - not reactive
     inViewport, // reactive prop for when inside viewport
-    update: (args) => update({ onlyUpdateInViewport: false, ...args }), // optional manual update
+    update, // optional manual update
   }
 }
 
