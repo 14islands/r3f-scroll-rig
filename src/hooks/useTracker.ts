@@ -6,6 +6,8 @@ import vecn from 'vecn'
 import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
 import { mapLinear } from '../utils/math'
 import { useCanvasStore } from '../store'
+import { useScrollRig } from './useScrollRig'
+
 import { useScrollbar, Scroll } from '../scrollbar/useScrollbar'
 
 import type { Rect, Bounds, TrackerOptions, Tracker, ScrollState, UpdateCallback } from './useTracker.d'
@@ -34,6 +36,7 @@ function updatePosition(position: vec3, bounds: Bounds, scaleMultiplier: number)
  */
 function useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptions): Tracker {
   const size = useWindowSize()
+  const { debug } = useScrollRig()
   const { scroll, onScroll } = useScrollbar()
   const scaleMultiplier = useCanvasStore((state) => state.scaleMultiplier)
   const pageReflow = useCanvasStore((state) => state.pageReflow)
@@ -114,8 +117,19 @@ function useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptio
     rect.x = rect.left + _rect.width * 0.5
     rect.y = rect.top + _rect.height * 0.5
     setReactiveRect({ ...rect })
-    setScale(vecn.vec3(rect?.width * scaleMultiplier, rect?.height * scaleMultiplier, 1))
-  }, [track, size, pageReflow, scaleMultiplier])
+    setScale(scale)
+    debug &&
+      console.log(
+        'useTracker.getBoundingClientRect:',
+        rect,
+        'intialScroll:',
+        { initialY, initialX },
+        'size:',
+        size,
+        'pageReflow:',
+        pageReflow
+      )
+  }, [track, size, pageReflow, scaleMultiplier, debug])
 
   const update = useCallback(
     ({ onlyUpdateInViewport = false, scroll: overrideScroll }: UpdateCallback = {}) => {
@@ -147,12 +161,14 @@ function useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptio
     scrollState.inViewport = inViewport
     // update once more in case it went out of view
     update({ onlyUpdateInViewport: false })
+    debug && console.log('useTracker.inViewport:', inViewport, 'update()')
   }, [inViewport])
 
   // re-run if the callback updated
   useLayoutEffect(() => {
     update({ onlyUpdateInViewport: false })
-  }, [update])
+    debug && console.log('useTracker.update on resize/reflow:')
+  }, [update, pageReflow])
 
   // auto-update on scroll
   useEffect(() => {
