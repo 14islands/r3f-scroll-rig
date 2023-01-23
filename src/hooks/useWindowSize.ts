@@ -2,9 +2,6 @@ import { useState, useEffect, useMemo } from 'react'
 import pkg from 'debounce'
 
 const isBrowser = typeof window !== 'undefined'
-
-// https://usehooks.com/useWindowSize/
-
 export interface WindowSize {
   width: number
   height: number
@@ -16,6 +13,10 @@ type ConfigProps = {
 
 /*
  * Triggers a resize only if the Canvas DOM element changed dimensions - not on window resize event
+ *
+ * This is to avoid costly re-renders when the URL bar is scrolled away on mobile
+ *
+ * Based on: https://usehooks.com/useWindowSize/
  */
 
 export function useWindowSize({ debounce = 0 }: ConfigProps = {}) {
@@ -25,6 +26,7 @@ export function useWindowSize({ debounce = 0 }: ConfigProps = {}) {
     width: isBrowser ? window.innerWidth : Infinity,
     height: isBrowser ? window.innerHeight : Infinity,
   })
+
   useEffect(() => {
     // check if we can find a canvas - if so, base size on canvas instead of window
     // since 100vh !== window.innerHeight on mobile
@@ -61,7 +63,7 @@ export function useWindowSize({ debounce = 0 }: ConfigProps = {}) {
       window.removeEventListener('resize', debouncedResize)
       observer?.disconnect()
     }
-  }, []) // Empty array ensures that effect is only run on mount
+  }, [windowSize, setWindowSize])
 
   return windowSize
 }
