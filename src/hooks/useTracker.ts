@@ -60,7 +60,7 @@ function useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptio
   }, [track])
 
   // Using state so it's reactive
-  const [scale, setScale] = useState<vec3>()
+  const [scale, setScale] = useState<vec3>(vecn.vec3(0, 0, 0))
 
   // Using ref because
   const scrollState: ScrollState = useRef({
@@ -117,7 +117,7 @@ function useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptio
     rect.x = rect.left + _rect.width * 0.5
     rect.y = rect.top + _rect.height * 0.5
     setReactiveRect({ ...rect })
-    setScale(scale)
+    setScale(vecn.vec3(rect?.width * scaleMultiplier, rect?.height * scaleMultiplier, 1))
     debug &&
       console.log(
         'useTracker.getBoundingClientRect:',
@@ -167,7 +167,7 @@ function useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptio
   // re-run if the callback updated
   useLayoutEffect(() => {
     update({ onlyUpdateInViewport: false })
-    debug && console.log('useTracker.update on resize/reflow:')
+    debug && console.log('useTracker.update on resize/reflow')
   }, [update, pageReflow])
 
   // auto-update on scroll
