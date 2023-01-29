@@ -32,13 +32,15 @@ export const OrthographicCamera = forwardRef(({ makeDefault = false, ...props }:
     cameraRef.current.updateMatrixWorld()
   }, [distance, size])
 
-  useLayoutEffect(() => {
-    if (makeDefault && cameraRef.current) {
+  React.useLayoutEffect(() => {
+    if (makeDefault) {
       const oldCam = camera
-      set({ camera: cameraRef.current })
-      return () => set({ camera: oldCam })
+      set(() => ({ camera: cameraRef.current! }))
+      return () => set(() => ({ camera: oldCam }))
     }
-  }, [camera, cameraRef, makeDefault, set])
+    // The camera should not be part of the dependency list because this components camera is a stable reference
+    // that must exchange the default, and clean up after itself on unmount.
+  }, [cameraRef, makeDefault, set])
 
   return (
     <orthographicCamera

@@ -102,9 +102,9 @@ const GlobalCanvasImpl = ({
       {globalRenderState && <GlobalRenderer />}
 
       {/* @ts-ignore */}
-      {!orthographic && <PerspectiveCamera makeDefault={true} {...camera} />}
+      {!orthographic && <PerspectiveCamera manual makeDefault {...camera} />}
       {/* @ts-ignore */}
-      {orthographic && <OrthographicCamera makeDefault={true} {...camera} />}
+      {orthographic && <OrthographicCamera manual makeDefault {...camera} />}
 
       <ResizeManager />
     </CanvasElement>
