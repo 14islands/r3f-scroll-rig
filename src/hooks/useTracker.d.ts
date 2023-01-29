@@ -14,10 +14,10 @@ export type Rect = {
   right: number
   width: number
   height: number
-  x: number
-  y: number
 }
 export type Bounds = Rect & {
+  x: number
+  y: number
   positiveYUpBottom: number
 }
 
