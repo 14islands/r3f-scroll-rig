@@ -1,4 +1,4 @@
-import { LenisScrollCallback } from './LenisScrollbar';
+import { ScrollCallback } from './SmoothScrollbar';
 export interface Scroll {
     y: number;
     x: number;
@@ -12,7 +12,7 @@ interface UseScrollbarProps {
     enabled: boolean;
     scroll: Scroll;
     scrollTo: (target: any) => void;
-    onScroll: (cb: LenisScrollCallback) => () => void;
+    onScroll: (cb: ScrollCallback) => () => void;
 }
 /**
  * Public interface for ScrollRig

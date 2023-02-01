@@ -1,16 +1,30 @@
-import React, { ReactElement } from 'react';
-import { LenisScrollCallback } from './LenisScrollbar';
-interface ISmoothScrobbar {
+import { ReactElement } from 'react';
+export declare type ScrollCallback = (props: {
+    scroll: number;
+    limit: number;
+    velocity: number;
+    direction: number;
+    progress: number;
+}) => void;
+export declare type ScrollToTarget = number | HTMLElement | string;
+export declare type ScrollToConfig = {
+    offset: number;
+    immediate: boolean;
+    duration: number;
+    easing: (t: number) => number;
+};
+export interface ISmoothScrollbar {
     children: (props: any) => ReactElement;
-    scrollRestoration?: ScrollRestoration;
     enabled?: boolean;
     locked?: boolean;
+    scrollRestoration?: ScrollRestoration;
     disablePointerOnScroll?: boolean;
-    config?: object;
     horizontal?: boolean;
     scrollInContainer?: boolean;
     updateGlobalState?: boolean;
-    onScroll?: LenisScrollCallback;
+    onScroll?: ScrollCallback;
+    config?: object;
+    invalidate?: () => void;
+    addEffect?: (cb: any) => () => void;
 }
-export declare const SmoothScrollbar: React.ForwardRefExoticComponent<ISmoothScrobbar & React.RefAttributes<unknown>>;
-export {};
+export declare const SmoothScrollbar: import("react").ForwardRefExoticComponent<ISmoothScrollbar & import("react").RefAttributes<any>>;

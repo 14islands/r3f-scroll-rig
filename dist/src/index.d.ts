@@ -8,7 +8,7 @@ export { useCanvas } from './hooks/useCanvas';
 export { useScrollbar } from './scrollbar/useScrollbar';
 export { useTracker } from './hooks/useTracker';
 export { useImageAsTexture } from './hooks/useImageAsTexture';
-export { SmoothScrollbar } from './scrollbar/SmoothScrollbar';
+export { default as SmoothScrollbar } from './components/R3FSmoothScrollbar';
 export declare const styles: {
     hidden: string;
     hiddenWhenSmooth: string;
