@@ -1,8 +1,8 @@
 // Global config
 
-import { WebGLRenderer } from 'three'
+import { Scene, Camera, WebGLRenderer } from 'three'
 
-type PreloadCallback = (gl: WebGLRenderer) => void
+type PreloadCallback = (gl: WebGLRenderer, scene: Scene, camera: Camera) => void
 
 export const config = {
   // Execution order for useFrames (highest = last render)

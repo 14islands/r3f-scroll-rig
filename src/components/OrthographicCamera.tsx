@@ -32,7 +32,7 @@ export const OrthographicCamera = forwardRef(({ makeDefault = false, ...props }:
     cameraRef.current.updateMatrixWorld()
   }, [distance, size])
 
-  React.useLayoutEffect(() => {
+  useLayoutEffect(() => {
     if (makeDefault) {
       const oldCam = camera
       set(() => ({ camera: cameraRef.current! }))

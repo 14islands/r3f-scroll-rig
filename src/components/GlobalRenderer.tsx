@@ -12,7 +12,6 @@ export const GlobalRenderer = () => {
   const gl = useThree((s) => s.gl)
   const frameloop = useThree((s) => s.frameloop)
   const globalClearDepth = useCanvasStore((state) => state.globalClearDepth)
-  const globalAutoClear = useCanvasStore((state) => state.globalAutoClear)
   const globalPriority = useCanvasStore((state) => state.globalPriority)
   const scrollRig = useScrollRig()
 
@@ -22,16 +21,13 @@ export const GlobalRenderer = () => {
   }, [scrollRig.debug])
 
   // PRELOAD RENDER LOOP
-  useFrame(() => {
+  useFrame(({ camera, scene }) => {
     if (!config.preloadQueue.length) return
-    gl.autoClear = false
     // Render preload frames first and clear directly
-    // @ts-ignore
-    config.preloadQueue.forEach((render) => render(gl))
+    config.preloadQueue.forEach((render) => render(gl, scene, camera))
     // cleanup
     gl.clear()
     config.preloadQueue = []
-    gl.autoClear = true
     // trigger new frame to get correct visual state after all preloads
     scrollRig.debug && console.log('GlobalRenderer', 'preload complete. trigger global render')
     scrollRig.requestRender()
@@ -44,8 +40,6 @@ export const GlobalRenderer = () => {
 
     // Render if requested or if always on
     if (frameloop === 'always' || globalRenderQueue) {
-      gl.autoClear = globalAutoClear // false will fail in Oculus Quest VR
-
       // render default layer, scene, camera
       camera.layers.disableAll()
       if (globalRenderQueue) {
@@ -60,8 +54,6 @@ export const GlobalRenderer = () => {
       // render as HUD over any other renders by default
       globalClearDepth && gl.clearDepth()
       gl.render(scene, camera)
-
-      gl.autoClear = true
     }
     // cleanup for next frame
     useCanvasStore.getState().clearGlobalRenderQueue()

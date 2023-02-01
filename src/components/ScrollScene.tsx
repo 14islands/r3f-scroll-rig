@@ -10,20 +10,18 @@ import { DebugMesh } from './DebugMesh'
 import { useTracker } from '../hooks/useTracker'
 import type { ScrollState } from '../hooks/useTracker.d'
 
-export interface ScrollSceneState {
+export interface ScrollSceneChildProps {
   track: MutableRefObject<HTMLElement>
   margin: number
-  renderOrder: number
   priority: number
-  scene: Scene
   scale: vec3 | undefined
   scrollState: ScrollState
   inViewport: boolean
 }
 
-interface ScrollSceneProps {
+interface ScrollScene {
   track: MutableRefObject<HTMLElement>
-  children: (state: ScrollSceneState) => ReactNode
+  children: (state: ScrollSceneChildProps) => ReactNode
   margin?: number
   inViewportMargin?: string
   inViewportThreshold?: number
@@ -32,7 +30,6 @@ interface ScrollSceneProps {
   scissor?: boolean
   debug?: boolean
   as?: string
-  renderOrder?: number
   priority?: number
 }
 
@@ -53,10 +50,9 @@ const ScrollSceneImpl = ({
   scissor = false,
   debug = false,
   as = 'scene',
-  renderOrder = 1,
   priority = config.PRIORITY_SCISSORS,
   ...props
-}: ScrollSceneProps) => {
+}: ScrollScene) => {
   const inlineSceneRef = useCallback((node: any) => {
     if (node !== null) {
       setScene(node)
@@ -80,7 +76,7 @@ const ScrollSceneImpl = ({
   // RENDER FRAME
   useFrame(
     ({ gl, camera }) => {
-      if (!scene || !scale) return
+      if (!scene) return
 
       if (scene.visible) {
         // move scene
@@ -106,7 +102,7 @@ const ScrollSceneImpl = ({
   )
 
   const content = (
-    <group renderOrder={renderOrder}>
+    <>
       {(!children || debug) && scale && <DebugMesh scale={scale} />}
       {children &&
         scene &&
@@ -115,18 +111,16 @@ const ScrollSceneImpl = ({
           // inherited props
           track,
           margin,
-          renderOrder,
           // new props
           scale,
           scrollState,
           inViewport,
-          scene,
           // useFrame render priority (in case children need to run after)
-          priority: priority + renderOrder,
+          priority: priority,
           // tunnel the rest
           ...props,
         })}
-    </group>
+    </>
   )
 
   // portal if scissor or inline nested scene

@@ -15,43 +15,45 @@ export const PerspectiveCamera = forwardRef(({ makeDefault = false, ...props }: 
   const camera = useThree((state) => state.camera)
   const size = useThree((state) => state.size)
   const viewport = useThree((state) => state.viewport)
+  const cameraRef = useRef<PerspectiveCameraImpl>(null!)
 
   const pageReflow = useCanvasStore((state) => state.pageReflow)
   const scaleMultiplier = useCanvasStore((state) => state.scaleMultiplier)
 
-  const distance = useMemo(() => {
+  // Calculate FoV or distance to match DOM size
+  const { fov, distance, aspect } = useMemo(() => {
     const width = size.width * scaleMultiplier
     const height = size.height * scaleMultiplier
-    return Math.max(width, height)
-  }, [size, pageReflow, scaleMultiplier])
+    const aspect = width / height
 
-  const cameraRef = useRef<PerspectiveCameraImpl>(null!)
+    // check props vs defaults
+    let fov = props.fov
+    let distance = (props?.position as number[])?.[2] || Math.max(width, height)
+
+    // calculate either FoV or distance to match scale
+    if (fov) {
+      // calculate distance for specified FoV
+      const ratio = Math.tan(((fov / 2.0) * Math.PI) / 180.0) * 2.0
+      distance = height / ratio
+    } else {
+      // calculate FoV based on distance
+      fov = 2 * (180 / Math.PI) * Math.atan(height / (2 * distance))
+    }
+
+    return { fov, distance, aspect }
+  }, [size, scaleMultiplier, pageReflow])
+
+  // Update camera projection and R3F viewport
   useLayoutEffect(() => {
-    const width = size.width * scaleMultiplier
-    const height = size.height * scaleMultiplier
-
-    cameraRef.current.aspect = width / height
-    cameraRef.current.fov = 2 * (180 / Math.PI) * Math.atan(height / (2 * cameraRef.current.position.z))
-
-    // TODO: allow specifying desired FoV and set distance accordingly - random WIP stuff belwo
-    // cameraRef.current.fov = props.fov
-    // const radToDeg = (radians) => radians * (180 / Math.PI)
-    // const degToRad = (degrees) => degrees * (Math.PI / 180)
-    // const vFOV = props.fov * (Math.PI / 180)
-    // const hFOV = 2 * Math.atan(Math.tan(vFOV / 2) * cameraRef.current.aspect)
-    // cameraRef.current.position.z = cameraRef.current.getFilmHeight() / cameraRef.current.getFocalLength()
-    // cameraRef.current.position.z = Math.tan(((hFOV / 2.0) * Math.PI) / 180.0) * 2.0
-
-    cameraRef.current.lookAt(0, 0, 0)
     cameraRef.current.updateProjectionMatrix()
     // https://github.com/react-spring/@react-three/fiber/issues/178
     // Update matrix world since the renderer is a frame late
     cameraRef.current.updateMatrixWorld()
-    // update r3f viewport
+    // update r3f viewport which is lagging on resize
     set((state) => ({ viewport: { ...state.viewport, ...viewport.getCurrentViewport(camera) } }))
-  }, [distance, size, scaleMultiplier])
+  }, [size, scaleMultiplier, pageReflow])
 
-  React.useLayoutEffect(() => {
+  useLayoutEffect(() => {
     if (makeDefault) {
       const oldCam = camera
       set(() => ({ camera: cameraRef.current! }))
@@ -67,6 +69,8 @@ export const PerspectiveCamera = forwardRef(({ makeDefault = false, ...props }: 
       position={[0, 0, distance]}
       onUpdate={(self) => self.updateProjectionMatrix()}
       near={0.1}
+      aspect={aspect}
+      fov={fov}
       far={distance * 2}
       {...props}
     />
