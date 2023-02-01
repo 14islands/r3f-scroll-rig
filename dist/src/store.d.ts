@@ -4,7 +4,6 @@ interface ScrollRigStore {
     scaleMultiplier: number;
     globalRender: boolean;
     globalPriority: number;
-    globalAutoClear: boolean;
     globalClearDepth: boolean;
     globalRenderQueue: false | any[];
     clearGlobalRenderQueue: () => void;

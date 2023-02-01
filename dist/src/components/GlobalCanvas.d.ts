@@ -10,7 +10,6 @@ interface IGlobalCanvas extends Omit<Props, 'children'> {
     scaleMultiplier?: number;
     globalRender?: boolean;
     globalPriority?: number;
-    globalAutoClear?: boolean;
     globalClearDepth?: boolean;
     loadingFallback?: any;
 }
