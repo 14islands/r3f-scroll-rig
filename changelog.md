@@ -1,5 +1,28 @@
 # Changelog
 
+## v8.9.0
+
+Simplify render logic and improve camera controls.
+
+- Bugfix: make sure `viewport` is correct after resize
+
+- `ViewportScrollScene`
+
+  - Uses portal state enclave for camera so you can use OrbitControls or pass in a custom camera as a child.
+  - No longer clears depth by default
+  - Added `hud` prop to clear depth
+  - Added `camera` prop to allow overriding default camera settings
+    - Setting `fov` will calculate distance
+  - Removed `renderOrder` - can be set manually on children instead
+
+- `ScrollScene`
+
+  - Removed `renderOrder` - can be set manually on children instead
+
+- `GlobalCanvas`
+  - `camera` prop now allows overriding `fov`. If `fov` is specified, the camera distance will be calculated to match DOM size.
+  - Removed `globalClearAlpha` - can be controlled by other useFrames with higher or lower priority instead
+
 ## v8.8.0
 
 Added some properties to help support having multiple SmoothScrollbar on the page at the same time. The usecase is to open a Modal on top of the current page which also needs to be smooth scrolled.

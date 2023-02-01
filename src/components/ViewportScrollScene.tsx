@@ -7,7 +7,7 @@ import { config } from '../config'
 import { useScrollRig } from '../hooks/useScrollRig'
 import { DebugMesh } from './DebugMesh'
 import { useTracker } from '../hooks/useTracker'
-import type { ScrollState, Tracker } from '../hooks/useTracker.d'
+import type { Tracker } from '../hooks/useTracker.d'
 import { PerspectiveCamera } from './PerspectiveCamera'
 import { OrthographicCamera } from './OrthographicCamera'
 
