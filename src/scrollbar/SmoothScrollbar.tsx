@@ -1,28 +1,38 @@
-import React, { useEffect, useRef, useCallback, ReactElement, useMemo, forwardRef, useImperativeHandle } from 'react'
-import { addEffect, invalidate } from '@react-three/fiber'
-import pkg from 'debounce'
+import { useEffect, useRef, useCallback, ReactElement, forwardRef, useImperativeHandle } from 'react'
+import Lenis from '@studio-freight/lenis'
 
 import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
 import { useCanvasStore } from '../store'
 
-import LenisScrollbar, {
-  ILenisScrollbar,
-  LenisScrollCallback,
-  LenisScrollToTarget,
-  LenisScrollToConfig,
-} from './LenisScrollbar'
+export type ScrollCallback = (props: {
+  scroll: number
+  limit: number
+  velocity: number
+  direction: number
+  progress: number
+}) => void
 
-interface ISmoothScrobbar {
+export type ScrollToTarget = number | HTMLElement | string
+export type ScrollToConfig = {
+  offset: number
+  immediate: boolean
+  duration: number
+  easing: (t: number) => number
+}
+
+export interface ISmoothScrollbar {
   children: (props: any) => ReactElement
-  scrollRestoration?: ScrollRestoration
   enabled?: boolean
   locked?: boolean
+  scrollRestoration?: ScrollRestoration
   disablePointerOnScroll?: boolean
-  config?: object
   horizontal?: boolean
   scrollInContainer?: boolean
   updateGlobalState?: boolean
-  onScroll?: LenisScrollCallback
+  onScroll?: ScrollCallback
+  config?: object
+  invalidate?: () => void
+  addEffect?: (cb: any) => () => void
 }
 
 const SmoothScrollbarImpl = (
@@ -36,28 +46,36 @@ const SmoothScrollbarImpl = (
     scrollInContainer = false,
     updateGlobalState = true,
     onScroll,
-    config,
-  }: ISmoothScrobbar,
+    config = {},
+    invalidate = () => {},
+    addEffect,
+  }: ISmoothScrollbar,
   ref: any
 ) => {
   const innerRef = useRef<HTMLElement>()
-  const lenis = useRef<ILenisScrollbar>()
+  const lenis = useRef<Lenis>()
   const preventPointer = useRef(false)
   const globalScrollState = useCanvasStore((state) => state.scroll)
 
-  // expose scrollTo imperatively
-  useImperativeHandle(ref, () => {
-    return {
-      scrollTo: (target: LenisScrollToTarget, props: LenisScrollToConfig) => lenis.current?.scrollTo(target, props),
-      __lenis: lenis.current,
-    }
-  })
+  // Expose lenis imperative API
+  useImperativeHandle(ref, () => ({
+    start: () => lenis.current?.start(),
+    stop: () => lenis.current?.stop(),
+    on: (event: string, cb: ScrollCallback) => lenis.current?.on(event, cb),
+    once: (event: string, cb: ScrollCallback) => lenis.current?.once(event, cb),
+    off: (event: string, cb?: ScrollCallback) => lenis.current?.off(event, cb),
+    notify: () => lenis.current?.notify(),
+    scrollTo: (target: ScrollToTarget, props: ScrollToConfig) => lenis.current?.scrollTo(target, props),
+    raf: (time: number) => lenis.current?.raf(time),
+    __lenis: lenis.current,
+  }))
 
   // disable pointer events while scrolling to avoid slow event handlers
   const preventPointerEvents = (prevent: boolean) => {
     if (!disablePointerOnScroll) return
     if (innerRef.current && preventPointer.current !== prevent) {
       preventPointer.current = prevent
+      console.log(prevent)
       innerRef.current.style.pointerEvents = prevent ? 'none' : 'auto'
     }
   }
@@ -69,7 +87,7 @@ const SmoothScrollbarImpl = (
 
   // function to bind to scroll event
   // return function that will unbind same callback
-  const globalOnScroll = useCallback((cb: LenisScrollCallback) => {
+  const globalOnScroll = useCallback((cb: ScrollCallback) => {
     lenis.current?.on('scroll', cb)
     return () => lenis.current?.off('scroll', cb)
   }, [])
@@ -81,12 +99,54 @@ const SmoothScrollbarImpl = (
     }
   }, [])
 
-  useEffect(() => {
-    // let r3f drive the frameloop
-    const removeEffect = addEffect((time: number) => lenis.current?.raf(time))
+  // INIT LENIS
+  useLayoutEffect(() => {
+    // Set up scroll containers - allows scrolling without resizing window on iOS/mobile
+    const html = document.documentElement
+    const wrapper = document.body
+    const content = document.body.firstElementChild
 
+    html.classList.toggle('ScrollRig-scrollHtml', scrollInContainer)
+    wrapper.classList.toggle('ScrollRig-scrollWrapper', scrollInContainer)
+
+    if (scrollInContainer) {
+      Object.assign(config, {
+        smoothTouch: true,
+        wrapper,
+        content,
+      })
+    }
+
+    lenis.current = new Lenis({
+      direction: horizontal ? 'horizontal' : 'vertical',
+      ...config,
+    })
+
+    // let r3f drive the frameloop
+    let removeEffect: () => void
+    if (addEffect) {
+      removeEffect = addEffect((time: number) => lenis.current?.raf(time))
+    } else {
+      // manual animation frame
+      let _raf: number
+      function raf(time: number) {
+        lenis.current?.raf(time)
+        _raf = requestAnimationFrame(raf)
+      }
+      _raf = requestAnimationFrame(raf)
+      removeEffect = () => cancelAnimationFrame(_raf)
+    }
+
+    return () => {
+      removeEffect()
+      lenis.current?.destroy()
+    }
+  }, [])
+
+  // BIND TO LENIS SCROLL EVENT
+  useLayoutEffect(() => {
     // update global scroll store
-    lenis.current?.on('scroll', ({ scroll, limit, velocity, direction, progress }) => {
+    lenis.current?.on('scroll', ({ scroll, limit, velocity, direction, progress }: any) => {
       const y = !horizontal ? scroll : 0
       const x = horizontal ? scroll : 0
 
@@ -99,21 +159,12 @@ const SmoothScrollbarImpl = (
         globalScrollState.progress = progress
       }
 
-      // disable pointer logic
-      const disablePointer = pkg.debounce(() => preventPointerEvents(true), 100, true)
-      if (Math.abs(velocity) > 1.4) {
-        disablePointer()
-      } else {
-        preventPointerEvents(false)
-      }
+      preventPointerEvents(Math.abs(velocity) > 0.14)
 
       onScroll && onScroll({ scroll, limit, velocity, direction, progress })
 
       invalidate()
     })
-
-    // trigger initial scroll event to update global state
-    lenis.current?.notify()
 
     // update global state
     if (updateGlobalState) {
@@ -132,6 +183,9 @@ const SmoothScrollbarImpl = (
       useCanvasStore.getState().scroll.x = window.scrollX
     }
 
+    // trigger initial scroll event to update global state
+    lenis.current?.notify()
+
     // make sure R3F loop is invalidated when scrolling
     const invalidateOnWheelEvent = () => invalidate()
 
@@ -139,7 +193,6 @@ const SmoothScrollbarImpl = (
     window.addEventListener('wheel', invalidateOnWheelEvent)
     return () => {
       lenis.current?.off('scroll')
-      removeEffect()
       window.removeEventListener('pointermove', onMouseMove)
       window.removeEventListener('wheel', invalidateOnWheelEvent)
     }
@@ -158,42 +211,11 @@ const SmoothScrollbarImpl = (
     locked ? lenis.current?.stop() : lenis.current?.start()
   }, [locked])
 
-  // Set up scroll containers - allows scrolling without resizing window on iOS/mobile
-  const { wrapper, content } = useMemo(() => {
-    if (typeof document === 'undefined') return {}
-    const html = document.documentElement
-    const wrapper = document.body
-    const content = document.body.firstElementChild
-
-    html.classList.toggle('ScrollRig-scrollHtml', scrollInContainer)
-    wrapper.classList.toggle('ScrollRig-scrollWrapper', scrollInContainer)
-
-    return {
-      wrapper,
-      content,
-    }
-  }, [scrollInContainer])
-
-  return (
-    <LenisScrollbar
-      ref={lenis}
-      direction={horizontal ? 'horizontal' : 'vertical'}
-      config={
-        scrollInContainer
-          ? {
-              smoothTouch: true,
-              wrapper,
-              content,
-              ...config,
-            }
-          : { ...config }
-      }
-    >
-      {/* Use function child so we can spread props
-        - for instance disable pointer events while scrolling */}
-      {(bind: any) => children({ ...bind, ref: innerRef })}
-    </LenisScrollbar>
-  )
+  {
+    /* Use function child so we can spread props
+    - for instance disable pointer events while scrolling */
+  }
+  return children({ ref: innerRef })
 }
 
-export const SmoothScrollbar = forwardRef(SmoothScrollbarImpl)
+export const SmoothScrollbar = forwardRef<any, ISmoothScrollbar>(SmoothScrollbarImpl)
