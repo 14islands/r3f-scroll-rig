@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react'
 import { Canvas, Props } from '@react-three/fiber'
-import { ResizeObserver } from '@juggle/resize-observer'
+import { ResizeObserver as Polyfill } from '@juggle/resize-observer'
 import { parse } from 'query-string'
 
 import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
@@ -14,6 +14,11 @@ import { GlobalRenderer } from './GlobalRenderer'
 import { CanvasErrorBoundary } from './CanvasErrorBoundary'
 
 import { config } from '../config'
+
+let polyfill: new (callback: ResizeObserverCallback) => ResizeObserver
+if (typeof window !== 'undefined') {
+  polyfill = window.ResizeObserver || Polyfill
+}
 
 interface IGlobalCanvas extends Omit<Props, 'children'> {
   as?: any
@@ -83,7 +88,7 @@ const GlobalCanvasImpl = ({
         ...gl,
       }}
       // polyfill old iOS safari
-      resize={{ scroll: false, debounce: 0, polyfill: ResizeObserver }}
+      resize={{ scroll: false, debounce: 0, polyfill }}
       // default styles
       style={{
         position: 'fixed',
