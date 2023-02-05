@@ -1,4 +1,4 @@
-import { ScrollCallback } from './scrollbar/SmoothScrollbar';
+import { ScrollCallback } from './scrollbar/SmoothScrollbar.d';
 interface ScrollRigStore {
     debug: boolean;
     scaleMultiplier: number;

@@ -1,2 +1,4 @@
-/// <reference types="react" />
-export default function R3FSmoothScrollbar(props: any): JSX.Element;
+import React from 'react';
+import { ISmoothScrollbar } from '../scrollbar/SmoothScrollbar.d';
+declare const _default: React.ForwardRefExoticComponent<ISmoothScrollbar & React.RefAttributes<any>>;
+export default _default;
