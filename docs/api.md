@@ -127,8 +127,8 @@ The child component is passed `scale` which can be used to match the DOM element
   track: RefObject            // DOM element to track (ref)
   children: (props) => JSX.Element  // render function
   as?: string = "scene"       // renders as a Scene by default
-  inViewportMargin?: string = "50%"  // IntersectionObserver rootMargin
-  hideOffscreen?: boolean = true // Hide scene when off screen
+  inViewportMargin?: string = "0%"  // IntersectionObserver rootMargin
+  hideOffscreen?: boolean = true // Hide scene when outside viewport
   margin?: number             // margin added outside scissor
   scissor?: boolean = false   // Render as separate pass in a scissor
   visible?: boolean = true    // Scene visibility
@@ -174,8 +174,8 @@ The child receives similar props as the ScrollScene provides.
   track: RefObject            // DOM element to track (ref)
   children: (props) => JSX.Element  // render function
   orthographic?: boolean = false // uses a perspective camera by default
-  inViewportMargin?: string = "50%"  // IntersectionObserver rootMargin
-  hideOffscreen?: boolean = true // Hide scene when off screen
+  inViewportMargin?: string = "0%"  // IntersectionObserver rootMargin
+  hideOffscreen?: boolean = true // Hide scene when outside viewport
   margin?: number             // margin added outside scissor
   visible?: boolean = true    // Scene visibility
   debug?: boolean = false     // Render a debug plane and show 50% opacity of DOM element
