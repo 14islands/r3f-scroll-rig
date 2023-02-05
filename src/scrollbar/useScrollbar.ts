@@ -1,5 +1,5 @@
 import { useCanvasStore } from '../store'
-import { ScrollCallback } from './SmoothScrollbar'
+import { ScrollCallback } from './SmoothScrollbar.d'
 
 export interface Scroll {
   y: number

@@ -1,7 +1,7 @@
 import create from 'zustand'
 import { config } from './config'
 
-import { ScrollCallback } from './scrollbar/SmoothScrollbar'
+import { ScrollCallback } from './scrollbar/SmoothScrollbar.d'
 
 interface ScrollRigStore {
   debug: boolean

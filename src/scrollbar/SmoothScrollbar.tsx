@@ -3,37 +3,10 @@ import Lenis from '@studio-freight/lenis'
 
 import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
 import { useCanvasStore } from '../store'
+import { ISmoothScrollbar, ScrollCallback, ScrollToTarget, ScrollToConfig } from './SmoothScrollbar.d'
 
-export type ScrollCallback = (props: {
-  scroll: number
-  limit: number
-  velocity: number
-  direction: number
-  progress: number
-}) => void
-
-export type ScrollToTarget = number | HTMLElement | string
-export type ScrollToConfig = {
-  offset: number
-  immediate: boolean
-  duration: number
-  easing: (t: number) => number
-}
-
-export interface ISmoothScrollbar {
-  children: (props: any) => ReactElement
-  enabled?: boolean
-  locked?: boolean
-  scrollRestoration?: ScrollRestoration
-  disablePointerOnScroll?: boolean
-  horizontal?: boolean
-  scrollInContainer?: boolean
-  updateGlobalState?: boolean
-  onScroll?: ScrollCallback
-  config?: object
-  invalidate?: () => void
-  addEffect?: (cb: any) => () => void
-}
+const POINTER_EVENTS_ENABLE_VELOCITY = 1
+const POINTER_EVENTS_DISABLE_VELOCITY = 1.5
 
 const SmoothScrollbarImpl = (
   {
@@ -71,26 +44,16 @@ const SmoothScrollbarImpl = (
   }))
 
   // disable pointer events while scrolling to avoid slow event handlers
-  const preventPointerEvents = (prevent: boolean) => {
-    if (!disablePointerOnScroll) return
-    if (innerRef.current && preventPointer.current !== prevent) {
-      preventPointer.current = prevent
-      console.log(prevent)
-      innerRef.current.style.pointerEvents = prevent ? 'none' : 'auto'
-    }
-  }
-
-  // reset pointer events when moving mouse
-  const onMouseMove = useCallback(() => {
-    preventPointerEvents(false)
-  }, [])
-
-  // function to bind to scroll event
-  // return function that will unbind same callback
-  const globalOnScroll = useCallback((cb: ScrollCallback) => {
-    lenis.current?.on('scroll', cb)
-    return () => lenis.current?.off('scroll', cb)
-  }, [])
+  const preventPointerEvents = useCallback(
+    (prevent: boolean) => {
+      if (!disablePointerOnScroll) return
+      if (innerRef.current && preventPointer.current !== prevent) {
+        preventPointer.current = prevent
+        innerRef.current.style.pointerEvents = prevent ? 'none' : 'auto'
+      }
+    },
+    [disablePointerOnScroll, innerRef, preventPointer]
+  )
 
   // apply chosen scroll restoration
   useLayoutEffect(() => {
@@ -128,6 +91,7 @@ const SmoothScrollbarImpl = (
       removeEffect = addEffect((time: number) => lenis.current?.raf(time))
     } else {
       // manual animation frame
+      // TODO use framer motion / popmotion render loop?
       let _raf: number
       function raf(time: number) {
         lenis.current?.raf(time)
@@ -145,11 +109,11 @@ const SmoothScrollbarImpl = (
 
   // BIND TO LENIS SCROLL EVENT
   useLayoutEffect(() => {
-    // update global scroll store
     lenis.current?.on('scroll', ({ scroll, limit, velocity, direction, progress }: any) => {
       const y = !horizontal ? scroll : 0
       const x = horizontal ? scroll : 0
 
+      // update global scroll store
       if (updateGlobalState) {
         globalScrollState.y = y
         globalScrollState.x = x
@@ -159,11 +123,16 @@ const SmoothScrollbarImpl = (
         globalScrollState.progress = progress
       }
 
-      preventPointerEvents(Math.abs(velocity) > 0.14)
+      if (Math.abs(velocity) > POINTER_EVENTS_DISABLE_VELOCITY) {
+        preventPointerEvents(true)
+      }
+      if (Math.abs(velocity) < POINTER_EVENTS_ENABLE_VELOCITY) {
+        preventPointerEvents(false)
+      }
 
       onScroll && onScroll({ scroll, limit, velocity, direction, progress })
 
-      invalidate()
+      invalidate() // trigger an R3F frame
     })
 
     // update global state
@@ -175,8 +144,12 @@ const SmoothScrollbarImpl = (
       useCanvasStore.setState({ scrollTo: lenis.current?.scrollTo })
 
       // expose global onScroll function to subscribe to scroll events
-      // @ts-ignore
-      useCanvasStore.setState({ onScroll: globalOnScroll })
+      useCanvasStore.setState({
+        onScroll: (cb: ScrollCallback) => {
+          lenis.current?.on('scroll', cb)
+          return () => lenis.current?.off('scroll', cb)
+        },
+      })
 
       // Set current scroll position on load in case reloaded further down
       useCanvasStore.getState().scroll.y = window.scrollY
@@ -185,21 +158,28 @@ const SmoothScrollbarImpl = (
 
     // trigger initial scroll event to update global state
     lenis.current?.notify()
+    return () => {
+      lenis.current?.off('scroll')
+    }
+  }, [])
 
-    // make sure R3F loop is invalidated when scrolling
+  // Interaction events - invalidate R3F loop and enable pointer events
+  useLayoutEffect(() => {
     const invalidateOnWheelEvent = () => invalidate()
-
-    window.addEventListener('pointermove', onMouseMove)
+    const onPointerInteraction = () => preventPointerEvents(false)
+    window.addEventListener('pointermove', onPointerInteraction)
+    window.addEventListener('pointerdown', onPointerInteraction)
     window.addEventListener('wheel', invalidateOnWheelEvent)
     return () => {
       lenis.current?.off('scroll')
-      window.removeEventListener('pointermove', onMouseMove)
+      window.removeEventListener('pointermove', onPointerInteraction)
+      window.removeEventListener('pointerdown', onPointerInteraction)
       window.removeEventListener('wheel', invalidateOnWheelEvent)
     }
   }, [])
 
+  // Mark as enabled in global state
   useEffect(() => {
-    // Mark as enabled in global state
     if (updateGlobalState) {
       document.documentElement.classList.toggle('js-smooth-scrollbar-enabled', enabled)
       document.documentElement.classList.toggle('js-smooth-scrollbar-disabled', !enabled)
