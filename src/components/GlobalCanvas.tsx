@@ -49,7 +49,7 @@ const GlobalCanvasImpl = ({
   globalClearDepth = false,
   ...props
 }: Omit<IGlobalCanvas, 'onError'>) => {
-  const globalRenderState = useCanvasStore((state) => state.globalRender)
+  const useGlobalRenderer = useCanvasStore((state) => state.globalRender)
 
   // enable debug mode
   useLayoutEffect(() => {
@@ -101,14 +101,14 @@ const GlobalCanvasImpl = ({
       // allow to override anything of the above
       {...props}
     >
-      {typeof children === 'function' ? children(<GlobalChildren />) : <GlobalChildren>{children}</GlobalChildren>}
-
-      {globalRenderState && <GlobalRenderer />}
-
       {/* @ts-ignore */}
       {!orthographic && <PerspectiveCamera manual makeDefault {...camera} />}
       {/* @ts-ignore */}
       {orthographic && <OrthographicCamera manual makeDefault {...camera} />}
+
+      {useGlobalRenderer && <GlobalRenderer />}
+
+      {typeof children === 'function' ? children(<GlobalChildren />) : <GlobalChildren>{children}</GlobalChildren>}
 
       <ResizeManager />
     </CanvasElement>
