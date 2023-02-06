@@ -5,8 +5,8 @@
 Progressively enhance a React website with WebGL using `@react-three/fiber` and smooth scrolling.
 
 <p align="center">
-  <img width="50%" src="https://www.dropbox.com/s/kqaweg996jtb2ho/14islands600_10fps_2.gif?dl=0&raw=1" style="float:left" />
-  <img width="50%" src="https://www.dropbox.com/s/vmpqf17oy0otkkl/pluto600_10fps.gif?dl=0&raw=1" style="float:right" />
+  <img width="49.5%" src="https://www.dropbox.com/s/kqaweg996jtb2ho/14islands600_10fps_2.gif?dl=0&raw=1" style="float:left" />
+  <img width="49.5%" src="https://www.dropbox.com/s/vmpqf17oy0otkkl/pluto600_10fps.gif?dl=0&raw=1" style="float:right" />
 </p>
 
 [ <a href="#features">Features</a> |
