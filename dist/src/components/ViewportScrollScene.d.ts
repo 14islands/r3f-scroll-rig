@@ -1,20 +1,8 @@
 import React, { MutableRefObject, ReactNode } from 'react';
-import { Scene, Camera } from 'three';
-import type { ScrollState } from '../hooks/useTracker.d';
-interface ViewportScrollSceneState {
-    track: MutableRefObject<HTMLElement>;
-    margin: number;
-    renderOrder: number;
-    priority: number;
-    scene: Scene;
-    camera: Camera;
-    scale: vec3 | undefined;
-    scrollState: ScrollState;
-    inViewport: boolean;
-}
+import type { ScrollSceneChildProps } from './ScrollScene';
 interface ViewportScrollScene {
     track: MutableRefObject<HTMLElement>;
-    children: (state: ViewportScrollSceneState) => ReactNode;
+    children: (state: ScrollSceneChildProps) => ReactNode;
     margin?: number;
     inViewportMargin?: string;
     inViewportThreshold?: number;
@@ -22,9 +10,11 @@ interface ViewportScrollScene {
     hideOffscreen?: boolean;
     debug?: boolean;
     orthographic?: boolean;
-    as?: string;
-    renderOrder?: number;
     priority?: number;
+    hud?: boolean;
+    camera?: any;
 }
-declare const ViewportScrollScene: React.MemoExoticComponent<({ track, children, margin, inViewportMargin, inViewportThreshold, visible, hideOffscreen, debug, orthographic, renderOrder, priority, ...props }: ViewportScrollScene) => JSX.Element>;
+declare function ViewportScrollSceneImpl({ track, margin, // Margin outside viewport to avoid clipping vertex displacement (px)
+inViewportMargin, inViewportThreshold, priority, ...props }: ViewportScrollScene): JSX.Element;
+declare const ViewportScrollScene: React.MemoExoticComponent<typeof ViewportScrollSceneImpl>;
 export { ViewportScrollScene };

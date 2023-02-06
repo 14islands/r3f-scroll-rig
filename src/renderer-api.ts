@@ -23,10 +23,9 @@ export const renderScissor = ({
   height,
   layer = 0,
   autoClear = false,
-  clearDepth = true,
+  clearDepth = false,
 }: any) => {
   if (!scene || !camera) return
-  const _autoClear = gl.autoClear
   gl.autoClear = autoClear
   gl.setScissor(left, top, width, height)
   gl.setScissorTest(true)
@@ -34,7 +33,6 @@ export const renderScissor = ({
   clearDepth && gl.clearDepth()
   gl.render(scene, camera)
   gl.setScissorTest(false)
-  gl.autoClear = _autoClear
 }
 
 export const renderViewport = ({
@@ -48,10 +46,9 @@ export const renderViewport = ({
   layer = 0,
   scissor = true,
   autoClear = false,
-  clearDepth = true,
+  clearDepth = false,
 }: any) => {
   if (!scene || !camera) return
-  const _autoClear = gl.autoClear
   gl.getSize(viewportSize)
   gl.autoClear = autoClear
   gl.setViewport(left, top, width, height)
@@ -62,17 +59,15 @@ export const renderViewport = ({
   gl.render(scene, camera)
   gl.setScissorTest(false)
   gl.setViewport(0, 0, viewportSize.x, viewportSize.y)
-  gl.autoClear = _autoClear
 }
 
 export const preloadScene = (scene: Scene, camera: Camera, layer = 0, callback?: () => void) => {
-  if (!scene || !camera) return
-  config.preloadQueue.push((gl: WebGLRenderer) => {
+  config.preloadQueue.push((gl: WebGLRenderer, globalScene: Scene, globalCamera: Camera) => {
     gl.setScissorTest(false)
-    setAllCulled(scene, false)
+    setAllCulled(scene || globalScene, false)
     camera.layers.set(layer)
-    gl.render(scene, camera)
-    setAllCulled(scene, true)
+    gl.render(scene || globalScene, camera || globalCamera)
+    setAllCulled(scene || globalScene, true)
     callback && callback()
   })
   // auto trigger a new frame for the preload

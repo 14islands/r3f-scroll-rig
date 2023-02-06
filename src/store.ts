@@ -8,7 +8,6 @@ interface ScrollRigStore {
   scaleMultiplier: number
   globalRender: boolean
   globalPriority: number
-  globalAutoClear: boolean
   globalClearDepth: boolean
   globalRenderQueue: false | any[]
   clearGlobalRenderQueue: () => void
@@ -42,8 +41,7 @@ const useCanvasStore = create<ScrollRigStore>((set) => ({
 
   globalRender: true,
   globalPriority: config.PRIORITY_GLOBAL,
-  globalAutoClear: false,
-  globalClearDepth: true,
+  globalClearDepth: false,
 
   globalRenderQueue: false,
   clearGlobalRenderQueue: () => set(() => ({ globalRenderQueue: false })),

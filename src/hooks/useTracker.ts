@@ -13,10 +13,10 @@ import { useScrollbar, Scroll } from '../scrollbar/useScrollbar'
 import type { Rect, Bounds, TrackerOptions, Tracker, ScrollState, UpdateCallback } from './useTracker.d'
 
 function updateBounds(bounds: Bounds, rect: Rect, scroll: Scroll, size: any) {
-  bounds.top = rect.top - scroll.y
-  bounds.bottom = rect.bottom - scroll.y
-  bounds.left = rect.left - scroll.x
-  bounds.right = rect.right - scroll.x
+  bounds.top = rect.top - (scroll.y || 0)
+  bounds.bottom = rect.bottom - (scroll.y || 0)
+  bounds.left = rect.left - (scroll.x || 0)
+  bounds.right = rect.right - (scroll.x || 0)
   bounds.width = rect.width
   bounds.height = rect.height
   // move coordinate system so 0,0 is at center of screen
@@ -79,8 +79,6 @@ function useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptio
     right: 0,
     width: 0,
     height: 0,
-    x: 0,
-    y: 0,
   }).current
 
   // expose internal ref as a reactive state as well
@@ -114,8 +112,6 @@ function useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptio
     rect.right = _rect.right + initialX
     rect.width = _rect.width
     rect.height = _rect.height
-    rect.x = rect.left + _rect.width * 0.5
-    rect.y = rect.top + _rect.height * 0.5
     setReactiveRect({ ...rect })
     setScale(vecn.vec3(rect?.width * scaleMultiplier, rect?.height * scaleMultiplier, 1))
     debug &&

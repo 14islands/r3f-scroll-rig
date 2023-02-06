@@ -1,30 +1,21 @@
-import React, { memo, useRef, useState, useCallback, MutableRefObject, ReactNode } from 'react'
-import { Scene, Camera, PerspectiveCamera } from 'three'
-import { useFrame, createPortal, invalidate } from '@react-three/fiber'
+import React, { memo, useEffect, useState, useCallback, MutableRefObject, ReactNode } from 'react'
+import { Scene } from 'three'
+import { useFrame, createPortal, useThree } from '@react-three/fiber'
 
 import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
 import { config } from '../config'
-import { useCanvasStore } from '../store'
 import { useScrollRig } from '../hooks/useScrollRig'
 import { DebugMesh } from './DebugMesh'
 import { useTracker } from '../hooks/useTracker'
-import type { ScrollState } from '../hooks/useTracker.d'
+import type { Tracker } from '../hooks/useTracker.d'
+import { PerspectiveCamera } from './PerspectiveCamera'
+import { OrthographicCamera } from './OrthographicCamera'
 
-interface ViewportScrollSceneState {
-  track: MutableRefObject<HTMLElement>
-  margin: number
-  renderOrder: number
-  priority: number
-  scene: Scene
-  camera: Camera
-  scale: vec3 | undefined
-  scrollState: ScrollState
-  inViewport: boolean
-}
+import type { ScrollSceneChildProps } from './ScrollScene'
 
 interface ViewportScrollScene {
   track: MutableRefObject<HTMLElement>
-  children: (state: ViewportScrollSceneState) => ReactNode
+  children: (state: ScrollSceneChildProps) => ReactNode
   margin?: number
   inViewportMargin?: string
   inViewportThreshold?: number
@@ -32,9 +23,9 @@ interface ViewportScrollScene {
   hideOffscreen?: boolean
   debug?: boolean
   orthographic?: boolean
-  as?: string
-  renderOrder?: number
   priority?: number
+  hud?: boolean // clear depth to render on top
+  camera?: any
 }
 
 /**
@@ -44,66 +35,100 @@ interface ViewportScrollScene {
  * Adapted to @react-three/fiber from https://threejsfundamentals.org/threejs/lessons/threejs-multiple-scenes.html
  * @author david@14islands.com
  */
-const ViewportScrollSceneImpl = ({
+const Viewport = ({
   track,
   children,
   margin = 0, // Margin outside viewport to avoid clipping vertex displacement (px)
-  inViewportMargin,
-  inViewportThreshold,
   visible = true,
   hideOffscreen = true,
   debug = false,
   orthographic = false,
-  renderOrder = 1,
   priority = config.PRIORITY_VIEWPORTS,
+  inViewport,
+  bounds,
+  scale,
+  scrollState,
+  camera,
+  hud,
   ...props
-}: ViewportScrollScene) => {
-  const camera = useRef<PerspectiveCamera>(null!)
-  const [scene] = useState(() => new Scene())
-
-  // const get = useThree((state) => state.get)
-  // const setEvents = useThree((state) => state.setEvents)
+}: ViewportScrollScene & Tracker) => {
+  const scene = useThree((s) => s.scene)
+  const get = useThree((state) => state.get)
+  const setEvents = useThree((state) => state.setEvents)
 
   const { renderViewport } = useScrollRig()
-
-  const pageReflow = useCanvasStore((state) => state.pageReflow)
-  const scaleMultiplier = useCanvasStore((state) => state.scaleMultiplier)
-
-  const { rect, bounds, scale, position, scrollState, inViewport } = useTracker(track, {
-    rootMargin: inViewportMargin,
-    threshold: inViewportThreshold,
-  })
 
   // Hide scene when outside of viewport if `hideOffscreen` or set to `visible` prop
   useLayoutEffect(() => {
     scene.visible = hideOffscreen ? inViewport && visible : visible
   }, [inViewport, hideOffscreen, visible])
 
-  const [cameraDistance, setCameraDistance] = useState(0)
+  // From: https://github.com/pmndrs/drei/blob/d22fe0f58fd596c7bfb60a7a543cf6c80da87624/src/web/View.tsx#L80
+  useEffect(() => {
+    // Connect the event layer to the tracking element
+    const old = get().events.connected
+    setEvents({ connected: track.current })
+    return () => setEvents({ connected: old })
+  }, [])
 
-  // Find bounding box & scale mesh on resize
-  useLayoutEffect(() => {
-    if (!rect) return
-    const viewportWidth = rect.width * scaleMultiplier
-    const viewportHeight = rect.height * scaleMultiplier
-    const cameraDistance = Math.max(viewportWidth, viewportHeight)
-    setCameraDistance(cameraDistance)
-
-    // Calculate FOV to match the DOM rect for this camera distance
-    if (camera.current && !orthographic) {
-      camera.current.aspect =
-        (viewportWidth + margin * 2 * scaleMultiplier) / (viewportHeight + margin * 2 * scaleMultiplier)
-      camera.current.fov =
-        2 * (180 / Math.PI) * Math.atan((viewportHeight + margin * 2 * scaleMultiplier) / (2 * cameraDistance))
-      camera.current.updateProjectionMatrix()
-      // https://github.com/react-spring/@react-three/fiber/issues/178
-      // Update matrix world since the renderer is a frame late
-      camera.current.updateMatrixWorld()
+  // RENDER FRAME
+  useFrame(({ gl, scene, camera }) => {
+    // Render scene to viewport using local camera and limit updates using scissor test
+    if (scene.visible) {
+      renderViewport({
+        gl,
+        scene,
+        camera,
+        left: bounds.left - margin,
+        top: bounds.positiveYUpBottom - margin,
+        width: bounds.width + margin * 2,
+        height: bounds.height + margin * 2,
+        clearDepth: !!hud,
+      })
     }
-    // trigger a frame
-    invalidate()
-  }, [track, pageReflow, rect, scaleMultiplier])
+  }, priority)
 
+  return (
+    <>
+      {!orthographic && <PerspectiveCamera manual makeDefault {...camera} />}
+      {orthographic && <OrthographicCamera manual makeDefault {...camera} />}
+      {(!children || debug) && scale && <DebugMesh scale={scale} />}
+      {children &&
+        // scene &&
+        scale &&
+        children({
+          // inherited props
+          track,
+          margin,
+          // new props
+          scale,
+          scrollState,
+          inViewport,
+          // useFrame render priority (in case children need to run after)
+          priority,
+          // tunnel the rest
+          ...props,
+        })}
+    </>
+  )
+}
+
+function ViewportScrollSceneImpl({
+  track,
+  margin = 0, // Margin outside viewport to avoid clipping vertex displacement (px)
+  inViewportMargin,
+  inViewportThreshold,
+  priority,
+  ...props
+}: ViewportScrollScene) {
+  const [scene] = useState(() => new Scene())
+
+  const { bounds, ...trackerProps } = useTracker(track, {
+    rootMargin: inViewportMargin,
+    threshold: inViewportThreshold,
+  })
+
+  // From: https://github.com/pmndrs/drei/blob/d22fe0f58fd596c7bfb60a7a543cf6c80da87624/src/web/View.tsx#L80
   const compute = useCallback(
     (event: any, state: any) => {
       // limit events to DOM element bounds
@@ -114,96 +139,19 @@ const ViewportScrollSceneImpl = ({
         const x = event.clientX - left + margin
         const y = event.clientY - top + margin
         state.pointer.set((x / mWidth) * 2 - 1, -(y / mHeight) * 2 + 1)
-        state.raycaster.setFromCamera(state.pointer, camera.current)
+        state.raycaster.setFromCamera(state.pointer, state.camera)
       }
     },
-    [bounds, position]
+    [bounds]
   )
-
-  // Not needed?
-  // from: https://github.com/pmndrs/drei/blob/d22fe0f58fd596c7bfb60a7a543cf6c80da87624/src/web/View.tsx#L80
-  // but seems to work without it
-  // useEffect(() => {
-  //   // Connect the event layer to the tracking element
-  //   const old = get().events.connected
-  //   setEvents({ connected: track.current })
-  //   return () => setEvents({ connected: old })
-  // }, [])
-
-  // RENDER FRAME
-  useFrame(({ gl }) => {
-    if (!scene || !scale) return
-
-    // Render scene to viewport using local camera and limit updates using scissor test
-    // Performance improvement - faster than always rendering full canvas
-    if (scene.visible) {
-      renderViewport({
-        gl,
-        scene,
-        camera: camera.current,
-        left: bounds.left - margin,
-        top: bounds.positiveYUpBottom - margin,
-        width: bounds.width + margin * 2,
-        height: bounds.height + margin * 2,
-      })
-    }
-  }, priority)
 
   return (
     bounds &&
     createPortal(
-      <>
-        {/* Use local camera for viewport rendering */}
-        {!orthographic && (
-          <perspectiveCamera
-            // @ts-ignore
-            ref={camera}
-            position={[0, 0, cameraDistance]}
-            onUpdate={(self) => self.updateProjectionMatrix()}
-          />
-        )}
-        {orthographic && scale && (
-          <orthographicCamera
-            // @ts-ignore
-            ref={camera}
-            position={[0, 0, cameraDistance]}
-            onUpdate={(self) => self.updateProjectionMatrix()}
-            left={scale[0] / -2}
-            right={scale[0] / 2}
-            top={scale[1] / 2}
-            bottom={scale[1] / -2}
-            far={cameraDistance * 2}
-            near={0.001}
-          />
-        )}
-
-        <group renderOrder={renderOrder}>
-          {(!children || debug) && scale && <DebugMesh scale={scale} />}
-          {children &&
-            scene &&
-            scale &&
-            children({
-              // inherited props
-              track,
-              margin,
-              renderOrder,
-              // new props
-              scale,
-              scrollState,
-              inViewport,
-              scene,
-              camera: camera.current,
-              // useFrame render priority (in case children need to run after)
-              priority: priority + renderOrder,
-              // tunnel the rest
-              ...props,
-            })}
-        </group>
-      </>,
-      // @ts-ignore
+      <Viewport track={track} bounds={bounds} priority={priority} {...props} {...trackerProps} />,
       scene,
       // @ts-ignore
-      { events: { compute, priority }, size: { width: rect.width, height: rect.height } }
+      { events: { compute, priority }, size: { width: bounds.width, height: bounds.height } }
     )
   )
 }

@@ -26,7 +26,6 @@ interface IGlobalCanvas extends Omit<Props, 'children'> {
   scaleMultiplier?: number
   globalRender?: boolean
   globalPriority?: number
-  globalAutoClear?: boolean
   globalClearDepth?: boolean
   loadingFallback?: any
 }
@@ -42,8 +41,7 @@ const GlobalCanvasImpl = ({
   scaleMultiplier = config.DEFAULT_SCALE_MULTIPLIER,
   globalRender = true,
   globalPriority = config.PRIORITY_GLOBAL,
-  globalAutoClear = false, // don't clear viewports
-  globalClearDepth = true,
+  globalClearDepth = false,
   ...props
 }: Omit<IGlobalCanvas, 'onError'>) => {
   const globalRenderState = useCanvasStore((state) => state.globalRender)
@@ -65,10 +63,9 @@ const GlobalCanvasImpl = ({
       scaleMultiplier,
       globalRender,
       globalPriority,
-      globalAutoClear,
       globalClearDepth,
     })
-  }, [scaleMultiplier, globalPriority, globalRender, globalAutoClear, globalClearDepth])
+  }, [scaleMultiplier, globalPriority, globalRender, globalClearDepth])
 
   const CanvasElement = as
 
@@ -76,7 +73,9 @@ const GlobalCanvasImpl = ({
     <CanvasElement
       id="ScrollRig-canvas"
       // use our own default camera
-      camera={null}
+      camera={{
+        manual: true,
+      }}
       // Some sane defaults
       gl={{
         // https://blog.tojicode.com/2013/12/failifmajorperformancecaveat-with-great.html
@@ -102,9 +101,9 @@ const GlobalCanvasImpl = ({
       {globalRenderState && <GlobalRenderer />}
 
       {/* @ts-ignore */}
-      {!orthographic && <PerspectiveCamera makeDefault={true} {...camera} />}
+      {!orthographic && <PerspectiveCamera manual makeDefault {...camera} />}
       {/* @ts-ignore */}
-      {orthographic && <OrthographicCamera makeDefault={true} {...camera} />}
+      {orthographic && <OrthographicCamera manual makeDefault {...camera} />}
 
       <ResizeManager />
     </CanvasElement>
