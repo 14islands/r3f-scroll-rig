@@ -55,9 +55,10 @@ function useImageAsTexture(
 
         function returnResolve() {
           resolve(el?.currentSrc)
+          DefaultLoadingManager.itemEnd('waiting for DOM image')
         }
 
-        // respond to all future load events (resizing might load another image)
+        // respond to future load event if not cached
         el?.addEventListener('load', returnResolve, { once: true })
 
         // detect if loaded from browser cache
@@ -67,7 +68,7 @@ function useImageAsTexture(
         }
       })
     },
-    [imgRef, size],
+    [imgRef, size, imgRef.current?.currentSrc],
     { equal } // use deep-equal since size ref seems to update on route change
   ) as string
 
@@ -103,7 +104,6 @@ function useImageAsTexture(
   useEffect(
     function uploadTextureToGPU() {
       initTexture && gl.initTexture(texture)
-      DefaultLoadingManager.itemEnd('waiting for DOM image')
       debug && console.log('useImageAsTexture', 'initTexture()')
     },
     [gl, texture, initTexture]
