@@ -131,7 +131,7 @@ export const HtmlComponent = () => (
 )
 ```
 
-How it works:
+## How it works:
 
 - The page layout is styled using normal HTML & CSS
 - The `UseCanvas` component is used to send its children to the `GlobalCanvas` while the component is mounted
@@ -257,7 +257,7 @@ return (
 </details>
 
 <details>
-  <summary>Can I use R3F events in `<ViewportScrollScene>`?</summary>
+  <summary>Can I use R3F events in `ViewportScrollScene`?</summary>
 
 Yes, events will be correctly tunneled into the viewport, if you follow the steps above to re-attach the event system to a parent of the canvas.
 
