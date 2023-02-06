@@ -28,7 +28,7 @@ const SmoothScrollbarImpl = (
   const innerRef = useRef<HTMLElement>()
   const lenis = useRef<Lenis>()
   const preventPointer = useRef(false)
-  const globalScrollState = useCanvasStore((state) => state.scroll)
+  const globalScrollState = useCanvasStore((s) => s.scroll)
 
   // Expose lenis imperative API
   useImperativeHandle(ref, () => ({
@@ -132,7 +132,7 @@ const SmoothScrollbarImpl = (
 
       onScroll && onScroll({ scroll, limit, velocity, direction, progress })
 
-      invalidate() // trigger an R3F frame
+      invalidate() // demand a R3F frame on scroll
     })
 
     // update global state
@@ -147,6 +147,7 @@ const SmoothScrollbarImpl = (
       useCanvasStore.setState({
         onScroll: (cb: ScrollCallback) => {
           lenis.current?.on('scroll', cb)
+          lenis.current?.notify() // send current scroll to new subscriber
           return () => lenis.current?.off('scroll', cb)
         },
       })
@@ -156,7 +157,7 @@ const SmoothScrollbarImpl = (
       useCanvasStore.getState().scroll.x = window.scrollX
     }
 
-    // trigger initial scroll event to update global state
+    // fire our internal scroll callback to update globalState
     lenis.current?.notify()
     return () => {
       lenis.current?.off('scroll')
