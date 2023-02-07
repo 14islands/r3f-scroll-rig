@@ -4,15 +4,13 @@
 
 Simplify render logic and improve camera controls.
 
-- Bugfix: make sure `viewport` is correct after resize
-
 - `ViewportScrollScene`
 
-  - Uses portal state enclave for camera so you can use OrbitControls or pass in a custom camera as a child.
-  - No longer clears depth by default
-  - Added `hud` prop to clear depth
-  - Added `camera` prop to allow overriding default camera settings
-    - Setting `fov` will calculate distance
+  - Feat: now uses portal state enclave for camera so you can use OrbitControls or pass in a custom camera as a child.
+  - Feat: No longer clears depth by default
+  - Feat: added `hud` prop to clear depth
+  - Feat: aadded `camera` prop to allow overriding default camera settings
+    - specifying `fov` will calculate distance to match the DOM
   - Removed `renderOrder` - can be set manually on children instead
 
 - `ScrollScene`
@@ -20,8 +18,18 @@ Simplify render logic and improve camera controls.
   - Removed `renderOrder` - can be set manually on children instead
 
 - `GlobalCanvas`
-  - `camera` prop now allows overriding `fov`. If `fov` is specified, the camera distance will be calculated to match DOM size.
-  - Removed `globalClearAlpha` - can be controlled by other useFrames with higher or lower priority instead
+
+  - Fix: make sure `viewport` is correct after resize when using default perspective camera
+  - Feat: `camera` prop now allows overriding `fov`. If `fov` is specified, the camera distance will be calculated to match DOM size.
+  - Feat: Default camera FoV now set to 50
+  - Removed: `globalClearAlpha` - can be controlled by other useFrames with higher or lower priority instead
+
+- `useImageAsTexture`
+
+  - Fix: better support for next/image loading="lazy"
+
+- `SmoothScrollbar`
+  - Fix: make sure binding an onScroll callback fires an initial scroll event
 
 ## v8.8.0
 
