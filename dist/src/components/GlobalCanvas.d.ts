@@ -1,7 +1,6 @@
 import { ReactNode } from 'react';
 import { Props } from '@react-three/fiber';
 interface IGlobalCanvas extends Omit<Props, 'children'> {
-    as?: any;
     children?: ReactNode | ((globalChildren: ReactNode) => ReactNode);
     orthographic?: boolean;
     onError?: (props: any) => void;
@@ -11,7 +10,6 @@ interface IGlobalCanvas extends Omit<Props, 'children'> {
     globalRender?: boolean;
     globalPriority?: number;
     globalClearDepth?: boolean;
-    loadingFallback?: any;
 }
 export declare const GlobalCanvas: ({ children, onError, ...props }: IGlobalCanvas) => JSX.Element;
 export {};
