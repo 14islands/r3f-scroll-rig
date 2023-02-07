@@ -209,18 +209,20 @@ A better way to fix the issue is to change the GlobalCanvas scaling to something
 </details>
 
 <details>
-  <summary>All items on the page need a predictable height</summary>
+  <summary>Cumulative layout shift (CLS)</summary>
 
-Always define an aspect ratio using CSS for images and other interactive elements that might impact the document height as they load.
+All items on the page should have a predictable height - always define an aspect ratio using CSS for images and other interactive elements that might impact the document height as they load.
 
-If you can’t define height with CSS - you need to trigger `reflow()` from `useScrollRig` after height is final. The reflow function will cause all cached DOM rects to be re-calculated.
+The scroll-rig uses `ResizeObserver` to detect changes to the `document.body` height, for instance after webfonts loaded, and will automatically recalculate postions.
+
+If this fails for some reason, you can trigger a manual `reflow()` to recalculate all cached positions.
 
 ```jsx
 const { reflow } = useScrollRig()
 
 useEffect(() => {
-  finished && reflow()
-}, [finished])
+  heightChanged && reflow()
+}, [heightChanged])
 ```
 
 </details>
