@@ -1,4 +1,4 @@
-# API
+# ⚙️ API
 
 <table>
   <tr>
@@ -28,6 +28,8 @@
 ## Components
 
 ### `<GlobalCanvas>`
+
+This is the global canvas component that should stay mounted in between page loads.
 
 #### Render Props
 
