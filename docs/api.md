@@ -16,9 +16,9 @@
         <ul>
           <li><a href="#usescrollrig">useScrollRig</a></li>
           <li><a href="#usescrollbar">useScrollbar</a></li>
+          <li><a href="#usetracker">useTracker</a></li>
           <li><a href="#usecanvas">useCanvas</a></li>
           <li><a href="#useimageastexture">useImageAsTexture</a></li>
-          <li><a href="#usetracker">useTracker</a></li>
         </ul>
     </td>
 
@@ -96,11 +96,11 @@ import { SmoothScrollbar } from '@14islands/r3f-scroll-rig/scrollbar'
 
 ### `<UseCanvas>`
 
-This component tunnels the children to the GlobalCanvas using the `useCanvas` hook.
+This component tunnels the children to the GlobalCanvas using the `useCanvas` hook. It's basically just the same, but a bit more user friendly
 
-The props added to `UseCanvas` will be tunneled to the child component inside the GlobalCanvas.
+The props added to `UseCanvas` will be tunneled to the child component inside the GlobalCanvas. It automatically updates the canvas component's props when any of the them change.
 
-It's basically just the same as using the hook but it automatically updates the canvas component's props when any of the props change
+The children will stay mounted on the canvas until this component unmounts.
 
 #### Render Props
 
@@ -118,22 +118,22 @@ It's basically just the same as using the hook but it automatically updates the 
 
 ### `<ScrollScene>`
 
-Tracks a DOM element and moves to match its position in the viewport.
+Tracks a DOM element and renders a Threejs Scene that matches the position in the viewport during scroll.
 
-The child component is passed `scale` which can be used to match the DOM element's size. It's also passed `scrollState` which contains information regarding it's position in the viewport, this is useful for things like parallax or animations.
+The child component is passed `scale` which can be used to match the DOM element's size. It's also passed `scrollState` which contains information regarding it's position in the viewport, this is useful for things like parallax or animations. By default it will also hide the children when leaving the viewport.
 
 ```tsx
 <ScrollScene
   track: RefObject            // DOM element to track (ref)
   children: (props) => JSX.Element  // render function
   as?: string = "scene"       // renders as a Scene by default
-  inViewportMargin?: string = "50%"  // IntersectionObserver rootMargin
-  hideOffscreen?: boolean = true // Hide scene when off screen
-  margin?: number             // margin added outside scissor
-  scissor?: boolean = false   // Render as separate pass in a scissor
+  inViewportMargin?: string = "0%"  // IntersectionObserver rootMargin
+  hideOffscreen?: boolean = true // Hide scene when outside viewport
   visible?: boolean = true    // Scene visibility
   debug?: boolean = false     // Render a debug plane and show 50% opacity of DOM element
-  priority?: number = 1       // useFrame priority
+  scissor?: boolean = false   // Render as separate pass in a scissor
+  margin?: number             // margin added outside scissor
+  priority?: number = 1       // useFrame priority for scissor render
   >
   { ({ scale, ...props }) => (
     <mesh scale={scale}>
@@ -147,8 +147,8 @@ The child component is passed `scale` which can be used to match the DOM element
 The child node will be passed the following `props`:
 
 ```ts
-track: RefObject
-scale: number[]
+track: RefObject // HTML element being tracked
+scale: number[]  // HTML element dimensions converted to world scale
 scrollState: {
   // transient state - not reactive
   inViewport: boolean // boolean - true if currently in viewport
@@ -156,10 +156,12 @@ scrollState: {
   visibility: number // number - percent of item height in view
   viewport: number // number - percent of window height scrolled since visible
 }
-inViewport: boolean // boolean set to true while in viewport
+inViewport: boolean // boolean set to true while in viewport (+/- inViewportMargin)
 priority: number // the parent useFrame priority
 props: any[] // tunneled from the parent
 ```
+
+_Note: this is an abstraction on top of the <a href="#usetracker">useTracker</a> hook._
 
 ### `<ViewportScrollScene>`
 
@@ -167,15 +169,15 @@ Tracks a DOM element similar to ScrollScene, but renders a virtual scene in a se
 
 This makes it possible to use different lights and camera settings compared to the global scene, at the cost of one extra render per instance.
 
-The child receives similar props as the ScrollScene provides.
+The child receives the same props as the ScrollScene provides.
 
 ```tsx
 <ViewportScrollScene
   track: RefObject            // DOM element to track (ref)
   children: (props) => JSX.Element  // render function
   orthographic?: boolean = false // uses a perspective camera by default
-  inViewportMargin?: string = "50%"  // IntersectionObserver rootMargin
-  hideOffscreen?: boolean = true // Hide scene when off screen
+  inViewportMargin?: string = "0%"  // IntersectionObserver rootMargin
+  hideOffscreen?: boolean = true // Hide scene when outside viewport
   margin?: number             // margin added outside scissor
   visible?: boolean = true    // Scene visibility
   debug?: boolean = false     // Render a debug plane and show 50% opacity of DOM element
@@ -195,8 +197,8 @@ The child receives similar props as the ScrollScene provides.
 The child node will be passed the following `props`:
 
 ```ts
-track: RefObject
-scale: number[]
+track: RefObject // HTML element being tracked
+scale: number[]  // HTML element dimensions converted to world scale
 scrollState: {
   // transient state - not reactive
   inViewport: boolean // boolean - true if currently in viewport
@@ -204,10 +206,12 @@ scrollState: {
   visibility: number // number - percent of item height in view
   viewport: number // number - percent of window height scrolled since visible
 }
-inViewport: boolean // boolean set to true while in viewport
+inViewport: boolean // boolean set to true while in viewport (+/- inViewportMargin)
 priority: number // the parent useFrame priority
 props: any[] // tunneled from the parent
 ```
+
+_Note: this is an abstraction on top of the <a href="#usetracker">useTracker</a> hook._
 
 ## Hooks
 
@@ -261,6 +265,44 @@ const {
   renderScissor: ({ gl, scene, camera, top, left, width, height, layer, autoClear, clearDepth}) => void, // renders scene with a scissor to the canvas
   renderViewport:  ({ gl, scene, camera, top, left, width, height, layer, autoClear, clearDepth}) => void, // renders a scene inside a viewport to the canvas,
 } = useScrollRig
+```
+
+### `useTracker`
+
+Used internally by `ScrollScene` and `ViewportScrollScene` to track DOM elements as the user scrolls.
+
+This hook makes a single call to `getBoundingClientRect` when it mounts and then uses scroll offsets to calculate the element's position during scroll.
+
+It will not detect changes to the element size - only as a result of window resize.
+
+It returns `scale` and `position` in Three.js units. `position` is not reactive to avoid expensive re-renders, so you need to read its properties in a rAF or on scroll.
+
+```ts
+
+interface TrackerOptions {
+  rootMargin?: string = "50%" // IntersectionObserver
+  threshold?: number = 0 // IntersectionObserver
+  autoUpdate?: boolean = true // auto updates position/bounds/scrollState on scroll
+}
+
+const tracker: Tracker = useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptions)
+
+interface Tracker {
+  rect: DOMRect // reactive pixel size
+  scale: vec3 // reactive viewport unti scale
+  inViewport: Boolean // reactive
+  bounds: Bounds // non-reactive pixel bounds - updates on scroll
+  position: vec3 // non-reactive viewport unit position, updates on scroll
+  scrollState: ScrollState // non-reactive scroll stats, updates on scroll
+  update: () => void // use to manually update position/bounds/scrollState
+}
+```
+
+`vec3` is 3-dimensional vector type from [vecn](https://www.npmjs.com/package/vecn) that support swizzling and object notation. You can do things like:
+
+```js
+position.x === position[0]
+position.xy => [x,y]
 ```
 
 ### `useCanvas`
@@ -323,42 +365,4 @@ function MyMesh({ imgTagRef, scale }) {
     </mesh>
   )
 }
-```
-
-### `useTracker`
-
-Used internally by `ScrollScene` and `ViewportScrollScene` to track DOM elements as the user scrolls.
-
-This hook makes a single call to `getBoundingClientRect` when it mounts and then uses scroll offsets to calculate the element's position during scroll.
-
-It will not detect changes to the element size - only as a result of window resize.
-
-It returns `scale` and `position` in Three.js units. `position` is not reactive to avoid expensive re-renders, so you need to read its properties in a rAF or on scroll.
-
-```ts
-
-interface TrackerOptions {
-  rootMargin?: string = "50%" // IntersectionObserver
-  threshold?: number = 0 // IntersectionObserver
-  autoUpdate?: boolean = true // auto updates position/bounds/scrollState on scroll
-}
-
-const tracker: Tracker = useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptions)
-
-interface Tracker {
-  rect: DOMRect // reactive pixel size
-  scale: vec3 // reactive viewport unti scale
-  inViewport: Boolean // reactive
-  bounds: Bounds // non-reactive pixel bounds - updates on scroll
-  position: vec3 // non-reactive viewport unit position, updates on scroll
-  scrollState: ScrollState // non-reactive scroll stats, updates on scroll
-  update: () => void // use to manually update position/bounds/scrollState
-}
-```
-
-`vec3` is 3-dimensional vector type from [vecn](https://www.npmjs.com/package/vecn) that support swizzling and object notation. You can do things like:
-
-```js
-position.x === position[0]
-position.xy => [x,y]
 ```

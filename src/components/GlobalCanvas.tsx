@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react'
 import { Canvas, Props } from '@react-three/fiber'
-import { ResizeObserver } from '@juggle/resize-observer'
+import { ResizeObserver as Polyfill } from '@juggle/resize-observer'
 import { parse } from 'query-string'
 
 import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
@@ -14,6 +14,11 @@ import { GlobalRenderer } from './GlobalRenderer'
 import { CanvasErrorBoundary } from './CanvasErrorBoundary'
 
 import { config } from '../config'
+
+let polyfill: new (callback: ResizeObserverCallback) => ResizeObserver
+if (typeof window !== 'undefined') {
+  polyfill = window.ResizeObserver || Polyfill
+}
 
 interface IGlobalCanvas extends Omit<Props, 'children'> {
   as?: any
@@ -44,7 +49,7 @@ const GlobalCanvasImpl = ({
   globalClearDepth = false,
   ...props
 }: Omit<IGlobalCanvas, 'onError'>) => {
-  const globalRenderState = useCanvasStore((state) => state.globalRender)
+  const useGlobalRenderer = useCanvasStore((state) => state.globalRender)
 
   // enable debug mode
   useLayoutEffect(() => {
@@ -83,7 +88,7 @@ const GlobalCanvasImpl = ({
         ...gl,
       }}
       // polyfill old iOS safari
-      resize={{ scroll: false, debounce: 0, polyfill: ResizeObserver }}
+      resize={{ scroll: false, debounce: 0, polyfill }}
       // default styles
       style={{
         position: 'fixed',
@@ -96,14 +101,14 @@ const GlobalCanvasImpl = ({
       // allow to override anything of the above
       {...props}
     >
-      {typeof children === 'function' ? children(<GlobalChildren />) : <GlobalChildren>{children}</GlobalChildren>}
-
-      {globalRenderState && <GlobalRenderer />}
-
       {/* @ts-ignore */}
       {!orthographic && <PerspectiveCamera manual makeDefault {...camera} />}
       {/* @ts-ignore */}
       {orthographic && <OrthographicCamera manual makeDefault {...camera} />}
+
+      {useGlobalRenderer && <GlobalRenderer />}
+
+      {typeof children === 'function' ? children(<GlobalChildren />) : <GlobalChildren>{children}</GlobalChildren>}
 
       <ResizeManager />
     </CanvasElement>

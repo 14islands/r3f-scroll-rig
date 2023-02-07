@@ -1,7 +1,7 @@
 import create from 'zustand'
 import { config } from './config'
 
-import { LenisScrollCallback } from './scrollbar/LenisScrollbar'
+import { ScrollCallback } from './scrollbar/SmoothScrollbar.d'
 
 interface ScrollRigStore {
   debug: boolean
@@ -29,7 +29,7 @@ interface ScrollRigStore {
     scrollDirection?: 'vertical' | 'horizontal'
   }
   scrollTo: (target: any) => void
-  onScroll: (cb: LenisScrollCallback) => () => void
+  onScroll: (cb: ScrollCallback) => () => void
 }
 
 const useCanvasStore = create<ScrollRigStore>((set) => ({

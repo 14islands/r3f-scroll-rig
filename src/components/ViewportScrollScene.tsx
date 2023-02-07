@@ -148,7 +148,7 @@ function ViewportScrollSceneImpl({
   return (
     bounds &&
     createPortal(
-      <Viewport track={track} bounds={bounds} priority={priority} {...props} {...trackerProps} />,
+      <Viewport track={track} bounds={bounds} priority={priority} margin={margin} {...props} {...trackerProps} />,
       scene,
       // @ts-ignore
       { events: { compute, priority }, size: { width: bounds.width, height: bounds.height } }

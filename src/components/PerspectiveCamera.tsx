@@ -10,6 +10,8 @@ type Props = JSX.IntrinsicElements['perspectiveCamera'] & {
   makeDefault?: boolean
 }
 
+const DEFAULT_FOV = 50
+
 export const PerspectiveCamera = forwardRef(({ makeDefault = false, ...props }: Props, ref) => {
   const set = useThree((state) => state.set)
   const camera = useThree((state) => state.camera)
@@ -27,17 +29,17 @@ export const PerspectiveCamera = forwardRef(({ makeDefault = false, ...props }: 
     const aspect = width / height
 
     // check props vs defaults
-    let fov = props.fov
-    let distance = (props?.position as number[])?.[2] || Math.max(width, height)
+    let fov = props.fov || DEFAULT_FOV
+    let distance = (props?.position as number[])?.[2]
 
     // calculate either FoV or distance to match scale
-    if (fov) {
+    if (distance) {
+      // calculate FoV based on distance
+      fov = 2 * (180 / Math.PI) * Math.atan(height / (2 * distance))
+    } else {
       // calculate distance for specified FoV
       const ratio = Math.tan(((fov / 2.0) * Math.PI) / 180.0) * 2.0
       distance = height / ratio
-    } else {
-      // calculate FoV based on distance
-      fov = 2 * (180 / Math.PI) * Math.atan(height / (2 * distance))
     }
 
     return { fov, distance, aspect }
@@ -45,6 +47,7 @@ export const PerspectiveCamera = forwardRef(({ makeDefault = false, ...props }: 
 
   // Update camera projection and R3F viewport
   useLayoutEffect(() => {
+    cameraRef.current.lookAt(0, 0, 0)
     cameraRef.current.updateProjectionMatrix()
     // https://github.com/react-spring/@react-three/fiber/issues/178
     // Update matrix world since the renderer is a frame late

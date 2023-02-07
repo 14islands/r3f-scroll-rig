@@ -1,4 +1,4 @@
-import { LenisScrollCallback } from './scrollbar/LenisScrollbar';
+import { ScrollCallback } from './scrollbar/SmoothScrollbar.d';
 interface ScrollRigStore {
     debug: boolean;
     scaleMultiplier: number;
@@ -25,7 +25,7 @@ interface ScrollRigStore {
         scrollDirection?: 'vertical' | 'horizontal';
     };
     scrollTo: (target: any) => void;
-    onScroll: (cb: LenisScrollCallback) => () => void;
+    onScroll: (cb: ScrollCallback) => () => void;
 }
 declare const useCanvasStore: import("zustand").UseBoundStore<ScrollRigStore, import("zustand").StoreApi<ScrollRigStore>>;
 export { useCanvasStore };

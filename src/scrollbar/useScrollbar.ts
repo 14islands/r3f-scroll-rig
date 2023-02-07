@@ -1,5 +1,5 @@
 import { useCanvasStore } from '../store'
-import { LenisScrollCallback } from './LenisScrollbar'
+import { ScrollCallback } from './SmoothScrollbar.d'
 
 export interface Scroll {
   y: number
@@ -15,7 +15,7 @@ interface UseScrollbarProps {
   enabled: boolean
   scroll: Scroll
   scrollTo: (target: any) => void
-  onScroll: (cb: LenisScrollCallback) => () => void
+  onScroll: (cb: ScrollCallback) => () => void
 }
 
 /**

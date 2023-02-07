@@ -16,7 +16,7 @@ export { useTracker } from './hooks/useTracker'
 export { useImageAsTexture } from './hooks/useImageAsTexture'
 
 // Scrollbar
-export { SmoothScrollbar } from './scrollbar/SmoothScrollbar'
+export { default as SmoothScrollbar } from './components/R3FSmoothScrollbar'
 
 // CSS class names for hiding stuff
 // Matching css styles can be imported from @14islands/r3f-scrollr-rig/css
