@@ -34,16 +34,27 @@
 ```tsx
 <GlobalCanvas
   children // R3F global child nodes
-  as?: any = Canvas
   orthographic?: boolean = false
-  camera?: object // warning: only change camera.position.z to keep matching the DOM dimensions (FOV is calculated automatically)
+  camera?: object // Default FoV=50 - distance is calculated to match DOM size
   debug?: boolean = false
   scaleMultiplier?: number = 1 // 1 pixel = 1 viewport unit
   globalRender?: boolean
   globalPriority?: number
   globalClearDepth?: boolean
-  loadingFallback?: any
 />
+```
+
+The following default styles are applied to the canvas:
+
+```css
+style={{
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  right: 0,
+  height: '100vh', // use 100vh to avoid resize on iOS when url bar goes away
+  ...style,
+}}
 ```
 
 ### `<SmoothScrollbar>`

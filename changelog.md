@@ -23,6 +23,7 @@ Simplify render logic and improve camera controls.
   - Feat: `camera` prop now allows overriding `fov`. If `fov` is specified, the camera distance will be calculated to match DOM size.
   - Feat: Default camera FoV now set to 50
   - Removed: `globalClearAlpha` - can be controlled by other useFrames with higher or lower priority instead
+  - Removed: `as` - always renders as a default R3F Canvas. `react-xr` no longer uses VRCanvas and ARCanvas.
 
 - `useImageAsTexture`
 

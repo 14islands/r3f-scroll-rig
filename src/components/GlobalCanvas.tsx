@@ -21,7 +21,6 @@ if (typeof window !== 'undefined') {
 }
 
 interface IGlobalCanvas extends Omit<Props, 'children'> {
-  as?: any
   children?: ReactNode | ((globalChildren: ReactNode) => ReactNode)
   orthographic?: boolean
   onError?: (props: any) => void
@@ -32,11 +31,9 @@ interface IGlobalCanvas extends Omit<Props, 'children'> {
   globalRender?: boolean
   globalPriority?: number
   globalClearDepth?: boolean
-  loadingFallback?: any
 }
 
 const GlobalCanvasImpl = ({
-  as = Canvas,
   children,
   gl,
   style,
@@ -72,10 +69,8 @@ const GlobalCanvasImpl = ({
     })
   }, [scaleMultiplier, globalPriority, globalRender, globalClearDepth])
 
-  const CanvasElement = as
-
   return (
-    <CanvasElement
+    <Canvas
       id="ScrollRig-canvas"
       // use our own default camera
       camera={{
@@ -111,7 +106,7 @@ const GlobalCanvasImpl = ({
       {typeof children === 'function' ? children(<GlobalChildren />) : <GlobalChildren>{children}</GlobalChildren>}
 
       <ResizeManager />
-    </CanvasElement>
+    </Canvas>
   )
 }
 
