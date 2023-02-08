@@ -31,7 +31,7 @@ Progressively enhance a React website with WebGL using `@react-three/fiber` and 
 
 Mixing WebGL with scrolling HTML is hard. One way is to have multiple canvases, but there is a browser-specific limit to how many WebGL contexts can be active at any one time, and resources can't be shared between contexts.
 
-<img width="45%" src="https://user-images.githubusercontent.com/420472/191715313-cc813f47-4e4a-454f-a2f5-d8e2ec998c95.jpeg" style="float:right;margin-left: 5%" />
+<img align="right" width="40%" src="https://user-images.githubusercontent.com/420472/191715313-cc813f47-4e4a-454f-a2f5-d8e2ec998c95.jpeg" />
 
 The scroll-rig has only one shared `<GlobalCanvas/>` that stays in between page loads.
 
