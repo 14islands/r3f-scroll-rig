@@ -17,7 +17,7 @@ Progressively enhance a React website with WebGL using `@react-three/fiber` and 
 <a href="#api">API</a> |
 <a href="#gotchas">Gotchas</a> ]
 
-# 🌈 Features
+# Features 🌈
 
 - 🔍 Tracks DOM elements and draws Three.js objects in their place using correct scale and position.
 - 🤷 Framework agnostic - works with `next.js`, `gatsby.js`, `create-react-app` etc.
@@ -27,21 +27,29 @@ Progressively enhance a React website with WebGL using `@react-three/fiber` and 
 - 🧈 Uses [Lenis](https://github.com/studio-freight/lenis/) for accessible smooth scrolling
 - ♻️ 100% compatible with the @react-three ecosystem, like [Drei](https://github.com/pmndrs/drei), [react-spring](https://www.react-spring.dev/) and [react-xr](https://github.com/pmndrs/react-xr)
 
-# 📚 Introduction
+# Introduction 📚
 
-Background: [Progressive Enhancement with WebGL and React](https://medium.com/14islands/progressive-enhancement-with-webgl-and-react-71cd19e66d4)
+Mixing WebGL with scrolling HTML is hard. One way is to have multiple canvases, but there is a browser-specific limit to how many WebGL contexts can be active at any one time, and resources can't be shared between contexts.
 
-![scrollrig](https://user-images.githubusercontent.com/420472/191715313-cc813f47-4e4a-454f-a2f5-d8e2ec998c95.jpeg)
+<img width="45%" src="https://user-images.githubusercontent.com/420472/191715313-cc813f47-4e4a-454f-a2f5-d8e2ec998c95.jpeg" style="float:right;margin-left: 5%" />
 
-At the core there is a global shared canvas `GlobalCanvas` that stays in between page loads. React DOM components can choose to draw things on this canvas while they are mounted using a custom hook called `useCanvas` or the `UseCanvas` tunnel component.
+The scroll-rig has only one shared `<GlobalCanvas/>` that stays in between page loads.
 
-React DOM components can use `ScrollScene` or `ViewportScrollScene` to automatically track their position and draw a Three.js scene in that exact location while scrolling. Everything is synched in lockstep with the scrollbar position.
+React DOM components can choose to draw things on this canvas while they are mounted using a custom hook called `useCanvas()` or the `<UseCanvas/>` tunnel component.
 
-# 🦺 Installing
+The library also provides means to sync WebGL objects with the DOM while scrolling. We use a technique that tracks “proxy” elements in the normal page flow and updates the WebGL scene positions to match them.
+
+The `<ScrollScene/>`, `<ViewportScrollScene/>` or the underlying `useTracker()` hook will detect initial location and dimensions of the proxy elements, and update positions while scrolling.
+
+Everything is synchronized in lockstep with the scrollbar position on the main thread.
+
+Further reading: [Progressive Enhancement with WebGL and React](https://medium.com/14islands/progressive-enhancement-with-webgl-and-react-71cd19e66d4)
+
+# Installing 💾
 
 `yarn add @14islands/r3f-scroll-rig @react-three/fiber three`
 
-# 🛫 Getting Started
+# Getting Started 🛫
 
 1. Add `<GlobalCanvas>` to your layout. Keep it outside of your router to keep it from unmounting when navigating between pages.
 
@@ -138,7 +146,7 @@ export const HtmlComponent = () => (
 - A `<Scrollscene>` is used to track the DOM element
 - Inside the `<ScrollScene>` we place a mesh which will receive the correct scale as part of the passed down `props`
 
-# 🎪 Examples
+# Examples 🎪
 
 - [Hello World - basic ScrollScene](https://codesandbox.io/s/hello-world-ibc8y7?file=/src/App.jsx)
 - [Load image from the DOM](https://codesandbox.io/s/load-image-from-dom-n120ll?file=/src/App.jsx)
@@ -147,7 +155,7 @@ export const HtmlComponent = () => (
 - [Parallax HTML with useTracker() and Framer Motion](https://codesandbox.io/s/parallax-with-framer-motion-dx2v1p?file=/src/App.jsx)
 - [StickyScrollScene](https://codesandbox.io/s/r3f-scroll-rig-sticky-box-w5v4u7?file=/src/App.jsx)
 
-# ⚙️ API
+# API ⚙️
 
 All components & hooks are described in the [API docs](/docs/api.md)
 
@@ -176,7 +184,7 @@ All components & hooks are described in the [API docs](/docs/api.md)
   </tr>
 </table>
 
-# 🧐 Gotchas
+# Gotchas 🧐
 
 <details>
   <summary>Matching exact hex colors</summary>
@@ -342,7 +350,7 @@ Note: `ViewportScrollScene` will not be affected by global postprocessing effect
 
 </details>
 
-# 🦄 In the wild
+# In the wild 🐾
 
 - [14islands.com](https://14islands.com) by [14islands](https://14islands.com)
 - [Pluto.app](https://www.pluto.app/) by [14islands](https://14islands.com)
