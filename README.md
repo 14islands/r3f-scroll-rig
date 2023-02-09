@@ -148,12 +148,13 @@ export const HtmlComponent = () => (
 
 # Examples 🎪
 
-- [Hello World - basic ScrollScene](https://codesandbox.io/s/hello-world-ibc8y7?file=/src/App.jsx)
-- [Load image from the DOM](https://codesandbox.io/s/load-image-from-dom-n120ll?file=/src/App.jsx)
-- [Load responsive picture from the DOM](https://codesandbox.io/s/load-responsive-picture-from-dom-rgcx4b?file=/src/App.jsx)
-- [Events from both DOM & Canvas](https://codesandbox.io/s/event-source-demo-w4wfyw?file=/src/App.jsx)
-- [Parallax HTML with useTracker() and Framer Motion](https://codesandbox.io/s/parallax-with-framer-motion-dx2v1p?file=/src/App.jsx)
-- [StickyScrollScene](https://codesandbox.io/s/r3f-scroll-rig-sticky-box-w5v4u7?file=/src/App.jsx)
+- [ScrollScene basic example](https://codesandbox.io/s/hello-world-ibc8y7?file=/src/App.jsx)
+- [ScrollScene with GLB model & events from both DOM & Canvas](https://codesandbox.io/s/scrollscene-with-glb-6l2fc3?file=/src/App.js)
+- [ViewportScrollScene with custom camera and controls](https://codesandbox.io/s/hello-viewportscrollscene-fu0ky6?file=/src/App.jsx)
+- [Loading textures from &lt;img&gt; tags](https://codesandbox.io/s/load-image-from-dom-n120ll?file=/src/App.jsx)
+- [Load responsive texture from the DOM](https://codesandbox.io/s/load-responsive-picture-from-dom-rgcx4b?file=/src/App.jsx)
+- [HTML parallax with useTracker() and Framer Motion](https://codesandbox.io/s/parallax-with-framer-motion-dx2v1p?file=/src/App.jsx)
+- [A sticky ScrollScene from the powerups samples](https://codesandbox.io/s/r3f-scroll-rig-sticky-box-w5v4u7?file=/src/App.jsx)
 
 # API ⚙️
 
@@ -187,6 +188,72 @@ All components & hooks are described in the [API docs](/docs/api.md)
 # Gotchas 🧐
 
 <details>
+  <summary>The default camera</summary>
+  
+ The default scroll-rig camera is locked to a 50 degree Field-of-View. 
+ 
+ In order to perfectly match DOM dimensions, the camera distance will be calculated. This calculation is based on screen height since Threejs uses a vertical FoV. This means the camera position-z will change slightly based on your height.
+
+You can override the default camera behaviour, and for instance set the distance and have a variable FoV instead:
+
+```jsx
+<GlobalCanvas camera={{ position: [0, 0, 10] }} />
+```
+
+Or change the FoV, which would move the camera further away in this case:
+
+```jsx
+<GlobalCanvas camera={{ fov: 20 }} />
+```
+
+If you need full control of the camera you can pass in a custom camera as a child instead.
+
+</details>
+
+<details>
+  <summary>Use relative scaling</summary>
+  Always base your sizes on the `scale` passed down from ScrollScene/ViewportScrollScene/useTracker in order to have consistent scaling for all screen sizes.
+  
+The `scale` is always matching the tracked DOM element and will update based on media queries etc.
+
+```jsx
+<ScrollScene track={el}>
+  {{ scale }} => (
+  <mesh scale={scale} />
+  )}
+</ScrollScene>
+```
+
+Scale is a 3-dimensional vector type from [vecn](https://www.npmjs.com/package/vecn) that support swizzling and object notation. You can do things like:
+
+```js
+position.x === position[0]
+position.xy => [x,y]
+scale.xy.min() => Math.min(scale.x, scale.y)
+```
+
+</details>
+
+<details>
+  <summary>Z-Fighting on 3D objects (scaleMultiplier)</summary>
+
+By default the scroll-rig will calculate the camera FoV so that 1 pixel = 1 viewport unit.
+
+In some cases, this can mess up the depth sorting, leading to visual glitches in a 3D model. A 1000 pixel wide screen would make the scene 1000 viewport units wide, and by default the camera will also be positioned ~1000 units away in Z-axis (depending on the FoV and screen hight).
+
+One way to fix this is to enable the [logarithmicDepthBuffer](https://threejs.org/docs/index.html?q=webglre#api/en/renderers/WebGLRenderer) but that can be bad for performance.
+
+A better way to fix the issue is to change the GlobalCanvas `scaleMultiplier` to something like `0.01` which would make 1000px = 10 viewport units.
+
+```jsx
+<GlobalCanvas scaleMultiplier={0.01} />
+```
+
+The `scaleMultiplier` setting updates all internal camera and scaling logic. Hardcoded scales and positions would need to be updated if you change this setting.
+
+</details>
+
+<details>
   <summary>Matching exact hex colors</summary>
 
 By default R3F uses ACES Filmic tone mapping which makes 3D scenes look great.
@@ -195,23 +262,6 @@ However, if you need to match hex colors or show editorial images, you can disab
 
 ```jsx
 <meshBasicMaterial toneMapping={false} />
-```
-
-</details>
-
-<details>
-  <summary>Z-Fighting on 3D objects</summary>
-
-By default the scroll-rig will calculate the camera FOV so that 1 pixel = 1 viewport unit.
-
-In some cases, this can mess up the depth sorting, leading to visual glitches in a 3D model. A 1000 pixel wide screen would make the scene 1000 viewport units wide, and by default the camera will also be positioned 1000 units away in z-axis.
-
-One way to fix this is to enable the [logarithmicDepthBuffer](https://threejs.org/docs/index.html?q=webglre#api/en/renderers/WebGLRenderer) but that's bad for performance.
-
-A better way to fix the issue is to change the GlobalCanvas scaling to something like `0.01` which would make 1000px = 10 viewport units.
-
-```jsx
-<GlobalCanvas scaleMultiplier={0.01} />
 ```
 
 </details>

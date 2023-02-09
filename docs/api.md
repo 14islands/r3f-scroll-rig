@@ -316,6 +316,7 @@ interface Tracker {
 ```js
 position.x === position[0]
 position.xy => [x,y]
+scale.xy.min() => Math.min(scale.x, scale.y)
 ```
 
 ### `useCanvas`
