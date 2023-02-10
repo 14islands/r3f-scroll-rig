@@ -12,16 +12,9 @@ export const ResizeManager = () => {
 
   // reflow on webfont loaded to prevent misalignments
   useEffect(() => {
-    if ('fonts' in document) {
-      document.fonts.ready.then(() => {
-        requestReflow()
-        debug && console.log('ResizeManager', 'webfont loaded')
-      })
-    }
-
     const ResizeObserver = window.ResizeObserver || Polyfill
 
-    // also watch for any random height change
+    // watch out for any random height change
     let observer = new ResizeObserver(() => {
       requestReflow()
       debug && console.log('ResizeManager', 'document.body height changed')
