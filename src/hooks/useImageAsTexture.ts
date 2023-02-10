@@ -1,4 +1,4 @@
-import { useEffect, RefObject, useMemo } from 'react'
+import { useEffect, RefObject, useMemo, useState } from 'react'
 import { useThree, useLoader } from '@react-three/fiber'
 import { Texture, CanvasTexture, ImageBitmapLoader, TextureLoader, DefaultLoadingManager } from 'three'
 import { suspend } from 'suspend-react'
@@ -46,6 +46,19 @@ function useImageAsTexture(
   const size = useWindowSize()
   const debug = useCanvasStore((state) => state.debug)
 
+  // This is a workaround for detecting lazy loading images
+  // unfortunately the `loadstart` event is not working everywhere: https://bugs.chromium.org/p/chromium/issues/detail?id=458851
+  // So we can't suspend while lazy images are loading - only detect when they finished
+  const [newSrcDetected, setNewSrcDetected] = useState(imgRef.current?.currentSrc)
+  useEffect(() => {
+    const el = imgRef.current
+    const onLoad = () => {
+      setNewSrcDetected(imgRef.current?.currentSrc)
+    }
+    el?.addEventListener('load', onLoad)
+    return () => el?.removeEventListener('load', onLoad)
+  }, [imgRef, newSrcDetected, setNewSrcDetected])
+
   // suspend until we have currentSrc for this `size`
   const currentSrc = suspend(
     () => {
@@ -68,7 +81,7 @@ function useImageAsTexture(
         }
       })
     },
-    [imgRef, size, imgRef.current?.currentSrc],
+    [imgRef, size, imgRef.current?.currentSrc, newSrcDetected],
     { equal } // use deep-equal since size ref seems to update on route change
   ) as string
 
