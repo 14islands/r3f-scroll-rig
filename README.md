@@ -91,7 +91,7 @@ export const wrapRootElement = ({ element }) => (
 
 In order to perfectly match WebGL objects and DOM content, the browser scroll position needs to be animated on the main thread.
 
-Wrap your page in `SmoothScrollbar`:
+Wrap each individual page in `SmoothScrollbar`:
 
 ```jsx
 // pages/index.js`
@@ -176,9 +176,9 @@ All components & hooks are described in the [API docs](/docs/api.md)
         <ul>
           <li><a href="/docs/api.md#usescrollrig">useScrollRig</a></li>
           <li><a href="/docs/api.md#usescrollbar">useScrollbar</a></li>
+          <li><a href="/docs/api.md#usetracker">useTracker</a></li>
           <li><a href="/docs/api.md#usecanvas">useCanvas</a></li>
           <li><a href="/docs/api.md#useimageastexture">useImageAsTexture</a></li>
-          <li><a href="/docs/api.md#usetracker">useTracker</a></li>
         </ul>
     </td>
 

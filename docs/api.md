@@ -67,7 +67,7 @@ Worth noting:
 
 - it **does not** use JS to move the content using transforms
 - we can use `position: sticky` etc 👌
-- the component sets `pointer-events: none` on the immediate child while scrolling to avoid jank caused by hover states
+- the component sets `pointer-events: none` on the immediate child while scrolling to avoid jank caused by hover states (optional)
 - the R3F event loop is used to animate scroll
 - `SmoothScrollbar` uses `@studio-freight/lenis` internally. Make sure to read through their section on [considerations](https://github.com/studio-freight/lenis#considerations) when adding `SmoothScrollbar` to your project.
 
@@ -83,6 +83,8 @@ export const HomePage = () => (
   </SmoothScrollbar>
 )
 ```
+
+⚠️ Each page should have its own SmoothScrollbar (don't put it in the layout as it won't detect the new page height properly).
 
 #### Render Props
 
@@ -302,7 +304,7 @@ const tracker: Tracker = useTracker(track: MutableRefObject<HTMLElement>, option
 
 interface Tracker {
   rect: DOMRect // reactive pixel size
-  scale: vec3 // reactive viewport unti scale
+  scale: vec3 // reactive viewport unit scale
   inViewport: Boolean // reactive
   bounds: Bounds // non-reactive pixel bounds - updates on scroll
   position: vec3 // non-reactive viewport unit position, updates on scroll
@@ -317,6 +319,17 @@ interface Tracker {
 position.x === position[0]
 position.xy => [x,y]
 scale.xy.min() => Math.min(scale.x, scale.y)
+```
+
+The `scrollState` is also passed down to the children of `ScrollScene` and `ViewportScrollScene`:
+
+```ts
+export interface ScrollState {
+  inViewport: boolean
+  progress: number
+  visibility: number
+  viewport: number
+}
 ```
 
 ### `useCanvas`
