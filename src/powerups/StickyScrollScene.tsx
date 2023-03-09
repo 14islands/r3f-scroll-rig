@@ -1,6 +1,6 @@
 import React, { useRef, useMemo } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
-import { ScrollScene, useScrollRig } from '@14islands/r3f-scroll-rig'
+import { ScrollScene, useScrollRig } from '../index'
 import { Group } from 'three'
 import vecn from 'vecn'
 // @ts-ignore

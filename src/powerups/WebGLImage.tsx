@@ -1,5 +1,5 @@
 import React, { useRef, useMemo, useEffect, forwardRef, MutableRefObject, ForwardedRef } from 'react'
-import { useScrollRig, useImageAsTexture, useScrollbar } from '@14islands/r3f-scroll-rig'
+import { useScrollRig, useImageAsTexture, useScrollbar } from '../index'
 import { Color, Vector2, ShaderMaterial, Mesh, ShaderMaterialParameters } from 'three'
 import { useFrame, useThree } from '@react-three/fiber'
 

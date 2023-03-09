@@ -5,40 +5,35 @@
   "private": false,
   "type": "module",
   "source": "src/index.ts",
-  "main": "./dist/scrollrig.cjs",
-  "module": "./dist/scrollrig.module.js",
-  "unpkg": "./dist/scrollrig.umd.js",
   "types": "./dist/index.d.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
   "sideEffects": false,
   "exports": {
     "./css": {
-      "default": "./dist/scrollrig.css"
+      "default": "./dist/style.css"
     },
     "./scrollbar": {
       "types": "./dist/scrollbar/index.d.ts",
-      "require": "./dist/scrollbar.cjs",
-      "import": "./dist/scrollbar.modern.js"
+      "require": "./dist/scrollbar/index.cjs",
+      "import": "./dist/scrollbar/index.js"
     },
     "./powerups": {
-      "require": "./dist/powerups.cjs",
-      "import": "./dist/powerups.modern.js"
+      "types": "./dist/powerups/index.d.ts",
+      "require": "./dist/powerups/index.cjs",
+      "import": "./dist/powerups/index.js"
     },
     ".": {
       "types": "./dist/index.d.ts",
-      "require": "./dist/scrollrig.cjs",
-      "import": "./dist/scrollrig.modern.js"
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.js"
     }
   },
   "files": [
-    "dist",
-    "scrollbar",
-    "powerups"
+    "dist"
   ],
   "scripts": {
-    "build": "yarn build-default & yarn build-scrollbar & yarn build-powerups",
-    "build-default": "microbundle --globals @react-three/fiber=@react-three/fiber,@juggle/resize-observer=@juggle/resize-observer,@studio-freight/lenis=@studio-freight/lenis",
-    "build-scrollbar": "microbundle --globals @react-three/fiber=@react-three/fiber,@studio-freight/lenis=@studio-freight/lenis src/scrollbar/index.ts -o dist/scrollbar.js",
-    "build-powerups": "microbundle --globals @react-three/fiber=@react-three/fiber,@studio-freight/lenis=@studio-freight/lenis,@react-three/drei=@react-three/drei,@14islands/r3f-scroll-rig=@14islands/r3f-scroll-rig --external=@14islands/r3f-scroll-rig powerups/index.ts -o dist/powerups.js",
+    "build": "vite build && tsc &&",
     "dev": "microbundle watch"
   },
   "repository": {
@@ -78,10 +73,12 @@
     "@react-three/fiber": "^8.9.2",
     "@types/debounce": "^1.2.1",
     "@types/react": "^18.0.25",
+    "@types/three": "^0.149.0",
     "microbundle": "^0.15.1",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",
-    "three": "^0.144.0"
+    "three": "^0.144.0",
+    "vite": "^4.1.4"
   },
   "peerDependencies": {
     "@react-three/drei": ">=9.0.0",

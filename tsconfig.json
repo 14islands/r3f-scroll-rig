@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "outDir": "dist",
     "declaration": true,
     "module": "ESNext",
     "target": "ESNext",
@@ -8,7 +9,7 @@
     "skipLibCheck": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
+    "emitDeclarationOnly": true,
     "esModuleInterop": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,

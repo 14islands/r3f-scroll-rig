@@ -1,6 +1,6 @@
 import React, { useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
-import { ScrollScene, useScrollRig } from '@14islands/r3f-scroll-rig'
+import { ScrollScene, useScrollRig } from '../index'
 import { Mesh } from 'three'
 
 // Parallax group inside ScrollScene
