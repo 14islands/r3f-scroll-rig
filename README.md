@@ -49,6 +49,8 @@ Further reading: [Progressive Enhancement with WebGL and React](https://medium.c
 
 `yarn add @14islands/r3f-scroll-rig @react-three/fiber three`
 
+> **Note** `@react-three/fiber` is optional here; you can use vanilla three.js if you prefer and import what you need from `@14islands/r3f-scroll-rig/powerups` and `@14islands/r3f-scroll-rig/scrollbar`.
+
 # Getting Started 🛫
 
 1. Add `<GlobalCanvas>` to your layout. Keep it outside of your router to keep it from unmounting when navigating between pages.
