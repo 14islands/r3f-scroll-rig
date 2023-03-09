@@ -1,7 +1,6 @@
-import React, { useRef, forwardRef, useMemo } from 'react'
+import React, { useRef, forwardRef, useMemo, useImperativeHandle } from 'react'
 import { OrthographicCamera as OrthographicCameraImpl } from 'three'
 import { useThree } from '@react-three/fiber'
-import mergeRefs from 'react-merge-refs'
 
 import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
 import { useCanvasStore } from '../store'
@@ -24,6 +23,7 @@ export const OrthographicCamera = forwardRef(({ makeDefault = false, ...props }:
   }, [size, pageReflow, scaleMultiplier])
 
   const cameraRef = useRef<OrthographicCameraImpl>(null!)
+  useImperativeHandle(ref, () => cameraRef.current)
   useLayoutEffect(() => {
     cameraRef.current.lookAt(0, 0, 0)
     cameraRef.current.updateProjectionMatrix()
@@ -51,7 +51,7 @@ export const OrthographicCamera = forwardRef(({ makeDefault = false, ...props }:
       far={distance * 2}
       position={[0, 0, distance]}
       near={0.001}
-      ref={mergeRefs([cameraRef, ref])}
+      ref={cameraRef}
       onUpdate={(self) => self.updateProjectionMatrix()}
       {...props}
     />
