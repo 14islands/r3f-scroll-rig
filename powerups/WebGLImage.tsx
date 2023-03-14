@@ -1,9 +1,15 @@
-import React, { useRef, useMemo, useEffect, forwardRef, MutableRefObject, ForwardedRef } from 'react'
+import React, {
+  useRef,
+  useMemo,
+  useEffect,
+  forwardRef,
+  MutableRefObject,
+  ForwardedRef,
+  useImperativeHandle,
+} from 'react'
 import { useScrollRig, useImageAsTexture, useScrollbar } from '@14islands/r3f-scroll-rig'
 import { Color, Vector2, ShaderMaterial, Mesh, ShaderMaterialParameters } from 'three'
 import { useFrame, useThree } from '@react-three/fiber'
-
-import mergeRefs from 'react-merge-refs'
 
 interface WebGLImageProps {
   el: MutableRefObject<HTMLImageElement>
@@ -33,6 +39,7 @@ export const WebGLImage = forwardRef(
   ) => {
     const material = useRef<ShaderMaterial>(null!)
     const mesh = useRef<Mesh>(null!)
+    useImperativeHandle(ref, () => mesh.current)
 
     const { invalidate, gl, size } = useThree()
     const pixelRatio = useThree((s) => s.viewport.dpr)
@@ -110,7 +117,7 @@ export const WebGLImage = forwardRef(
 
     return (
       <>
-        <mesh ref={mergeRefs([mesh, ref])} {...props}>
+        <mesh ref={mesh} {...props}>
           <planeGeometry attach="geometry" args={[1, 1, widthSegments, heightSegments]} />
           <shaderMaterial
             ref={material}

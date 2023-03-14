@@ -1,7 +1,6 @@
-import React, { useRef, forwardRef, useMemo } from 'react'
+import React, { useRef, forwardRef, useMemo, useImperativeHandle } from 'react'
 import { useThree } from '@react-three/fiber'
 import { PerspectiveCamera as PerspectiveCameraImpl } from 'three'
-import mergeRefs from 'react-merge-refs'
 
 import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
 import { useCanvasStore } from '../store'
@@ -18,6 +17,7 @@ export const PerspectiveCamera = forwardRef(({ makeDefault = false, ...props }: 
   const size = useThree((state) => state.size)
   const viewport = useThree((state) => state.viewport)
   const cameraRef = useRef<PerspectiveCameraImpl>(null!)
+  useImperativeHandle(ref, () => cameraRef.current)
 
   const pageReflow = useCanvasStore((state) => state.pageReflow)
   const scaleMultiplier = useCanvasStore((state) => state.scaleMultiplier)
@@ -68,7 +68,7 @@ export const PerspectiveCamera = forwardRef(({ makeDefault = false, ...props }: 
 
   return (
     <perspectiveCamera
-      ref={mergeRefs([cameraRef, ref])}
+      ref={cameraRef}
       position={[0, 0, distance]}
       onUpdate={(self) => self.updateProjectionMatrix()}
       near={0.1}
