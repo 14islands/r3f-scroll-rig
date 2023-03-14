@@ -6,11 +6,12 @@ import { ScrollRigState } from '../hooks/useScrollRig'
 interface IUseCanvas {
   children: ReactNode | ((props: ScrollRigState) => ReactNode)
   id?: string // persistent layout id
+  dispose?: boolean // dispose on unmount
 }
 
-const UseCanvas = forwardRef(({ children, id, ...props }: IUseCanvas, ref) => {
+const UseCanvas = forwardRef(({ children, id, dispose = true, ...props }: IUseCanvas, ref) => {
   // auto update canvas with all props
-  useCanvas(children, { ...props, ref }, { key: id })
+  useCanvas(children, { ...props, ref }, { key: id, dispose })
   return null
 })
 
