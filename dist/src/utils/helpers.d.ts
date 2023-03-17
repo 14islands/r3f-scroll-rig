@@ -1,5 +1,5 @@
 import { Object3D } from 'three';
-type CulledObject = {
+declare type CulledObject = {
     wasFrustumCulled?: boolean;
     wasVisible?: boolean;
 } & Object3D;
