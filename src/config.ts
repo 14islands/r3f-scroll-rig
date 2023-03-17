@@ -1,6 +1,5 @@
 // Global config
-
-import { Scene, Camera, WebGLRenderer } from 'three'
+import type { Scene, Camera, WebGLRenderer } from 'three'
 
 type PreloadCallback = (gl: WebGLRenderer, scene: Scene, camera: Camera) => void
 
