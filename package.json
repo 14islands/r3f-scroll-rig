@@ -36,9 +36,9 @@
   ],
   "scripts": {
     "build": "yarn build-default & yarn build-scrollbar & yarn build-powerups",
-    "build-default": "microbundle --globals @react-three/fiber=@react-three/fiber,@juggle/resize-observer=@juggle/resize-observer,@studio-freight/lenis=@studio-freight/lenis",
-    "build-scrollbar": "microbundle --globals @react-three/fiber=@react-three/fiber,@studio-freight/lenis=@studio-freight/lenis src/scrollbar/index.ts -o dist/scrollbar.js",
-    "build-powerups": "microbundle --globals @react-three/fiber=@react-three/fiber,@studio-freight/lenis=@studio-freight/lenis,@react-three/drei=@react-three/drei,@14islands/r3f-scroll-rig=@14islands/r3f-scroll-rig --external=@14islands/r3f-scroll-rig powerups/index.ts -o dist/powerups.js",
+    "build-default": "microbundle --globals react=React,@react-three/fiber=@react-three/fiber,@juggle/resize-observer=@juggle/resize-observer,@studio-freight/lenis=@studio-freight/lenis",
+    "build-scrollbar": "microbundle --globals react=React,@react-three/fiber=@react-three/fiber,@juggle/resize-observer=@juggle/resize-observer,@studio-freight/lenis=@studio-freight/lenis src/scrollbar/index.ts -o dist/scrollbar.js",
+    "build-powerups": "microbundle --globals react=React,@react-three/fiber=@react-three/fiber,@juggle/resize-observer=@juggle/resize-observer,@studio-freight/lenis=@studio-freight/lenis,@react-three/drei=@react-three/drei,@14islands/r3f-scroll-rig=@14islands/r3f-scroll-rig --external=@14islands/r3f-scroll-rig powerups/index.ts -o dist/powerups.js",
     "dev": "microbundle watch"
   },
   "repository": {
