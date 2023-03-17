@@ -88,5 +88,13 @@
     "react": ">=18.0",
     "react-dom": ">=18.0",
     "three": ">=0.139.0"
+  },
+  "peerDependenciesMeta": {
+    "@react-three/fiber": {
+      "optional": true
+    },
+    "@react-three/drei": {
+      "optional": true
+    }
   }
 }
