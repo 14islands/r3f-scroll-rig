@@ -1,21 +1,16 @@
 // @ts-nocheck
-import React, { ReactNode } from 'react'
-import PropTypes from 'prop-types'
+import { Component, ReactNode } from 'react'
 
 interface ICanvasErrorBoundary {
   children: ReactNode
   onError: () => void
 }
 
-export class CanvasErrorBoundary extends React.Component<{}, ICanvasErrorBoundary> {
+export class CanvasErrorBoundary extends Component<{}, ICanvasErrorBoundary> {
   constructor(props) {
     super(props)
     this.state = { error: false }
     this.props = props
-  }
-
-  static propTypes = {
-    onError: PropTypes.func,
   }
 
   static getDerivedStateFromError(error) {
