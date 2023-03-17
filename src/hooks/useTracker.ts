@@ -6,7 +6,6 @@ import vecn from 'vecn'
 import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
 import { mapLinear } from '../utils/math'
 import { useCanvasStore } from '../store'
-import { useScrollRig } from './useScrollRig'
 
 import { useScrollbar, Scroll } from '../scrollbar/useScrollbar'
 
@@ -36,10 +35,10 @@ function updatePosition(position: vec3, bounds: Bounds, scaleMultiplier: number)
  */
 function useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptions): Tracker {
   const size = useWindowSize()
-  const { debug } = useScrollRig()
   const { scroll, onScroll } = useScrollbar()
   const scaleMultiplier = useCanvasStore((state) => state.scaleMultiplier)
   const pageReflow = useCanvasStore((state) => state.pageReflow)
+  const debug = useCanvasStore((state) => state.debug)
 
   // extend defaults with optional options
   const { rootMargin, threshold, autoUpdate, wrapper } = useMemo(() => {
