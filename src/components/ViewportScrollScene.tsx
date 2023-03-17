@@ -90,8 +90,8 @@ const Viewport = ({
 
   return (
     <>
-      {!orthographic && <PerspectiveCamera manual makeDefault {...camera} />}
-      {orthographic && <OrthographicCamera manual makeDefault {...camera} />}
+      {!orthographic && <PerspectiveCamera manual margin={margin} makeDefault {...camera} />}
+      {orthographic && <OrthographicCamera manual margin={margin} makeDefault {...camera} />}
       {(!children || debug) && scale && <DebugMesh scale={scale} />}
       {children &&
         // scene &&

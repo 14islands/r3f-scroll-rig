@@ -7,8 +7,9 @@ import { useCanvasStore } from '../store'
 
 type Props = JSX.IntrinsicElements['orthographicCamera'] & {
   makeDefault?: boolean
+  margin?: number
 }
-export const OrthographicCamera = forwardRef(({ makeDefault = false, ...props }: Props, ref) => {
+export const OrthographicCamera = forwardRef(({ makeDefault = false, margin = 0, ...props }: Props, ref) => {
   const set = useThree((state) => state.set)
   const camera = useThree((state) => state.camera)
   const size = useThree((state) => state.size)
@@ -44,10 +45,10 @@ export const OrthographicCamera = forwardRef(({ makeDefault = false, ...props }:
 
   return (
     <orthographicCamera
-      left={(size.width * scaleMultiplier) / -2}
-      right={(size.width * scaleMultiplier) / 2}
-      top={(size.height * scaleMultiplier) / 2}
-      bottom={(size.height * scaleMultiplier) / -2}
+      left={(size.width * scaleMultiplier) / -2 - margin * scaleMultiplier}
+      right={(size.width * scaleMultiplier) / 2 + margin * scaleMultiplier}
+      top={(size.height * scaleMultiplier) / 2 + margin * scaleMultiplier}
+      bottom={(size.height * scaleMultiplier) / -2 - margin * scaleMultiplier}
       far={distance * 2}
       position={[0, 0, distance]}
       near={0.001}

@@ -7,11 +7,12 @@ import { useCanvasStore } from '../store'
 
 type Props = JSX.IntrinsicElements['perspectiveCamera'] & {
   makeDefault?: boolean
+  margin?: number
 }
 
 const DEFAULT_FOV = 50
 
-export const PerspectiveCamera = forwardRef(({ makeDefault = false, ...props }: Props, ref) => {
+export const PerspectiveCamera = forwardRef(({ makeDefault = false, margin = 0, ...props }: Props, ref) => {
   const set = useThree((state) => state.set)
   const camera = useThree((state) => state.camera)
   const size = useThree((state) => state.size)
@@ -24,8 +25,8 @@ export const PerspectiveCamera = forwardRef(({ makeDefault = false, ...props }: 
 
   // Calculate FoV or distance to match DOM size
   const { fov, distance, aspect } = useMemo(() => {
-    const width = size.width * scaleMultiplier
-    const height = size.height * scaleMultiplier
+    const width = (size.width + margin * 2) * scaleMultiplier
+    const height = (size.height + margin * 2) * scaleMultiplier
     const aspect = width / height
 
     // check props vs defaults
