@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react'
+import React, { ReactNode, ReactElement } from 'react'
 import { Canvas, Props } from '@react-three/fiber'
 import { ResizeObserver as Polyfill } from '@juggle/resize-observer'
 import { parse } from 'query-string'
@@ -22,6 +22,7 @@ if (typeof window !== 'undefined') {
 
 interface IGlobalCanvas extends Omit<Props, 'children'> {
   children?: ReactNode | ((globalChildren: ReactNode) => ReactNode)
+  as?: any
   orthographic?: boolean
   onError?: (props: any) => void
   camera?: any
@@ -35,6 +36,7 @@ interface IGlobalCanvas extends Omit<Props, 'children'> {
 
 const GlobalCanvasImpl = ({
   children,
+  as = Canvas,
   gl,
   style,
   orthographic,
@@ -69,8 +71,10 @@ const GlobalCanvasImpl = ({
     })
   }, [scaleMultiplier, globalPriority, globalRender, globalClearDepth])
 
+  const As = as
+
   return (
-    <Canvas
+    <As
       id="ScrollRig-canvas"
       // use our own default camera
       camera={{
@@ -106,7 +110,7 @@ const GlobalCanvasImpl = ({
       {typeof children === 'function' ? children(<GlobalChildren />) : <GlobalChildren>{children}</GlobalChildren>}
 
       <ResizeManager />
-    </Canvas>
+    </As>
   )
 }
 
