@@ -35,9 +35,8 @@ const SmoothScrollbarImpl = (
     start: () => lenis.current?.start(),
     stop: () => lenis.current?.stop(),
     on: (event: string, cb: ScrollCallback) => lenis.current?.on(event, cb),
-    once: (event: string, cb: ScrollCallback) => lenis.current?.once(event, cb),
-    off: (event: string, cb?: ScrollCallback) => lenis.current?.off(event, cb),
-    notify: () => lenis.current?.notify(),
+    notify: () => lenis.current?.emit(), // backwards compatible
+    emit: () => lenis.current?.emit(),
     scrollTo: (target: ScrollToTarget, props: ScrollToConfig) => lenis.current?.scrollTo(target, props),
     raf: (time: number) => lenis.current?.raf(time),
     __lenis: lenis.current,
@@ -81,7 +80,7 @@ const SmoothScrollbarImpl = (
     }
 
     lenis.current = new Lenis({
-      direction: horizontal ? 'horizontal' : 'vertical',
+      orientation: horizontal ? 'horizontal' : 'vertical',
       ...config,
     })
 
@@ -109,7 +108,7 @@ const SmoothScrollbarImpl = (
 
   // BIND TO LENIS SCROLL EVENT
   useLayoutEffect(() => {
-    lenis.current?.on('scroll', ({ scroll, limit, velocity, direction, progress }: any) => {
+    const _onScroll = ({ scroll, limit, velocity, direction, progress }: any) => {
       const y = !horizontal ? scroll : 0
       const x = horizontal ? scroll : 0
 
@@ -133,7 +132,9 @@ const SmoothScrollbarImpl = (
       onScroll && onScroll({ scroll, limit, velocity, direction, progress })
 
       invalidate() // demand a R3F frame on scroll
-    })
+    }
+
+    lenis.current?.on('scroll', _onScroll)
 
     // update global state
     if (updateGlobalState) {
@@ -147,7 +148,7 @@ const SmoothScrollbarImpl = (
       useCanvasStore.setState({
         onScroll: (cb: ScrollCallback) => {
           lenis.current?.on('scroll', cb)
-          lenis.current?.notify() // send current scroll to new subscriber
+          lenis.current?.emit() // send current scroll to new subscriber
           return () => lenis.current?.off('scroll', cb)
         },
       })
@@ -158,9 +159,9 @@ const SmoothScrollbarImpl = (
     }
 
     // fire our internal scroll callback to update globalState
-    lenis.current?.notify()
+    lenis.current?.emit()
     return () => {
-      lenis.current?.off('scroll')
+      lenis.current?.off('scroll', _onScroll)
     }
   }, [])
 
@@ -172,7 +173,6 @@ const SmoothScrollbarImpl = (
     window.addEventListener('pointerdown', onPointerInteraction)
     window.addEventListener('wheel', invalidateOnWheelEvent)
     return () => {
-      lenis.current?.off('scroll')
       window.removeEventListener('pointermove', onPointerInteraction)
       window.removeEventListener('pointerdown', onPointerInteraction)
       window.removeEventListener('wheel', invalidateOnWheelEvent)

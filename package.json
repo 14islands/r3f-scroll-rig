@@ -60,7 +60,7 @@
   "dependencies": {
     "@14islands/lerp": "^1.0.3",
     "@juggle/resize-observer": "^3.4.0",
-    "@studio-freight/lenis": "^0.2.28",
+    "@studio-freight/lenis": "^1.0.10",
     "@types/query-string": "^6.3.0",
     "debounce": "^1.2.1",
     "fast-deep-equal": "^3.1.3",
