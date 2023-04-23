@@ -1,5 +1,12 @@
 # Changelog
 
+## v8.10.0
+
+- Upgrade `@studio-freight/lenis` to `v1.0.10`
+
+- `GlobalCanvas`
+  - Add back: `as` props to allow changing the default R3F Canvas component. Prep work for supporting custom tree shaked canvas or perhaps react-three-offscreen in the future
+
 ## v8.9.0
 
 Simplify render logic and improve camera controls.

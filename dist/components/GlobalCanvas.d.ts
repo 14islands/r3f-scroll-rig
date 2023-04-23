@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import { Props } from '@react-three/fiber';
 interface IGlobalCanvas extends Omit<Props, 'children'> {
     children?: ReactNode | ((globalChildren: ReactNode) => ReactNode);
+    as?: any;
     orthographic?: boolean;
     onError?: (props: any) => void;
     camera?: any;

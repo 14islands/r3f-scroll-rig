@@ -404,5 +404,7 @@ Note: `ViewportScrollScene` will not be affected by global postprocessing effect
 
 - [14islands.com](https://14islands.com) by [14islands](https://14islands.com)
 - [Pluto.app](https://www.pluto.app/) by [14islands](https://14islands.com)
-- [Neko Health](https://www.nekohealth.com/) by [14islands](https://14islands.com)
 - [Myriad.video](https://myriad.video/) by [14islands](https://14islands.com)
+- [Neko Health](https://www.nekohealth.com/) by [14islands](https://14islands.com)
+- [Playgoals.com](https://playgoals.com/) by [14islands](https://14islands.com)
+- [Goals studio](https://studio.playgoals.com/) by [14islands](https://14islands.com)
