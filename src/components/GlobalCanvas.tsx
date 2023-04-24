@@ -14,6 +14,7 @@ import { GlobalRenderer } from './GlobalRenderer'
 import { CanvasErrorBoundary } from './CanvasErrorBoundary'
 
 import { config } from '../config'
+import { version } from '../../package.json'
 
 let polyfill: new (callback: ResizeObserverCallback) => ResizeObserver
 if (typeof window !== 'undefined') {
@@ -58,6 +59,7 @@ const GlobalCanvasImpl = ({
     // show debug statements
     if (debug || typeof qs.debug !== 'undefined') {
       useCanvasStore.setState({ debug: true })
+      console.log('r3f-scroll-rig', 'v' + version)
     }
   }, [debug])
 
