@@ -119,7 +119,7 @@ const SmoothScrollbarImpl = (
         globalScrollState.limit = limit
         globalScrollState.velocity = velocity
         globalScrollState.direction = direction
-        globalScrollState.progress = progress
+        globalScrollState.progress = progress || 0 // avoid NaN from Lenis
       }
 
       if (Math.abs(velocity) > POINTER_EVENTS_DISABLE_VELOCITY) {
