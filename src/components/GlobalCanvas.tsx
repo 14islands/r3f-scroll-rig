@@ -53,13 +53,18 @@ const GlobalCanvasImpl = ({
 
   // enable debug mode
   useLayoutEffect(() => {
-    // Querystring overrides
+    if (typeof window !== 'undefined') {
+      // @ts-ignore
+      window.__r3f_scroll_rig = version
+    }
+
+    // Querystring overridess
     const qs = parse(window.location.search)
 
     // show debug statements
     if (debug || typeof qs.debug !== 'undefined') {
       useCanvasStore.setState({ debug: true })
-      console.log('r3f-scroll-rig', 'v' + version)
+      console.info('@14islands/r3f-scroll-rig@' + version)
     }
   }, [debug])
 

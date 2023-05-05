@@ -127,7 +127,7 @@ const useCanvasStore = create<ScrollRigStore>((set) => ({
     direction: 0,
     scrollDirection: undefined,
   },
-  scrollTo: (target) => window.scrollTo(0, target),
+  scrollTo: () => {},
   onScroll: () => () => {},
 }))
 

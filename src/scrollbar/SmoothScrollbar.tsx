@@ -140,12 +140,11 @@ const SmoothScrollbarImpl = (
     if (updateGlobalState) {
       globalScrollState.scrollDirection = horizontal ? 'horizontal' : 'vertical'
 
-      // expose global scrollTo function
-      // @ts-ignore
-      useCanvasStore.setState({ scrollTo: lenis.current?.scrollTo })
-
-      // expose global onScroll function to subscribe to scroll events
+      // expose global scrollTo and onScroll function to subscribe to scroll events
       useCanvasStore.setState({
+        scrollTo: (...args) => {
+          lenis.current?.scrollTo(...args)
+        },
         onScroll: (cb: ScrollCallback) => {
           lenis.current?.on('scroll', cb)
           lenis.current?.emit() // send current scroll to new subscriber
@@ -162,6 +161,11 @@ const SmoothScrollbarImpl = (
     lenis.current?.emit()
     return () => {
       lenis.current?.off('scroll', _onScroll)
+      // reset store
+      useCanvasStore.setState({
+        onScroll: () => () => {},
+        scrollTo: () => {},
+      })
     }
   }, [])
 
