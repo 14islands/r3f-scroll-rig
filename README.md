@@ -146,6 +146,10 @@ export const HtmlComponent = () => (
 - A `<Scrollscene>` is used to track the DOM element
 - Inside the `<ScrollScene>` we place a mesh which will receive the correct scale as part of the passed down `props`
 
+**⚠️ Note:** HMR might not work for the children of `<UseCanvas>` unless you defined them outside. Also, the props on the children are not reactive by default since the component is tunneled to the global canvas. <a href="/docs/api.md#usecanvas">Updated props need to be tunneled like this.</a>
+
+Learn more about edge cases and solutions in the <a href="#gotchas">gotchas section</a>.
+
 # Examples 🎪
 
 - [ScrollScene basic example](https://codesandbox.io/s/hello-world-ibc8y7?file=/src/App.jsx)
@@ -177,7 +181,7 @@ All components & hooks are described in the [API docs](/docs/api.md)
           <li><a href="/docs/api.md#usescrollrig">useScrollRig</a></li>
           <li><a href="/docs/api.md#usescrollbar">useScrollbar</a></li>
           <li><a href="/docs/api.md#usetracker">useTracker</a></li>
-          <li><a href="/docs/api.md#usecanvas">useCanvas</a></li>
+          <li><a href="/docs/api.md#usecanvas-1">useCanvas</a></li>
           <li><a href="/docs/api.md#useimageastexture">useImageAsTexture</a></li>
         </ul>
     </td>

@@ -17,7 +17,7 @@
           <li><a href="#usescrollrig">useScrollRig</a></li>
           <li><a href="#usescrollbar">useScrollbar</a></li>
           <li><a href="#usetracker">useTracker</a></li>
-          <li><a href="#usecanvas">useCanvas</a></li>
+          <li><a href="#usecanvas-1">useCanvas</a></li>
           <li><a href="#useimageastexture">useImageAsTexture</a></li>
         </ul>
     </td>
@@ -113,8 +113,6 @@ import { SmoothScrollbar } from '@14islands/r3f-scroll-rig/scrollbar'
 
 This component tunnels the children to the GlobalCanvas using the `useCanvas` hook. It's basically just the same, but a bit more user friendly
 
-The props added to `UseCanvas` will be tunneled to the child component inside the GlobalCanvas. It automatically updates the canvas component's props when any of the them change.
-
 The children will stay mounted on the canvas until this component unmounts.
 
 #### Render Props
@@ -130,6 +128,19 @@ The children will stay mounted on the canvas until this component unmounts.
 ```
 
 `id` can be used to indicate that the same canvas componets is to be shared between DOM components. For instance it can prevent a mesh from unmounting when navigating to a new page, if that same mesh with the same ID is also present on the new page. This is similar to how Framer Motions layoutId works, but without the automatic layout animation.
+
+The props added to `UseCanvas` will be tunneled to the child component inside the GlobalCanvas. It automatically updates the canvas component's props when any of the them change.
+
+```jsx
+const [isOpen, setIsOpen] = useState(false)
+
+return (
+  <div onClick={() => setIsOpen(true)}>
+  <UseCanvas isOpen={isOpen}>
+    <MyMesh /* I will receieve all props from UseCanvas when they update */ />
+  </UseCanvas>
+)
+```
 
 ### `<ScrollScene>`
 
