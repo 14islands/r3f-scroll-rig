@@ -344,18 +344,13 @@ This is a known issue with the `UseCanvas` component.
 You can either use the `useCanvas()` hook instead, or make HMR work again by defining your children as top level functions instead of inlining them:
 
 ```jsx
-
 // HMR will work on me since I'm defined here!
-const MyScrollScene => () => (
-  <ScrollScene track={el} debug={false}>
-    ...
-  </ScrollScene>
-)
+const MyScrollScene = ({ el }) => <ScrollScene track={el}>/* ... */</ScrollScene>
 
 function MyHtmlComponent() {
   return (
     <UseCanvas>
-       <MyScrollScene/>
+      <MyScrollScene />
     </UseCanvas>
   )
 }
