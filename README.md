@@ -148,7 +148,7 @@ export const HtmlComponent = () => (
 
 **⚠️ Note:** HMR might not work for the children of `<UseCanvas>` unless you defined them outside. Also, the props on the children are not reactive by default since the component is tunneled to the global canvas. <a href="/docs/api.md#usecanvas">Updated props need to be tunneled like this.</a>
 
-Learn more about edge cases and solutions in the <a href="#gotchas">gotchas section</a>.
+Learn more about edge cases and solutions in the <a href="#gotchas-">gotchas section</a>.
 
 # Examples 🎪
 
