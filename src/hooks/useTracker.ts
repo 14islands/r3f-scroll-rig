@@ -56,7 +56,7 @@ function useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptio
   // bind useInView ref to current tracking element
   useLayoutEffect(() => {
     ref(track.current)
-  }, [track])
+  }, [track, track.current])
 
   // Using state so it's reactive
   const [scale, setScale] = useState<vec3>(vecn.vec3(0, 0, 0))
