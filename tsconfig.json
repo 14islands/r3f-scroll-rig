@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "declaration": true,
+    "declarationDir": "./dist",
     "module": "ESNext",
     "target": "ESNext",
     "lib": ["dom", "dom.iterable", "esnext"],
@@ -18,9 +19,8 @@
     "jsxFactory": "",
     "jsxFragmentFactory": "",
     "incremental": true,
-    "noImplicitAny": true,
-    "typeRoots": ["./node_modules/@types", "./src/types/global.d.ts"]
+    "noImplicitAny": true
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "dist"]
 }

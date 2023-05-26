@@ -12,5 +12,5 @@ declare type vec3 = {
 } & [x: number, y: number, z: number]
 
 declare module 'vecn' {
-  export function vec3(number, number, number): vec3
+  export function vec3(x: number, y: number, z: number): vec3
 }

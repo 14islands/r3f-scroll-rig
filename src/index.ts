@@ -32,4 +32,4 @@ export const styles = {
 export { useCanvasStore } from './store'
 
 // Types
-export type { ScrollState } from './hooks/useTracker.d'
+export type { ScrollState } from './hooks/useTrackerTypes'

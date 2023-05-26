@@ -1,3 +1,5 @@
+// https://www.typescriptlang.org/docs/handbook/modules.html#ambient-modules
+/// <reference path="../types/global.ts" />
 import type { Scroll } from '../scrollbar/useScrollbar'
 
 export interface ScrollState {

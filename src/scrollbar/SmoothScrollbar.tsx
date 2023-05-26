@@ -3,7 +3,7 @@ import Lenis from '@studio-freight/lenis'
 
 import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
 import { useCanvasStore } from '../store'
-import { ISmoothScrollbar, ScrollCallback, ScrollToTarget, ScrollToConfig } from './SmoothScrollbar.d'
+import { ISmoothScrollbar, ScrollCallback, ScrollToTarget, ScrollToConfig } from './SmoothScrollbarTypes'
 
 const POINTER_EVENTS_ENABLE_VELOCITY = 1
 const POINTER_EVENTS_DISABLE_VELOCITY = 1.5

@@ -7,9 +7,10 @@ import React, {
   ForwardedRef,
   useImperativeHandle,
 } from 'react'
-import { useScrollRig, useImageAsTexture, useScrollbar } from '@14islands/r3f-scroll-rig'
 import { Color, Vector2, ShaderMaterial, Mesh, ShaderMaterialParameters } from 'three'
 import { useFrame, useThree } from '@react-three/fiber'
+
+import { useScrollRig, useImageAsTexture, useScrollbar } from '../src'
 
 interface WebGLImageProps {
   el: MutableRefObject<HTMLImageElement>

@@ -1,10 +1,14 @@
+// https://www.typescriptlang.org/docs/handbook/modules.html#ambient-modules
+/// <reference path="../src/types/global.ts" />
+
 import React, { useRef, useMemo } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
-import { ScrollScene, useScrollRig } from '@14islands/r3f-scroll-rig'
 import { Group } from 'three'
 import vecn from 'vecn'
 // @ts-ignore
 import lerp from '@14islands/lerp'
+
+import { ScrollScene, useScrollRig } from '../src'
 
 // Sticky mesh that covers full viewport size
 const StickyChild = ({

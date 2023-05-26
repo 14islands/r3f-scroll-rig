@@ -8,7 +8,7 @@ import { useCanvasStore } from '../store'
 import { useScrollRig } from '../hooks/useScrollRig'
 import { DebugMesh } from './DebugMesh'
 import { useTracker } from '../hooks/useTracker'
-import type { ScrollState } from '../hooks/useTracker.d'
+import type { ScrollState } from '../hooks/useTrackerTypes'
 
 export interface ScrollSceneChildProps {
   track: MutableRefObject<HTMLElement>

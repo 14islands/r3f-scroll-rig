@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react'
 import { SmoothScrollbar } from '../scrollbar/SmoothScrollbar'
-import { ISmoothScrollbar } from '../scrollbar/SmoothScrollbar.d'
+import { ISmoothScrollbar } from '../scrollbar/SmoothScrollbarTypes'
 import { addEffect, invalidate } from '@react-three/fiber'
 
 function R3FSmoothScrollbar(props: ISmoothScrollbar, ref: any) {

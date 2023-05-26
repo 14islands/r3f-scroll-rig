@@ -16,4 +16,4 @@ export declare const styles: {
     transparentColorWhenSmooth: string;
 };
 export { useCanvasStore } from './store';
-export type { ScrollState } from './hooks/useTracker.d';
+export type { ScrollState } from './hooks/useTrackerTypes';

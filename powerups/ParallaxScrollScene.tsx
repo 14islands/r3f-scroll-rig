@@ -1,7 +1,8 @@
 import React, { useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
-import { ScrollScene, useScrollRig } from '@14islands/r3f-scroll-rig'
 import { Mesh } from 'three'
+
+import { ScrollScene, useScrollRig } from '../src'
 
 // Parallax group inside ScrollScene
 const ParallaxGroup = ({ children, scrollState, parallax }: any) => {

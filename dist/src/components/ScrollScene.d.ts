@@ -1,5 +1,5 @@
 import React, { MutableRefObject, ReactNode } from 'react';
-import type { ScrollState } from '../hooks/useTracker.d';
+import type { ScrollState } from '../hooks/useTrackerTypes';
 export interface ScrollSceneChildProps {
     track: MutableRefObject<HTMLElement>;
     margin: number;

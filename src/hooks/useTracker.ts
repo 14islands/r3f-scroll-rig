@@ -1,3 +1,6 @@
+// https://www.typescriptlang.org/docs/handbook/modules.html#ambient-modules
+/// <reference path="../types/global.ts" />
+
 import { useRef, useCallback, useEffect, useMemo, useState, MutableRefObject } from 'react'
 import { useInView } from 'react-intersection-observer'
 import { useWindowSize } from './useWindowSize'
@@ -9,7 +12,7 @@ import { useCanvasStore } from '../store'
 
 import { useScrollbar, Scroll } from '../scrollbar/useScrollbar'
 
-import type { Rect, Bounds, TrackerOptions, Tracker, ScrollState, UpdateCallback } from './useTracker.d'
+import type { Rect, Bounds, TrackerOptions, Tracker, ScrollState, UpdateCallback } from './useTrackerTypes'
 
 function updateBounds(bounds: Bounds, rect: Rect, scroll: Scroll, size: any) {
   bounds.top = rect.top - (scroll.y || 0)
