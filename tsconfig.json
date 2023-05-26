@@ -19,8 +19,9 @@
     "jsxFactory": "",
     "jsxFragmentFactory": "",
     "incremental": true,
-    "noImplicitAny": true
+    "noImplicitAny": true,
+    "paths": { "@14islands/r3f-scroll-rig": ["./src/index.ts"] }
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx"],
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["node_modules", "dist"]
 }

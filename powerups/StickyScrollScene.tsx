@@ -8,7 +8,7 @@ import vecn from 'vecn'
 // @ts-ignore
 import lerp from '@14islands/lerp'
 
-import { ScrollScene, useScrollRig } from '../src'
+import { ScrollScene, useScrollRig } from '@14islands/r3f-scroll-rig'
 
 // Sticky mesh that covers full viewport size
 const StickyChild = ({
