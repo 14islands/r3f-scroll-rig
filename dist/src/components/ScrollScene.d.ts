@@ -1,4 +1,4 @@
-import React, { MutableRefObject, ReactNode } from 'react';
+import { MutableRefObject, ReactNode } from 'react';
 import type { ScrollState } from '../hooks/useTrackerTypes';
 export interface ScrollSceneChildProps {
     track: MutableRefObject<HTMLElement>;
@@ -8,7 +8,7 @@ export interface ScrollSceneChildProps {
     scrollState: ScrollState;
     inViewport: boolean;
 }
-interface ScrollScene {
+interface IScrollScene {
     track: MutableRefObject<HTMLElement>;
     children: (state: ScrollSceneChildProps) => ReactNode;
     margin?: number;
@@ -21,5 +21,12 @@ interface ScrollScene {
     as?: string;
     priority?: number;
 }
-declare const ScrollScene: React.MemoExoticComponent<({ track, children, margin, inViewportMargin, inViewportThreshold, visible, hideOffscreen, scissor, debug, as, priority, ...props }: ScrollScene) => JSX.Element>;
+/**
+ * Generic THREE.js Scene that tracks the dimensions and position of a DOM element while scrolling
+ * Scene is positioned and scaled exactly above DOM element
+ *
+ * @author david@14islands.com
+ */
+declare function ScrollScene({ track, children, margin, // Margin outside scissor to avoid clipping vertex displacement (px)
+inViewportMargin, inViewportThreshold, visible, hideOffscreen, scissor, debug, as, priority, ...props }: IScrollScene): JSX.Element;
 export { ScrollScene };

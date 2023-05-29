@@ -1,6 +1,6 @@
-import React, { MutableRefObject, ReactNode } from 'react';
+import { MutableRefObject, ReactNode } from 'react';
 import type { ScrollSceneChildProps } from './ScrollScene';
-interface ViewportScrollScene {
+interface IViewportScrollScene {
     track: MutableRefObject<HTMLElement>;
     children: (state: ScrollSceneChildProps) => ReactNode;
     margin?: number;
@@ -14,7 +14,6 @@ interface ViewportScrollScene {
     hud?: boolean;
     camera?: any;
 }
-declare function ViewportScrollSceneImpl({ track, margin, // Margin outside viewport to avoid clipping vertex displacement (px)
-inViewportMargin, inViewportThreshold, priority, ...props }: ViewportScrollScene): JSX.Element;
-declare const ViewportScrollScene: React.MemoExoticComponent<typeof ViewportScrollSceneImpl>;
+declare function ViewportScrollScene({ track, margin, // Margin outside viewport to avoid clipping vertex displacement (px)
+inViewportMargin, inViewportThreshold, priority, ...props }: IViewportScrollScene): JSX.Element;
 export { ViewportScrollScene };
