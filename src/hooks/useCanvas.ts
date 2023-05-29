@@ -11,7 +11,7 @@ import { ScrollRigState } from '../hooks/useScrollRig'
  */
 function useCanvas(
   object: ReactNode | ((props: ScrollRigState) => ReactNode),
-  deps: any = {},
+  props: any = {},
   { key, dispose = true }: { key?: string; dispose?: boolean } = {}
 ) {
   const updateCanvas = useCanvasStore((state) => state.updateCanvas)
@@ -23,7 +23,7 @@ function useCanvas(
 
   // render to canvas if not mounted already
   useLayoutEffect(() => {
-    renderToCanvas(uniqueKey, object, { inactive: false })
+    renderToCanvas(uniqueKey, object, { ...props, inactive: false })
   }, [uniqueKey])
 
   // remove from canvas if no usage (after render so new users have time to register)
@@ -41,10 +41,10 @@ function useCanvas(
     [updateCanvas, uniqueKey]
   )
 
-  // auto update props when deps change
+  // auto update props when they change
   useEffect(() => {
-    set(deps)
-  }, [...Object.values(deps)])
+    set(props)
+  }, [...Object.values(props)])
 
   return set
 }
