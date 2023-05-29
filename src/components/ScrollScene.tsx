@@ -1,4 +1,4 @@
-import React, { memo, useState, useCallback, MutableRefObject, ReactNode } from 'react'
+import React, { useState, useCallback, MutableRefObject, ReactNode } from 'react'
 import { Scene } from 'three'
 import { useFrame, createPortal } from '@react-three/fiber'
 
@@ -19,7 +19,7 @@ export interface ScrollSceneChildProps {
   inViewport: boolean
 }
 
-interface ScrollScene {
+interface IScrollScene {
   track: MutableRefObject<HTMLElement>
   children: (state: ScrollSceneChildProps) => ReactNode
   margin?: number
@@ -39,7 +39,7 @@ interface ScrollScene {
  *
  * @author david@14islands.com
  */
-const ScrollSceneImpl = ({
+function ScrollScene({
   track,
   children,
   margin = 0, // Margin outside scissor to avoid clipping vertex displacement (px)
@@ -52,7 +52,7 @@ const ScrollSceneImpl = ({
   as = 'scene',
   priority = config.PRIORITY_SCISSORS,
   ...props
-}: ScrollScene) => {
+}: IScrollScene) {
   const inlineSceneRef = useCallback((node: any) => {
     if (node !== null) {
       setScene(node)
@@ -128,7 +128,5 @@ const ScrollSceneImpl = ({
   // @ts-ignore
   return scissor && scene ? createPortal(content, scene) : <InlineElement ref={inlineSceneRef}>{content}</InlineElement>
 }
-
-const ScrollScene = memo(ScrollSceneImpl)
 
 export { ScrollScene }

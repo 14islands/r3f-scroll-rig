@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useState, useCallback, MutableRefObject, ReactNode } from 'react'
+import React, { useEffect, useState, useCallback, MutableRefObject, ReactNode } from 'react'
 import { Scene } from 'three'
 import { useFrame, createPortal, useThree } from '@react-three/fiber'
 
@@ -13,7 +13,7 @@ import { OrthographicCamera } from './OrthographicCamera'
 
 import type { ScrollSceneChildProps } from './ScrollScene'
 
-interface ViewportScrollScene {
+interface IViewportScrollScene {
   track: MutableRefObject<HTMLElement>
   children: (state: ScrollSceneChildProps) => ReactNode
   margin?: number
@@ -51,7 +51,7 @@ const Viewport = ({
   camera,
   hud,
   ...props
-}: ViewportScrollScene & Tracker) => {
+}: IViewportScrollScene & Tracker) => {
   const scene = useThree((s) => s.scene)
   const get = useThree((state) => state.get)
   const setEvents = useThree((state) => state.setEvents)
@@ -113,14 +113,14 @@ const Viewport = ({
   )
 }
 
-function ViewportScrollSceneImpl({
+function ViewportScrollScene({
   track,
   margin = 0, // Margin outside viewport to avoid clipping vertex displacement (px)
   inViewportMargin,
   inViewportThreshold,
   priority,
   ...props
-}: ViewportScrollScene) {
+}: IViewportScrollScene) {
   const [scene] = useState(() => new Scene())
 
   const { bounds, ...trackerProps } = useTracker(track, {
@@ -155,7 +155,5 @@ function ViewportScrollSceneImpl({
     )
   )
 }
-
-const ViewportScrollScene = memo(ViewportScrollSceneImpl)
 
 export { ViewportScrollScene }
