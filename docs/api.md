@@ -120,8 +120,9 @@ The children will stay mounted on the canvas until this component unmounts.
 ```tsx
 <UseCanvas
   children: JSX.Element | (props) => JSX.Element
-  props?: any[] // props tunneled to the canvas child - updates on re-render
-  id?: string   // persistent layout ID (see below)
+  id?: string  // persistent layout ID (optional: see below)
+  dispose?: boolean // dispose on unmount (optional: true by default)
+  [key: string]: any // props to reactively tunnel to the child
 >
   <MyMeshComponent />
 </UseCanvas>
@@ -129,7 +130,7 @@ The children will stay mounted on the canvas until this component unmounts.
 
 `id` can be used to indicate that the same canvas componets is to be shared between DOM components. For instance it can prevent a mesh from unmounting when navigating to a new page, if that same mesh with the same ID is also present on the new page. This is similar to how Framer Motions layoutId works, but without the automatic layout animation.
 
-The props added to `UseCanvas` will be tunneled to the child component inside the GlobalCanvas. It automatically updates the canvas component's props when any of the them change.
+The props added to `UseCanvas` will be tunneled and applied to the child component running inside the GlobalCanvas. It automatically updates the canvas component's props when any of the them change.
 
 ```jsx
 const [isOpen, setIsOpen] = useState(false)
@@ -154,6 +155,7 @@ The child component is passed `scale` which can be used to match the DOM element
   children: (props) => JSX.Element  // render function
   as?: string = "scene"       // renders as a Scene by default
   inViewportMargin?: string = "0%"  // IntersectionObserver rootMargin
+  inViewportThreshold?: number = 0  // IntersectionObserver threshold
   hideOffscreen?: boolean = true // Hide scene when outside viewport
   visible?: boolean = true    // Scene visibility
   debug?: boolean = false     // Render a debug plane and show 50% opacity of DOM element
@@ -203,6 +205,7 @@ The child receives the same props as the ScrollScene provides.
   children: (props) => JSX.Element  // render function
   orthographic?: boolean = false // uses a perspective camera by default
   inViewportMargin?: string = "0%"  // IntersectionObserver rootMargin
+  inViewportThreshold?: number = 0  // IntersectionObserver threshold
   hideOffscreen?: boolean = true // Hide scene when outside viewport
   margin?: number             // margin added outside scissor
   visible?: boolean = true    // Scene visibility
@@ -350,14 +353,14 @@ Hook used in regular DOM components to render something onto the `GlobalCanvas`.
 ```ts
 const update = useCanvas(
   object: Object3D | (props) => Object3D,
-  deps = {},
+  props = {},
   { key, dispose = true} = {}
 ): (props: any) => void
 ```
 
 `object` will be added to the global canvas when this component is mounted and removed from the canvas when it unmounts.
 
-`deps` is an optional object can be used to automatically update properties on the canvas object when they change due to a re-render of the parent component.
+`props` is an optional object can be used to automatically update those properties on the canvas object when they change due to a re-render of the parent component.
 
 If `key` is specified, the mesh will not unmount as long as there are other hooks using this key. This can be used to make page transitions where an object moves seamlessly from one page to another.
 
