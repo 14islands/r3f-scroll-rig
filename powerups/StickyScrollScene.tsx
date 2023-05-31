@@ -28,13 +28,13 @@ const StickyChild = ({
   useFrame((_, delta) => {
     if (!scrollState.inViewport) return
 
-    const topOffset = (childTop / size.height) * scaleMultiplier
+    const topOffset = childTop / size.height
     const bottomOffset = (childBottom / parentScale[1]) * scaleMultiplier
 
     //  move to top of sticky area
     const yTop = parentScale[1] * 0.5 - childScale[1] * 0.5
     const yBottom = -parentScale[1] * 0.5 + childScale[1] * 0.5
-    const ySticky = -childTop + yTop - (scrollState.viewport - 1) * size.height * scaleMultiplier
+    const ySticky = -childTop * scaleMultiplier + yTop - (scrollState.viewport - 1) * size.height * scaleMultiplier
 
     let y = group.current.position.y
 
@@ -65,8 +65,6 @@ const renderAsSticky = (
   { stickyLerp, fillViewport }: any
 ) => {
   return ({ scale, ...props }: any) => {
-    // set child's scale to 100vh/100vw instead of the full DOM el
-    // the DOM el should be taller to indicate how far the scene stays sticky
     let childScale = vecn.vec3(parseFloat(childStyle.width), parseFloat(childStyle.height), 1)
     let childTop = parseFloat(childStyle.top)
     let childBottom = size.height - childTop - childScale[1]
@@ -88,7 +86,7 @@ const renderAsSticky = (
         scaleMultiplier={scaleMultiplier}
         {...props}
       >
-        {children({ scale: childScale.times(scaleMultiplier), ...props })}
+        {children({ scale: childScale.times(scaleMultiplier), parentScale: scale, ...props })}
       </StickyChild>
     )
   }
