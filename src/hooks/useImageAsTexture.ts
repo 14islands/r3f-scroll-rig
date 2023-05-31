@@ -35,7 +35,7 @@ function useTextureLoader() {
   const isFirefox = navigator.userAgent.indexOf('Firefox') > -1
   // @ts-ignore
   const firefoxVersion = isFirefox ? navigator.userAgent.match(/Firefox\/([0-9]+)\./)[1] : -1
-  return typeof createImageBitmap === 'undefined' || isSafari || (isFirefox && firefoxVersion < 98)
+  return typeof createImageBitmap === 'undefined' || isSafari || (isFirefox && Number(firefoxVersion) < 98)
 }
 
 function useImageAsTexture(
