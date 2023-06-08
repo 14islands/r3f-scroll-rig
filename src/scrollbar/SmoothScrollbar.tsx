@@ -161,11 +161,12 @@ const SmoothScrollbarImpl = (
     lenis.current?.emit()
     return () => {
       lenis.current?.off('scroll', _onScroll)
-      // reset store
-      useCanvasStore.setState({
-        onScroll: () => () => {},
-        scrollTo: () => {},
-      })
+      // reset global store
+      if (updateGlobalState)
+        useCanvasStore.setState({
+          onScroll: () => () => {},
+          scrollTo: () => {},
+        })
     }
   }, [])
 
