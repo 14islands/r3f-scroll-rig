@@ -33,18 +33,21 @@ This is the global canvas component that should stay mounted in between page loa
 
 #### Render Props
 
+`GlobalCanvas` is just a thin wrapper around the default R3F `Canvas` and accepts all the same props.
+
 ```tsx
 <GlobalCanvas
   children // R3F global child nodes
-  orthographic?: boolean = false
-  camera?: object // Default FoV=50 - distance is calculated to match DOM size
   debug?: boolean = false
   scaleMultiplier?: number = 1 // 1 pixel = 1 viewport unit
   globalRender?: boolean
   globalPriority?: number
   globalClearDepth?: boolean
+  // and all default R3F Canvas props
 />
 ```
+
+**Note:** _the `GlobalCanvas` has a custom Perspective / Orthographic camera - don't override the camera unless you want full control. For the default `PerspectiveCamera`, you can either specify the `fov` or the `distance` and the other will be calculated to make sure we always match the size of DOM elements._
 
 The following default styles are applied to the canvas:
 
@@ -57,6 +60,23 @@ style={{
   height: '100vh', // use 100vh to avoid resize on iOS when url bar goes away
   ...style,
 }}
+```
+
+#### Children as render function
+
+You can pass a render function as the single child to `GlobalCanvas` if you want full control over where the children from `UseCanvas`/`useCanvas` appear in the scene hierarchy.
+
+This is for useful if you want to wrap the global children in a `Suspense` to prevent persistent meshes from being hidden while loading new assets.
+
+```jsx
+<GlobalCanvas>
+  {(globalChildren) => (
+    <>
+      <MyPersistentBackground />
+      <Suspense fallback={null}>{globalChildren}</Suspense>
+    </>
+  )}
+</GlobalCanvas>
 ```
 
 ### `<SmoothScrollbar>`

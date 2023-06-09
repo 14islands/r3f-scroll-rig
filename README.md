@@ -399,6 +399,13 @@ Note: `ViewportScrollScene` will not be affected by global postprocessing effect
 
 </details>
 
+<details>
+  <summary>How can I wrap my UseCanvas meshes in a shared Suspense?</summary>
+
+Please read the API docs on using [children as a render function](/docs/api.md#children-as-render-function) for an example.
+
+</details>
+
 # In the wild 🐾
 
 - [14islands.com](https://14islands.com) by [14islands](https://14islands.com)
