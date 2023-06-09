@@ -407,3 +407,5 @@ Note: `ViewportScrollScene` will not be affected by global postprocessing effect
 - [Neko Health](https://www.nekohealth.com/) by [14islands](https://14islands.com)
 - [Playgoals.com](https://playgoals.com/) by [14islands](https://14islands.com)
 - [Goals studio](https://studio.playgoals.com/) by [14islands](https://14islands.com)
+- [Pluto dev portal](https://dev.pluto.app/) by [14islands](https://14islands.com)
+- [Quantum Wallet](https://quantumwallet.tech/) by [14islands](https://14islands.com)
