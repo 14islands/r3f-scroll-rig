@@ -104,7 +104,7 @@ export const HomePage = () => (
 )
 ```
 
-⚠️ Each page should have its own SmoothScrollbar (don't put it in the layout as it won't detect the new page height properly).
+💡 You can either place the `SmoothScrollbar` in a shared layout (Lenis will autmatically pick up changes to the document height when navigating). Or, you can place it inside each page in case you want some pages with smooth scrolling and some without.
 
 #### Render Props
 
@@ -121,7 +121,7 @@ export const HomePage = () => (
 
 #### Use without GlobalCanvas
 
-💡**Note:** _You can use `SmoothScrollbar` independently based on the project needs. If the project doesn't need WebGL you can still use the scrollbar to implement smooth scrolling._
+💡**Note:** _You can use `SmoothScrollbar` independently based on the project needs. If the project doesn't need WebGL, you can still use the scrollbar to implement smooth scrolling, and stay flexible to add Canvas later in the project if needed._
 
 ```jsx
 import { SmoothScrollbar } from '@14islands/r3f-scroll-rig/scrollbar'
