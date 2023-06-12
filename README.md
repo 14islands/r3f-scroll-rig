@@ -9,13 +9,13 @@ Progressively enhance a React website with WebGL using `@react-three/fiber` and 
   <img width="49.5%" src="https://www.dropbox.com/s/vmpqf17oy0otkkl/pluto600_10fps.gif?dl=0&raw=1" style="float:right" />
 </p>
 
-[ <a href="#features">Features</a> |
-<a href="#introduction">Introduction</a> |
-<a href="#installing">Installing</a> |
-<a href="#getting-started">Getting Started</a> |
-<a href="#examples">Examples</a> |
-<a href="#api">API</a> |
-<a href="#gotchas">Gotchas</a> ]
+[ <a href="#features-">Features</a> |
+<a href="#introduction-">Introduction</a> |
+<a href="#installing-">Installing</a> |
+<a href="#getting-started-">Getting Started</a> |
+<a href="#examples-">Examples</a> |
+<a href="#api-%EF%B8%8F">API</a> |
+<a href="#gotchas-">Gotchas</a> ]
 
 # Features 🌈
 
@@ -193,10 +193,10 @@ All components & hooks are described in the [API docs](/docs/api.md)
 
 <details>
   <summary>The default camera</summary>
-  
- The default scroll-rig camera is locked to a 50 degree Field-of-View. 
- 
- In order to perfectly match DOM dimensions, the camera distance will be calculated. This calculation is based on screen height since Threejs uses a vertical FoV. This means the camera position-z will change slightly based on your height.
+
+The default scroll-rig camera is locked to a 50 degree Field-of-View.
+
+In order to perfectly match DOM dimensions, the camera distance will be calculated. This calculation is based on screen height since Threejs uses a vertical FoV. This means the camera position-z will change slightly based on your height.
 
 You can override the default camera behaviour, and for instance set the distance and have a variable FoV instead:
 
@@ -217,7 +217,7 @@ If you need full control of the camera you can pass in a custom camera as a chil
 <details>
   <summary>Use relative scaling</summary>
   Always base your sizes on the `scale` passed down from ScrollScene/ViewportScrollScene/useTracker in order to have consistent scaling for all screen sizes.
-  
+
 The `scale` is always matching the tracked DOM element and will update based on media queries etc.
 
 ```jsx
