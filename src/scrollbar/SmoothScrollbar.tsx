@@ -142,6 +142,7 @@ const SmoothScrollbarImpl = (
 
       // expose global scrollTo and onScroll function to subscribe to scroll events
       useCanvasStore.setState({
+        __lenis: lenis.current,
         scrollTo: (...args) => {
           lenis.current?.scrollTo(...args)
         },
@@ -164,6 +165,7 @@ const SmoothScrollbarImpl = (
       // reset global store
       if (updateGlobalState)
         useCanvasStore.setState({
+          __lenis: undefined,
           onScroll: () => () => {},
           scrollTo: () => {},
         })

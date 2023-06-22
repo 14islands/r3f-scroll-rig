@@ -9,12 +9,12 @@ import vecn from 'vecn'
 import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
 import { mapLinear } from '../utils/math'
 import { useCanvasStore } from '../store'
-
-import { useScrollbar, Scroll } from '../scrollbar/useScrollbar'
+import { useScrollbar } from '../scrollbar/useScrollbar'
+import type { ScrollData } from '../scrollbar/SmoothScrollbarTypes'
 
 import type { Rect, Bounds, TrackerOptions, Tracker, ScrollState, UpdateCallback } from './useTrackerTypes'
 
-function updateBounds(bounds: Bounds, rect: Rect, scroll: Scroll, size: any) {
+function updateBounds(bounds: Bounds, rect: Rect, scroll: ScrollData, size: any) {
   bounds.top = rect.top - (scroll.y || 0)
   bounds.bottom = rect.bottom - (scroll.y || 0)
   bounds.left = rect.left - (scroll.x || 0)

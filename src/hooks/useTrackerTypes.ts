@@ -1,6 +1,6 @@
 // https://www.typescriptlang.org/docs/handbook/modules.html#ambient-modules
 /// <reference path="../types/global.ts" />
-import type { Scroll } from '../scrollbar/useScrollbar'
+import type { ScrollData } from '../scrollbar/SmoothScrollbarTypes'
 
 export interface ScrollState {
   inViewport: boolean
@@ -43,5 +43,5 @@ export interface TrackerOptions {
 
 export type UpdateCallback = {
   onlyUpdateInViewport?: boolean
-  scroll?: Scroll
+  scroll?: ScrollData
 }

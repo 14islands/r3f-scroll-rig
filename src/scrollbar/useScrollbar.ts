@@ -1,36 +1,20 @@
 import { useCanvasStore } from '../store'
-import { ScrollCallback } from './SmoothScrollbarTypes'
-
-export interface Scroll {
-  y: number
-  x: number
-  limit: number
-  velocity: number
-  progress: number
-  direction: number
-  scrollDirection: string
-}
-
-interface UseScrollbarProps {
-  enabled: boolean
-  scroll: Scroll
-  scrollTo: (target: any) => void
-  onScroll: (cb: ScrollCallback) => () => void
-}
 
 /**
  * Public interface for ScrollRig
  */
 export const useScrollbar = () => {
-  const hasSmoothScrollbar = useCanvasStore((state) => state.hasSmoothScrollbar)
+  const enabled = useCanvasStore((state) => state.hasSmoothScrollbar)
   const scroll = useCanvasStore((state) => state.scroll)
   const scrollTo = useCanvasStore((state) => state.scrollTo)
   const onScroll = useCanvasStore((state) => state.onScroll)
+  const __lenis = useCanvasStore((state) => state.__lenis)
 
   return {
-    enabled: hasSmoothScrollbar,
+    enabled,
     scroll,
     scrollTo,
     onScroll,
-  } as UseScrollbarProps
+    __lenis,
+  }
 }
