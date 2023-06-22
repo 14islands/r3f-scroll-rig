@@ -1,6 +1,6 @@
 {
   "name": "@14islands/r3f-scroll-rig",
-  "version": "8.11.10",
+  "version": "8.11.11",
   "description": "Progressively enhance any React website with WebGL using @react-three/fiber",
   "private": false,
   "type": "module",
