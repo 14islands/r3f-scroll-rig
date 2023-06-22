@@ -119,6 +119,8 @@ export const HomePage = () => (
 />
 ```
 
+If you attach a ref to the SmoothScrollbar you will recieve an imperative handle with access to the Lenis instance and its functions.
+
 #### Use without GlobalCanvas
 
 💡**Note:** _You can use `SmoothScrollbar` independently based on the project needs. If the project doesn't need WebGL, you can still use the scrollbar to implement smooth scrolling, and stay flexible to add Canvas later in the project if needed._
