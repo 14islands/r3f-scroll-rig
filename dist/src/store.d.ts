@@ -1,4 +1,5 @@
-import { ScrollCallback } from './scrollbar/SmoothScrollbarTypes';
+import type Lenis from '@studio-freight/lenis';
+import { ScrollCallback, ScrollData } from './scrollbar/SmoothScrollbarTypes';
 interface ScrollRigStore {
     debug: boolean;
     scaleMultiplier: number;
@@ -15,15 +16,8 @@ interface ScrollRigStore {
     removeFromCanvas: (key: string, dispose: boolean) => void;
     pageReflow: number;
     requestReflow: () => void;
-    scroll: {
-        y: number;
-        x: number;
-        limit: number;
-        velocity: number;
-        progress: number;
-        direction: number;
-        scrollDirection?: 'vertical' | 'horizontal';
-    };
+    scroll: ScrollData;
+    __lenis: Lenis | undefined;
     scrollTo: (target: any) => void;
     onScroll: (cb: ScrollCallback) => () => void;
 }

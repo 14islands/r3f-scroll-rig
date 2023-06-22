@@ -1,5 +1,5 @@
 /// <reference path="../types/global.d.ts" />
-import type { Scroll } from '../scrollbar/useScrollbar';
+import type { ScrollData } from '../scrollbar/SmoothScrollbarTypes';
 export interface ScrollState {
     inViewport: boolean;
     progress: number;
@@ -40,5 +40,5 @@ export interface TrackerOptions {
 }
 export declare type UpdateCallback = {
     onlyUpdateInViewport?: boolean;
-    scroll?: Scroll;
+    scroll?: ScrollData;
 };

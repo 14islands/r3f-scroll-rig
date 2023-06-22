@@ -1,21 +1,10 @@
-import { ScrollCallback } from './SmoothScrollbarTypes';
-export interface Scroll {
-    y: number;
-    x: number;
-    limit: number;
-    velocity: number;
-    progress: number;
-    direction: number;
-    scrollDirection: string;
-}
-interface UseScrollbarProps {
-    enabled: boolean;
-    scroll: Scroll;
-    scrollTo: (target: any) => void;
-    onScroll: (cb: ScrollCallback) => () => void;
-}
 /**
  * Public interface for ScrollRig
  */
-export declare const useScrollbar: () => UseScrollbarProps;
-export {};
+export declare const useScrollbar: () => {
+    enabled: boolean;
+    scroll: import("./SmoothScrollbarTypes").ScrollData;
+    scrollTo: (target: any) => void;
+    onScroll: (cb: import("./SmoothScrollbarTypes").ScrollCallback) => () => void;
+    __lenis: import("@studio-freight/lenis").default | undefined;
+};

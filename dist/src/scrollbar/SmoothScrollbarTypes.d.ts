@@ -6,6 +6,15 @@ export declare type ScrollCallback = (props: {
     direction: number;
     progress: number;
 }) => void;
+export interface ScrollData {
+    y: number;
+    x: number;
+    limit: number;
+    velocity: number;
+    progress: number;
+    direction: number;
+    scrollDirection?: string;
+}
 export declare type ScrollToTarget = number | HTMLElement | string;
 export declare type ScrollToConfig = {
     offset: number;
