@@ -2,7 +2,7 @@ import './styles/index.css'
 
 // Components
 export { GlobalCanvas } from './components/GlobalCanvas'
-export { ScrollScene } from './components/ScrollScene'
+export { type ScrollSceneChildProps, ScrollScene } from './components/ScrollScene'
 export { ViewportScrollScene } from './components/ViewportScrollScene'
 export { UseCanvas } from './components/UseCanvas'
 
