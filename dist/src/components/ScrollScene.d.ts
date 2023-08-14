@@ -1,4 +1,5 @@
 import { MutableRefObject, ReactNode } from 'react';
+import { Scene } from 'three';
 import type { ScrollState } from '../hooks/useTrackerTypes';
 export interface ScrollSceneChildProps {
     track: MutableRefObject<HTMLElement>;
@@ -7,6 +8,7 @@ export interface ScrollSceneChildProps {
     scale: vec3 | undefined;
     scrollState: ScrollState;
     inViewport: boolean;
+    scene: Scene;
 }
 interface IScrollScene {
     track: MutableRefObject<HTMLElement>;
