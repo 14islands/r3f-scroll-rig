@@ -3,7 +3,7 @@ import './styles/index.css'
 // Components
 export { GlobalCanvas } from './components/GlobalCanvas'
 export { type ScrollSceneChildProps, ScrollScene } from './components/ScrollScene'
-export { ViewportScrollScene } from './components/ViewportScrollScene'
+export { type ViewportScrollSceneChildProps, ViewportScrollScene } from './components/ViewportScrollScene'
 export { UseCanvas } from './components/UseCanvas'
 
 // Hooks

@@ -10,12 +10,11 @@ import { useTracker } from '../hooks/useTracker'
 import type { Tracker } from '../hooks/useTrackerTypes'
 import { PerspectiveCamera } from './PerspectiveCamera'
 import { OrthographicCamera } from './OrthographicCamera'
-
-import type { ScrollSceneChildProps } from './ScrollScene'
+import type { ScrollState, Bounds } from '../hooks/useTrackerTypes'
 
 interface IViewportScrollScene {
   track: MutableRefObject<HTMLElement>
-  children: (state: ScrollSceneChildProps) => ReactNode
+  children: (state: ViewportScrollSceneChildProps) => ReactNode
   margin?: number
   inViewportMargin?: string
   inViewportThreshold?: number
@@ -26,6 +25,15 @@ interface IViewportScrollScene {
   priority?: number
   hud?: boolean // clear depth to render on top
   camera?: any
+}
+
+export interface ViewportScrollSceneChildProps {
+  track: MutableRefObject<HTMLElement>
+  margin: number
+  priority: number
+  scale: vec3 | undefined
+  scrollState: ScrollState
+  inViewport: boolean
 }
 
 /**
@@ -50,6 +58,8 @@ const Viewport = ({
   scrollState,
   camera,
   hud,
+  position, // pick out in order to not pass down to child (should be safe to spread props on child)
+  rect, // pick out in order to not pass down to child (should be safe to spread props on child)
   ...props
 }: IViewportScrollScene & Tracker) => {
   const scene = useThree((s) => s.scene)
@@ -100,7 +110,7 @@ const Viewport = ({
           // inherited props
           track,
           margin,
-          // new props
+          // tracker props
           scale,
           scrollState,
           inViewport,

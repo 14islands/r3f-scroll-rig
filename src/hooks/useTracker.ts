@@ -174,13 +174,17 @@ function useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptio
   }, [autoUpdate, update, onScroll])
 
   return {
-    rect: reactiveRect, // Dom rect - doesn't change on scroll - not - reactive
-    bounds, // scrolled bounding rect in pixels - not reactive
+    // Reactive props
     scale, // reactive scene scale - includes z-axis so it can be spread onto mesh directly
-    position, // scrolled element position in viewport units - not reactive
-    scrollState, // scroll progress stats - not reactive
     inViewport, // reactive prop for when inside viewport
-    update, // optional manual update
+    // Non-reactive props (only updates on window resize)
+    // Child values are updated on scroll
+    rect: reactiveRect, // Dom rect
+    bounds, // scrolled bounding rect in pixels
+    position, // scrolled element position in viewport units
+    scrollState, // scroll progress stats - not reactive
+    // Utilities
+    update, // optional - manually update tracker
   }
 }
 

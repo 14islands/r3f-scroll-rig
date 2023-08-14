@@ -8,7 +8,7 @@ import { useCanvasStore } from '../store'
 import { useScrollRig } from '../hooks/useScrollRig'
 import { DebugMesh } from './DebugMesh'
 import { useTracker } from '../hooks/useTracker'
-import type { ScrollState } from '../hooks/useTrackerTypes'
+import type { ScrollState, Bounds } from '../hooks/useTrackerTypes'
 
 export interface ScrollSceneChildProps {
   track: MutableRefObject<HTMLElement>
@@ -17,6 +17,7 @@ export interface ScrollSceneChildProps {
   scale: vec3 | undefined
   scrollState: ScrollState
   inViewport: boolean
+  scene: Scene
 }
 
 interface IScrollScene {
@@ -111,7 +112,8 @@ function ScrollScene({
           // inherited props
           track,
           margin,
-          // new props
+          scene,
+          // new props from tracker
           scale,
           scrollState,
           inViewport,
