@@ -1,4 +1,4 @@
-import React, { useState, useCallback, MutableRefObject, ReactNode } from 'react'
+import React, { useEffect, useState, useCallback, MutableRefObject, ReactNode } from 'react'
 import { Scene } from 'three'
 import { useFrame, createPortal } from '@react-three/fiber'
 
@@ -73,6 +73,13 @@ function ScrollScene({
   useLayoutEffect(() => {
     if (scene) scene.visible = hideOffscreen ? inViewport && visible : visible
   }, [scene, inViewport, hideOffscreen, visible])
+
+  // move scene into place on first position and on resize
+  useEffect(() => {
+    if (!scene) return
+    scene.position.y = position.y
+    scene.position.x = position.x
+  }, [scale, scene]) // scale updates on resize
 
   // RENDER FRAME
   useFrame(
