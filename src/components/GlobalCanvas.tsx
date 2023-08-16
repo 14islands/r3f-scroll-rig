@@ -1,4 +1,4 @@
-import React, { ReactNode, ReactElement } from 'react'
+import React, { ReactNode, startTransition } from 'react'
 import { Canvas, Props } from '@react-three/fiber'
 import { ResizeObserver as Polyfill } from '@juggle/resize-observer'
 import { parse } from 'query-string'
@@ -70,11 +70,14 @@ const GlobalCanvasImpl = ({
 
   // update state
   useLayoutEffect(() => {
-    useCanvasStore.setState({
-      scaleMultiplier,
-      globalRender,
-      globalPriority,
-      globalClearDepth,
+    // update as transition so we don't interrupt active suspenses
+    startTransition(() => {
+      useCanvasStore.setState({
+        scaleMultiplier,
+        globalRender,
+        globalPriority,
+        globalClearDepth,
+      })
     })
   }, [scaleMultiplier, globalPriority, globalRender, globalClearDepth])
 
