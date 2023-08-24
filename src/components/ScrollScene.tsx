@@ -71,15 +71,16 @@ function ScrollScene({
 
   // Hide scene when outside of viewport if `hideOffscreen` or set to `visible` prop
   useLayoutEffect(() => {
-    if (scene) scene.visible = hideOffscreen ? inViewport && visible : visible
+    if (!scene) return
+    scene.visible = hideOffscreen ? inViewport && visible : visible
   }, [scene, inViewport, hideOffscreen, visible])
 
-  // move scene into place on first position and on resize
+  // move scene into place visibility or scale changes
   useEffect(() => {
     if (!scene) return
     scene.position.y = position.y
     scene.position.x = position.x
-  }, [scale, scene]) // scale updates on resize
+  }, [scale, scene, inViewport]) // scale updates on resize
 
   // RENDER FRAME
   useFrame(
