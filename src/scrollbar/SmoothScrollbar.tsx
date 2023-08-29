@@ -82,6 +82,8 @@ const SmoothScrollbarImpl = (
     lenis.current = new Lenis({
       orientation: horizontal ? 'horizontal' : 'vertical',
       ...config,
+      // override and disable all smooth settings if scrollbar is disabled
+      ...(!enabled ? { smoothWheel: false, syncTouch: false, smoothTouch: false } : {}),
     })
 
     // let r3f drive the frameloop
@@ -104,10 +106,11 @@ const SmoothScrollbarImpl = (
       removeEffect()
       lenis.current?.destroy()
     }
-  }, [])
+  }, [enabled])
 
   // BIND TO LENIS SCROLL EVENT
   useLayoutEffect(() => {
+    const _lenis = lenis.current
     const _onScroll = ({ scroll, limit, velocity, direction, progress }: any) => {
       const y = !horizontal ? scroll : 0
       const x = horizontal ? scroll : 0
@@ -134,7 +137,7 @@ const SmoothScrollbarImpl = (
       invalidate() // demand a R3F frame on scroll
     }
 
-    lenis.current?.on('scroll', _onScroll)
+    _lenis?.on('scroll', _onScroll)
 
     // update global state
     if (updateGlobalState) {
@@ -142,14 +145,14 @@ const SmoothScrollbarImpl = (
 
       // expose global scrollTo and onScroll function to subscribe to scroll events
       useCanvasStore.setState({
-        __lenis: lenis.current,
+        __lenis: _lenis,
         scrollTo: (...args) => {
-          lenis.current?.scrollTo(...args)
+          _lenis?.scrollTo(...args)
         },
         onScroll: (cb: ScrollCallback) => {
-          lenis.current?.on('scroll', cb)
-          lenis.current?.emit() // send current scroll to new subscriber
-          return () => lenis.current?.off('scroll', cb)
+          _lenis?.on('scroll', cb)
+          _lenis?.emit() // send current scroll to new subscriber
+          return () => _lenis?.off('scroll', cb)
         },
       })
 
@@ -159,9 +162,9 @@ const SmoothScrollbarImpl = (
     }
 
     // fire our internal scroll callback to update globalState
-    lenis.current?.emit()
+    _lenis?.emit()
     return () => {
-      lenis.current?.off('scroll', _onScroll)
+      _lenis?.off('scroll', _onScroll)
       // reset global store
       if (updateGlobalState)
         useCanvasStore.setState({
@@ -170,7 +173,7 @@ const SmoothScrollbarImpl = (
           scrollTo: () => {},
         })
     }
-  }, [])
+  }, [enabled])
 
   // Interaction events - invalidate R3F loop and enable pointer events
   useLayoutEffect(() => {
