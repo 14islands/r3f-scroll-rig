@@ -20,8 +20,8 @@ export declare type Bounds = Rect & {
     positiveYUpBottom: number;
 };
 export interface Tracker {
-    rect: Rect | undefined;
-    scale: vec3 | undefined;
+    rect: Rect;
+    scale: vec3;
     inViewport: boolean;
     bounds: Bounds;
     scrollState: ScrollState;
