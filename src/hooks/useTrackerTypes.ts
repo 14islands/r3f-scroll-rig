@@ -17,6 +17,7 @@ export type Rect = {
   width: number
   height: number
 }
+
 export type Bounds = Rect & {
   x: number
   y: number
@@ -24,8 +25,8 @@ export type Bounds = Rect & {
 }
 
 export interface Tracker {
-  rect: Rect | undefined
-  scale: vec3 | undefined
+  rect: Rect
+  scale: vec3
   inViewport: boolean
   bounds: Bounds
   scrollState: ScrollState
