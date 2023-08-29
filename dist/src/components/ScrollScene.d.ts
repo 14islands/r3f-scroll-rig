@@ -5,7 +5,7 @@ export interface ScrollSceneChildProps {
     track: MutableRefObject<HTMLElement>;
     margin: number;
     priority: number;
-    scale: vec3 | undefined;
+    scale: vec3;
     scrollState: ScrollState;
     inViewport: boolean;
     scene: Scene;
