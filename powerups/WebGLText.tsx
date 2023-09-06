@@ -38,12 +38,17 @@ export const WebGLText = ({
 
   const { textColor, fontSize, textAlign, lineHeight, letterSpacing } = useMemo(() => {
     if (!el.current) return {}
-    const cs = window.getComputedStyle(el.current)
+    const cs = { ...window.getComputedStyle(el.current) }
+
+    // get color from parent if set to transparent
+    let textColor = color || cs.color
+    if (!color && cs.color === 'rgba(0, 0, 0, 0)' && el.current.parentElement) {
+      textColor = window.getComputedStyle(el.current.parentElement).color
+    }
 
     // font size relative letter spacing
     const letterSpacing = (parseFloat(cs.letterSpacing) || 0) / parseFloat(cs.fontSize)
     const lineHeight = (parseFloat(cs.lineHeight) || 0) / parseFloat(cs.fontSize)
-    const textColor = new Color(color || cs.color).convertSRGBToLinear()
 
     return {
       letterSpacing,
