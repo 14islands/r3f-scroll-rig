@@ -38,7 +38,7 @@ export const WebGLText = ({
 
   const { textColor, fontSize, textAlign, lineHeight, letterSpacing } = useMemo(() => {
     if (!el.current) return {}
-    const cs = { ...window.getComputedStyle(el.current) }
+    const cs = window.getComputedStyle(el.current)
 
     // get color from parent if set to transparent
     let textColor = color || cs.color
