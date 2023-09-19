@@ -409,6 +409,7 @@ Please read the API docs on using [children as a render function](/docs/api.md#c
 # In the wild 🐾
 
 - [14islands.com](https://14islands.com) by [14islands](https://14islands.com)
+- [v2.14islands.com](https://14islands.com) by [14islands](https://14islands.com)
 - [Pluto.app](https://www.pluto.app/) by [14islands](https://14islands.com)
 - [Myriad.video](https://myriad.video/) by [14islands](https://14islands.com)
 - [Neko Health](https://www.nekohealth.com/) by [14islands](https://14islands.com)
@@ -416,3 +417,5 @@ Please read the API docs on using [children as a render function](/docs/api.md#c
 - [Goals studio](https://studio.playgoals.com/) by [14islands](https://14islands.com)
 - [Pluto dev portal](https://dev.pluto.app/) by [14islands](https://14islands.com)
 - [Quantum Wallet](https://quantumwallet.tech/) by [14islands](https://14islands.com)
+- [Metamask Learn](https://learn.metamask.io/) by [Antinomy Studio](https://antinomy.studio)
+- [Lynxeye](https://lynxeye.com/) by [14islands](https://14islands.com)
