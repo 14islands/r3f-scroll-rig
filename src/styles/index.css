@@ -15,9 +15,9 @@
 }
 
 /* Show if smooth scrollbar disabled */
-.js-has-global-canvas.js-smooth-scrollbar-disabled .ScrollRig-hiddenIfSmooth {
-  visibility: unset;
-  color: unset;
+.js-smooth-scrollbar-disabled .ScrollRig-hiddenIfSmooth {
+  visibility: unset !important;
+  color: unset !important;
 }
 
 /* Used on scroll wrapper */
