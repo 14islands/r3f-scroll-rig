@@ -55,7 +55,7 @@ Further reading: [Progressive Enhancement with WebGL and React](https://medium.c
 
 2. Add `<SmoothScrollbar/>` to your layout. In order to perfectly match WebGL objects and DOM content, the browser scroll position needs to be animated on the main thread.
 
-<details>
+<details open>
 <summary>Next.js</summary>
 
 ```jsx
