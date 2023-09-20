@@ -23,7 +23,7 @@ export declare type ScrollToConfig = {
     easing: (t: number) => number;
 };
 export interface ISmoothScrollbar {
-    children: (props: any) => ReactElement;
+    children?: (props: any) => ReactElement;
     enabled?: boolean;
     locked?: boolean;
     scrollRestoration?: ScrollRestoration;
