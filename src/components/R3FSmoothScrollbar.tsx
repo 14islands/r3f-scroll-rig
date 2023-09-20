@@ -6,8 +6,8 @@ import { useCanvasStore } from '../store'
 
 function R3FSmoothScrollbar(props: ISmoothScrollbar, ref: any) {
   const isCanvasAvailable = useCanvasStore((s) => s.isCanvasAvailable)
-  if (!isCanvasAvailable) return <SmoothScrollbar ref={ref} {...props} />
-  return <SmoothScrollbar ref={ref} invalidate={invalidate} addEffect={addEffect} {...props} />
+  if (!isCanvasAvailable) return <SmoothScrollbar key="native" ref={ref} {...props} />
+  return <SmoothScrollbar key="r3f" ref={ref} invalidate={invalidate} addEffect={addEffect} {...props} />
 }
 
 export default forwardRef<any, ISmoothScrollbar>(R3FSmoothScrollbar)
