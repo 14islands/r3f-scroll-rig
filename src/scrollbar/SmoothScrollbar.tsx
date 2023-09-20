@@ -195,6 +195,11 @@ const SmoothScrollbarImpl = (
       document.documentElement.classList.toggle('js-smooth-scrollbar-disabled', !enabled)
       useCanvasStore.setState({ hasSmoothScrollbar: enabled })
     }
+    return () => {
+      // cleanup
+      document.documentElement.classList.remove('js-smooth-scrollbar-enabled')
+      document.documentElement.classList.remove('js-smooth-scrollbar-disabled')
+    }
   }, [enabled])
 
   useEffect(() => {
