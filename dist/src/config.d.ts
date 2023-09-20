@@ -1,5 +1,4 @@
-import type { Scene, Camera, WebGLRenderer } from 'three';
-declare type PreloadCallback = (gl: WebGLRenderer, scene: Scene, camera: Camera) => void;
+declare type PreloadCallback = (gl: any, scene: any, camera: any) => void;
 export declare const config: {
     PRIORITY_PRELOAD: number;
     PRIORITY_SCISSORS: number;
