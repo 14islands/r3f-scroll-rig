@@ -62,7 +62,7 @@ Further reading: [Progressive Enhancement with WebGL and React](https://medium.c
 import { GlobalCanvas, SmoothScrollbar } from '@14islands/r3f-scroll-rig'
 
 // _app.jsx
-function MyApp({ Component, pageProps, router }: AppProps) {
+function App({ Component, pageProps }: AppProps) {
   return (
     <>
       <GlobalCanvas />

@@ -87,24 +87,26 @@ Worth noting:
 
 - it **does not** use JS to move the content using transforms
 - we can use `position: sticky` etc 👌
-- the component sets `pointer-events: none` on the immediate child while scrolling to avoid jank caused by hover states (optional)
+- the component sets `pointer-events: none` on `document.documentElement` to avoid jank caused by hover states (optional, turn of using `disablePointerOnScroll={false}`)
 - the R3F event loop is used to animate scroll
 - `SmoothScrollbar` uses `@studio-freight/lenis` internally. Make sure to read through their section on [considerations](https://github.com/studio-freight/lenis#considerations) when adding `SmoothScrollbar` to your project.
 
 ```jsx
 import { SmoothScrollbar } from '@14islands/r3f-scroll-rig'
 
-export const HomePage = () => (
-  <SmoothScrollbar>
-    {(bind) => (
-      // Return a single DOM wrapper and spread all props {...bind}
-      <article {...bind}>This content will be smooth scrolled</article>
-    )}
-  </SmoothScrollbar>
-)
+// _app.jsx
+function App({ Component, pageProps }: AppProps) {
+  return (
+    <>
+      <SmoothScrollbar />
+      <GlobalCanvas />
+      <Component {...pageProps} />
+    </>
+  )
+}
 ```
 
-💡 You can either place the `SmoothScrollbar` in a shared layout (Lenis will autmatically pick up changes to the document height when navigating). Or, you can place it inside each page in case you want some pages with smooth scrolling and some without.
+💡 You can either place the `SmoothScrollbar` in a persistent layout (Lenis will autmatically pick up changes to the document height when navigating). Or, you can place it inside each page in case you want some pages with smooth scrolling and some without.
 
 #### Render Props
 
