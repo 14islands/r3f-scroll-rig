@@ -53,15 +53,20 @@ Further reading: [Progressive Enhancement with WebGL and React](https://medium.c
 
 1. Add `<GlobalCanvas>` to your layout. Keep it outside of your router to keep it from unmounting when navigating between pages.
 
+2. Add `<SmoothScrollbar/>` to your layout. In order to perfectly match WebGL objects and DOM content, the browser scroll position needs to be animated on the main thread.
+
 <details>
 <summary>Next.js</summary>
 
 ```jsx
+import { GlobalCanvas, SmoothScrollbar } from '@14islands/r3f-scroll-rig'
+
 // _app.jsx
 function MyApp({ Component, pageProps, router }: AppProps) {
   return (
     <>
       <GlobalCanvas />
+      <SmoothScrollbar />
       <Component {...pageProps} />
     </>
   )
@@ -75,11 +80,12 @@ function MyApp({ Component, pageProps, router }: AppProps) {
 
 ```jsx
 // gatsby-browser.js
-import { GlobalCanvas } from '@14islands/r3f-scroll-rig'
+import { GlobalCanvas, SmoothScrollbar } from '@14islands/r3f-scroll-rig'
 
 export const wrapRootElement = ({ element }) => (
   <>
     <GlobalCanvas />
+    <SmoothScrollbar />
     {element}
   </>
 )
@@ -87,32 +93,7 @@ export const wrapRootElement = ({ element }) => (
 
 </details>
 
-2. Add smooth scrolling to the DOM content
-
-In order to perfectly match WebGL objects and DOM content, the browser scroll position needs to be animated on the main thread.
-
-Wrap each page in `SmoothScrollbar` - either using a shared layout or inside each page:
-
-```jsx
-// pages/index.js`
-import { SmoothScrollbar } from '@14islands/r3f-scroll-rig'
-
-export const HomePage = () => (
-  <SmoothScrollbar>
-    {(bind) => (
-      <article {...bind}>
-        <header>
-          <h1>I'm a smooth operator</h1>
-        </header>
-        <section></section>
-        <footer></footer>
-      </article>
-    )}
-  </SmoothScrollbar>
-)
-```
-
-3. Track a DOM element and render a Three.js object in its place
+2. Track a DOM element and render a Three.js object in its place
 
 This is a basic example of a component that tracks the DOM and use the canvas to render a Mesh in its place:
 

@@ -27,7 +27,7 @@ export type ScrollToConfig = {
 }
 
 export interface ISmoothScrollbar {
-  children: (props: any) => ReactElement
+  children?: (props: any) => ReactElement
   enabled?: boolean
   locked?: boolean
   scrollRestoration?: ScrollRestoration

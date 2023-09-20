@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback, ReactElement, forwardRef, useImperativeHandle } from 'react'
+import { useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react'
 import Lenis from '@studio-freight/lenis'
 
 import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
@@ -25,7 +25,6 @@ const SmoothScrollbarImpl = (
   }: ISmoothScrollbar,
   ref: any
 ) => {
-  const innerRef = useRef<HTMLElement>()
   const lenis = useRef<Lenis>()
   const preventPointer = useRef(false)
   const globalScrollState = useCanvasStore((s) => s.scroll)
@@ -46,12 +45,12 @@ const SmoothScrollbarImpl = (
   const preventPointerEvents = useCallback(
     (prevent: boolean) => {
       if (!disablePointerOnScroll) return
-      if (innerRef.current && preventPointer.current !== prevent) {
+      if (preventPointer.current !== prevent) {
         preventPointer.current = prevent
-        innerRef.current.style.pointerEvents = prevent ? 'none' : 'auto'
+        document.documentElement.style.pointerEvents = prevent ? 'none' : 'auto'
       }
     },
-    [disablePointerOnScroll, innerRef, preventPointer]
+    [disablePointerOnScroll, preventPointer]
   )
 
   // apply chosen scroll restoration
@@ -206,7 +205,7 @@ const SmoothScrollbarImpl = (
     /* Use function child so we can spread props
     - for instance disable pointer events while scrolling */
   }
-  return children({ ref: innerRef })
+  return children ? children({}) : null
 }
 
 export const SmoothScrollbar = forwardRef<any, ISmoothScrollbar>(SmoothScrollbarImpl)

@@ -110,7 +110,6 @@ export const HomePage = () => (
 
 ```tsx
 <SmoothScrollbar
-  children: (props) => JSX.Element // render function
   scrollRestoration?: ScrollRestoration = "auto"
   enabled?: boolean = true // smooth scroll or not
   locked?: boolean = false // lock/disable scroll
