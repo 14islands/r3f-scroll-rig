@@ -10,7 +10,7 @@ import { useTracker } from '../hooks/useTracker'
 import type { Tracker } from '../hooks/useTrackerTypes'
 import { PerspectiveCamera } from './PerspectiveCamera'
 import { OrthographicCamera } from './OrthographicCamera'
-import type { ScrollState, Bounds } from '../hooks/useTrackerTypes'
+import type { ScrollState } from '../hooks/useTrackerTypes'
 
 interface IViewportScrollScene {
   track: MutableRefObject<HTMLElement>
