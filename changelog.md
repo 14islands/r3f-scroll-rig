@@ -1,5 +1,16 @@
 # Changelog
 
+## v8.12.0
+
+- Upgrade `@studio-freight/lenis` to `v1.0.23`
+- `SmoothScrollbar`
+  Passing in children is now obsolete and not needed. The only reason was to set `pointer-events: none` on the children while scrolling. We now do this directly on `doucment.documentElement`.
+  This change makes it easier to dynamically import and conditionally render the scrollbar to split the bundle.
+
+## v8.11.0
+
+- Upgrade `@studio-freight/lenis` to `v1.0.16`
+
 ## v8.10.0
 
 - Upgrade `@studio-freight/lenis` to `v1.0.10`
