@@ -31,5 +31,5 @@ interface IScrollScene {
  * @author david@14islands.com
  */
 declare function ScrollScene({ track, children, margin, // Margin outside scissor to avoid clipping vertex displacement (px)
-inViewportMargin, inViewportThreshold, visible, hideOffscreen, scissor, debug, as, priority, scene: portalScene, ...props }: IScrollScene): JSX.Element;
+inViewportMargin, inViewportThreshold, visible, hideOffscreen, scissor, debug, as, priority, scene, ...props }: IScrollScene): JSX.Element;
 export { ScrollScene };
