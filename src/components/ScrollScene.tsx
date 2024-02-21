@@ -32,6 +32,7 @@ interface IScrollScene {
   debug?: boolean
   as?: string
   priority?: number
+  scene?: Scene
 }
 
 /**
@@ -52,6 +53,7 @@ function ScrollScene({
   debug = false,
   as = 'scene',
   priority = config.PRIORITY_SCISSORS,
+  scene: portalScene,
   ...props
 }: IScrollScene) {
   const inlineSceneRef = useCallback((node: any) => {
@@ -60,7 +62,7 @@ function ScrollScene({
     }
   }, [])
 
-  const [scene, setScene] = useState<Scene | null>(scissor ? new Scene() : null)
+  const [scene, setScene] = useState<Scene | null>(scissor ? new Scene() : portalScene || null)
   const { requestRender, renderScissor } = useScrollRig()
   const globalRender = useCanvasStore((state) => state.globalRender)
 
@@ -136,7 +138,11 @@ function ScrollScene({
   // portal if scissor or inline nested scene
   const InlineElement: any = as
   // @ts-ignore
-  return scissor && scene ? createPortal(content, scene) : <InlineElement ref={inlineSceneRef}>{content}</InlineElement>
+  return (scissor || portalScene) && scene ? (
+    createPortal(content, scene)
+  ) : (
+    <InlineElement ref={inlineSceneRef}>{content}</InlineElement>
+  )
 }
 
 export { ScrollScene }
