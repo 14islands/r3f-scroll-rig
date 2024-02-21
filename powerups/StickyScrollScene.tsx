@@ -1,6 +1,3 @@
-// https://www.typescriptlang.org/docs/handbook/modules.html#ambient-modules
-/// <reference path="../src/types/global.ts" />
-
 import React, { useRef, useMemo } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Group } from 'three'
@@ -21,6 +18,7 @@ const StickyChild = ({
   scaleMultiplier,
   priority,
   stickyLerp = 1.0,
+  offsetTop = 0,
 }: any) => {
   const group = useRef<Group>(null!)
   const size = useThree((s) => s.size)
@@ -28,13 +26,17 @@ const StickyChild = ({
   useFrame((_, delta) => {
     if (!scrollState.inViewport) return
 
-    const topOffset = childTop / size.height
+    const topOffset = (childTop - offsetTop) / size.height
     const bottomOffset = (childBottom / parentScale[1]) * scaleMultiplier
 
     //  move to top of sticky area
-    const yTop = parentScale[1] * 0.5 - childScale[1] * 0.5
+    const yTop = parentScale[1] * 0.5 - childScale[1] * 0.5 - offsetTop * scaleMultiplier
     const yBottom = -parentScale[1] * 0.5 + childScale[1] * 0.5
-    const ySticky = -childTop * scaleMultiplier + yTop - (scrollState.viewport - 1) * size.height * scaleMultiplier
+    const ySticky =
+      -childTop * scaleMultiplier +
+      yTop -
+      (scrollState.viewport - 1) * size.height * scaleMultiplier +
+      offsetTop * scaleMultiplier
 
     let y = group.current.position.y
 
@@ -58,6 +60,7 @@ const StickyChild = ({
 }
 
 const renderAsSticky = (
+  el: any,
   children: any,
   size: any,
   childStyle: any,
@@ -75,9 +78,12 @@ const renderAsSticky = (
       childBottom = 0
     }
 
+    const offsetTop = el.current.offsetTop
+
     return (
       // @ts-ignore
       <StickyChild
+        offsetTop={offsetTop}
         parentScale={scale}
         childScale={childScale.times(scaleMultiplier)}
         stickyLerp={stickyLerp}
@@ -86,7 +92,11 @@ const renderAsSticky = (
         scaleMultiplier={scaleMultiplier}
         {...props}
       >
-        {children({ scale: childScale.times(scaleMultiplier), parentScale: scale, ...props })}
+        {children({
+          scale: childScale.times(scaleMultiplier),
+          parentScale: scale,
+          ...props,
+        })}
       </StickyChild>
     )
   }
@@ -104,6 +114,14 @@ export const StickyScrollScene = ({ children, track, stickyLerp, fillViewport, .
     const style = getComputedStyle(track.current)
     if (style.position === 'sticky') {
       internalRef.current = track.current.parentElement
+
+      // make sure parent is relative/absolute so we get accurante offsetTop
+      const parentStyle = getComputedStyle(internalRef.current)
+      if (parentStyle.position === 'static') {
+        console.error(
+          'StickyScrollScene: parent of position:sticky needs to be position:relative or position:absolute (currently set to position:static)'
+        )
+      }
     } else {
       console.error('StickyScrollScene: tracked element is not position:sticky')
     }
@@ -112,7 +130,10 @@ export const StickyScrollScene = ({ children, track, stickyLerp, fillViewport, .
 
   return (
     <ScrollScene track={internalRef} {...props}>
-      {renderAsSticky(children, size, childStyle, scaleMultiplier, { stickyLerp, fillViewport })}
+      {renderAsSticky(track, children, size, childStyle, scaleMultiplier, {
+        stickyLerp,
+        fillViewport,
+      })}
     </ScrollScene>
   )
 }
