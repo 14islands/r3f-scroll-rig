@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useCallback, MutableRefObject, ReactNode } from 'react'
-import { Scene } from 'three'
-import { useFrame, createPortal } from '@react-three/fiber'
+import React, { useEffect, useState, useRef, MutableRefObject, ReactNode } from 'react'
+import { Scene, Group } from 'three'
+import { useFrame, createPortal, useThree } from '@react-three/fiber'
 
 import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
 import { config } from '../config'
@@ -53,16 +53,12 @@ function ScrollScene({
   debug = false,
   as = 'scene',
   priority = config.PRIORITY_SCISSORS,
-  scene: portalScene,
+  scene,
   ...props
 }: IScrollScene) {
-  const inlineSceneRef = useCallback((node: any) => {
-    if (node !== null) {
-      setScene(node)
-    }
-  }, [])
-
-  const [scene, setScene] = useState<Scene | null>(scissor ? new Scene() : portalScene || null)
+  const globalScene = useThree((s) => s.scene)
+  const contentRef = useRef<Group>()
+  const [portalScene] = useState<Scene | null>(scene || (scissor ? new Scene() : null))
   const { requestRender, renderScissor } = useScrollRig()
   const globalRender = useCanvasStore((state) => state.globalRender)
 
@@ -71,33 +67,33 @@ function ScrollScene({
     threshold: inViewportThreshold,
   })
 
-  // Hide scene when outside of viewport if `hideOffscreen` or set to `visible` prop
+  // Hide content when outside of viewport if `hideOffscreen` or set to `visible` prop
   useLayoutEffect(() => {
-    if (!scene) return
-    scene.visible = hideOffscreen ? inViewport && visible : visible
-  }, [scene, inViewport, hideOffscreen, visible])
+    if (!contentRef.current) return
+    contentRef.current.visible = hideOffscreen ? inViewport && visible : visible
+  }, [inViewport, hideOffscreen, visible])
 
-  // move scene into place visibility or scale changes
+  // move content into place visibility or scale changes
   useEffect(() => {
-    if (!scene) return
-    scene.position.y = position.y
-    scene.position.x = position.x
-  }, [scale, scene, inViewport]) // scale updates on resize
+    if (!contentRef.current) return
+    contentRef.current.position.y = position.y
+    contentRef.current.position.x = position.x
+  }, [scale, inViewport]) // scale updates on resize
 
   // RENDER FRAME
   useFrame(
     ({ gl, camera }) => {
-      if (!scene) return
+      if (!contentRef.current) return
 
-      if (scene.visible) {
-        // move scene
-        scene.position.y = position.y
-        scene.position.x = position.x
+      if (contentRef.current.visible) {
+        // move content
+        contentRef.current.position.y = position.y
+        contentRef.current.position.x = position.x
 
         if (scissor) {
           renderScissor({
             gl,
-            scene,
+            portalScene,
             camera,
             left: bounds.left - margin,
             top: bounds.positiveYUpBottom - margin,
@@ -112,17 +108,17 @@ function ScrollScene({
     globalRender ? priority : undefined
   )
 
+  const InlineElement: any = as
   const content = (
-    <>
+    <InlineElement ref={contentRef}>
       {(!children || debug) && scale && <DebugMesh scale={scale} />}
       {children &&
-        scene &&
         scale &&
         children({
           // inherited props
           track,
           margin,
-          scene,
+          scene: portalScene || globalScene,
           // new props from tracker
           scale,
           scrollState,
@@ -132,17 +128,11 @@ function ScrollScene({
           // tunnel the rest
           ...props,
         })}
-    </>
+    </InlineElement>
   )
 
-  // portal if scissor or inline nested scene
-  const InlineElement: any = as
-  // @ts-ignore
-  return (scissor || portalScene) && scene ? (
-    createPortal(content, scene)
-  ) : (
-    <InlineElement ref={inlineSceneRef}>{content}</InlineElement>
-  )
+  // render in portal if requested
+  return portalScene ? createPortal(content, portalScene) : content
 }
 
 export { ScrollScene }
