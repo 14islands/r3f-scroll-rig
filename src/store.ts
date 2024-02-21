@@ -41,7 +41,7 @@ const useCanvasStore = create<ScrollRigStore>((set) => ({
   clearGlobalRenderQueue: () => set(() => ({ globalRenderQueue: false })),
 
   // true if WebGL initialized without errors
-  isCanvasAvailable: true,
+  isCanvasAvailable: false,
 
   // true if <VirtualScrollbar> is currently enabled
   hasSmoothScrollbar: false,

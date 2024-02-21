@@ -127,6 +127,7 @@ const GlobalCanvasImpl = ({
 export const GlobalCanvas = ({ children, onError, ...props }: IGlobalCanvas) => {
   useLayoutEffect(() => {
     document.documentElement.classList.add('js-has-global-canvas')
+    useCanvasStore.setState({ isCanvasAvailable: true })
   }, [])
 
   return (
