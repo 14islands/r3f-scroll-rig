@@ -6,5 +6,5 @@ interface IUseCanvas {
     dispose?: boolean;
     [key: string]: any;
 }
-declare const UseCanvas: import("react").ForwardRefExoticComponent<Pick<IUseCanvas, keyof IUseCanvas> & import("react").RefAttributes<unknown>>;
+declare const UseCanvas: import("react").ForwardRefExoticComponent<Omit<IUseCanvas, "ref"> & import("react").RefAttributes<unknown>>;
 export { UseCanvas };

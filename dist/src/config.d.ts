@@ -1,4 +1,4 @@
-declare type PreloadCallback = (gl: any, scene: any, camera: any) => void;
+type PreloadCallback = (gl: any, scene: any, camera: any) => void;
 export declare const config: {
     PRIORITY_PRELOAD: number;
     PRIORITY_SCISSORS: number;
