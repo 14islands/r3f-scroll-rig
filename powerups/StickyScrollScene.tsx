@@ -78,7 +78,7 @@ const renderAsSticky = (
       childBottom = 0
     }
 
-    const offsetTop = el.current.offsetTop
+    const offsetTop = useRef(el.current.offsetTop).current
 
     return (
       // @ts-ignore
