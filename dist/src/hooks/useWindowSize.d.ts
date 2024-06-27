@@ -2,7 +2,7 @@ export interface WindowSize {
     width: number;
     height: number;
 }
-type ConfigProps = {
+declare type ConfigProps = {
     debounce?: number;
 };
 export declare function useWindowSize({ debounce }?: ConfigProps): WindowSize;

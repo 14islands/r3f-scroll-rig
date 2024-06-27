@@ -6,7 +6,7 @@ export interface ScrollState {
     visibility: number;
     viewport: number;
 }
-export type Rect = {
+export declare type Rect = {
     top: number;
     bottom: number;
     left: number;
@@ -14,7 +14,7 @@ export type Rect = {
     width: number;
     height: number;
 };
-export type Bounds = Rect & {
+export declare type Bounds = Rect & {
     x: number;
     y: number;
     positiveYUpBottom: number;
@@ -38,7 +38,7 @@ export interface TrackerOptions {
     wrapper?: Window | HTMLDivElement;
     [key: string]: any;
 }
-export type UpdateCallback = {
+export declare type UpdateCallback = {
     onlyUpdateInViewport?: boolean;
     scroll?: ScrollData;
 };

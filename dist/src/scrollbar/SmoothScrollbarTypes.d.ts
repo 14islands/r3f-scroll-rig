@@ -1,5 +1,5 @@
 import { ReactElement } from 'react';
-export type ScrollCallback = (props: {
+export declare type ScrollCallback = (props: {
     scroll: number;
     limit: number;
     velocity: number;
@@ -15,8 +15,8 @@ export interface ScrollData {
     direction: number;
     scrollDirection?: string;
 }
-export type ScrollToTarget = number | HTMLElement | string;
-export type ScrollToConfig = {
+export declare type ScrollToTarget = number | HTMLElement | string;
+export declare type ScrollToConfig = {
     offset: number;
     immediate: boolean;
     duration: number;
