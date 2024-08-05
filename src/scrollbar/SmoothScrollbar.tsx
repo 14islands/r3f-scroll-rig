@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react'
-import Lenis from '@studio-freight/lenis'
+import Lenis from 'lenis'
 
 import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
 import { useCanvasStore } from '../store'
