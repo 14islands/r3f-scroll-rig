@@ -1,6 +1,6 @@
 import create from 'zustand'
 import { config } from './config'
-import type Lenis from '@studio-freight/lenis'
+import type Lenis from 'lenis'
 
 import { ScrollCallback, ScrollData } from './scrollbar/SmoothScrollbarTypes'
 

@@ -89,7 +89,7 @@ Worth noting:
 - we can use `position: sticky` etc 👌
 - the component sets `pointer-events: none` on `document.documentElement` to avoid jank caused by hover states (optional, turn of using `disablePointerOnScroll={false}`)
 - the R3F event loop is used to animate scroll
-- `SmoothScrollbar` uses `@studio-freight/lenis` internally. Make sure to read through their section on [considerations](https://github.com/studio-freight/lenis#considerations) when adding `SmoothScrollbar` to your project.
+- `SmoothScrollbar` uses `lenis` internally. Make sure to read through their section on [considerations](https://github.com/darkroomengineering/lenis#considerations) when adding `SmoothScrollbar` to your project.
 - supports horizontal scroll, adding `horizontal: true` will create a horizontal Lenis instance and will scroll the scene along the x axis.
 
 ```jsx
