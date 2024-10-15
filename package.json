@@ -20,6 +20,7 @@
       "import": "./dist/scrollbar.modern.js"
     },
     "./powerups": {
+      "types": "./dist/powerups/index.d.ts",
       "require": "./dist/powerups.cjs",
       "import": "./dist/powerups.modern.js"
     },
