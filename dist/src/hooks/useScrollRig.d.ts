@@ -1,13 +1,13 @@
-import type { Scene, Camera } from 'three';
+import { preloadScene, requestRender, renderScissor, renderViewport } from '../renderer-api';
 export interface ScrollRigState {
     debug: boolean;
     isCanvasAvailable: boolean;
     hasSmoothScrollbar: boolean;
     scaleMultiplier: number;
-    preloadScene: (scene: Scene, camera: Camera, layer?: number, callback?: any) => void;
-    requestRender: (layers?: number[]) => void;
-    renderScissor: (args: any) => void;
-    renderViewport: (args: any) => void;
+    preloadScene: typeof preloadScene;
+    requestRender: typeof requestRender;
+    renderScissor: typeof renderScissor;
+    renderViewport: typeof renderViewport;
     reflow: () => void;
 }
 /**

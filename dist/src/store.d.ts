@@ -1,4 +1,4 @@
-import type Lenis from '@studio-freight/lenis';
+import type Lenis from 'lenis';
 import { ScrollCallback, ScrollData } from './scrollbar/SmoothScrollbarTypes';
 interface ScrollRigStore {
     debug: boolean;

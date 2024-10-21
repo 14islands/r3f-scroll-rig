@@ -6,5 +6,5 @@ export declare const useScrollbar: () => {
     scroll: import("./SmoothScrollbarTypes").ScrollData;
     scrollTo: (target: any) => void;
     onScroll: (cb: import("./SmoothScrollbarTypes").ScrollCallback) => () => void;
-    __lenis: import("@studio-freight/lenis").default | undefined;
+    __lenis: import("lenis").default | undefined;
 };
