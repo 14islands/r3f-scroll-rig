@@ -1,5 +1,21 @@
 # Changelog
 
+## v8.14.0
+
+- `SmoothScrollbar`
+  - Feat: now using `lenis` import
+- `preloadScene`
+  - Feat: Switched to object literal for arguments to match other render API functions
+  - Fix: `scene` and `camera` props are now optional
+- `UseCanvas`
+  - Fix: `id` prop is now passed to the child
+- `powerups` add type declaration
+
+## v8.13.0
+
+- `ScrollScene` improved portal support
+- `StickyScrollScene` improvements
+
 ## v8.12.0
 
 - Upgrade `@studio-freight/lenis` to `v1.0.23`
