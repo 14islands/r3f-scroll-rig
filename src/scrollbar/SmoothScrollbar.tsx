@@ -1,9 +1,9 @@
 import { useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react'
-import Lenis from 'lenis'
+import Lenis, { ScrollCallback, VirtualScrollCallback } from 'lenis'
 
 import { useLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
 import { useCanvasStore } from '../store'
-import { ISmoothScrollbar, ScrollCallback, ScrollToTarget, ScrollToConfig } from './SmoothScrollbarTypes'
+import { ISmoothScrollbar, ScrollToTarget, ScrollToConfig } from './SmoothScrollbarTypes'
 
 const POINTER_EVENTS_ENABLE_VELOCITY = 1
 const POINTER_EVENTS_DISABLE_VELOCITY = 1.5
@@ -33,9 +33,9 @@ const SmoothScrollbarImpl = (
   useImperativeHandle(ref, () => ({
     start: () => lenis.current?.start(),
     stop: () => lenis.current?.stop(),
-    on: (event: string, cb: ScrollCallback) => lenis.current?.on(event, cb),
-    notify: () => lenis.current?.emit(), // backwards compatible
-    emit: () => lenis.current?.emit(),
+    on: (event: 'scroll' | 'virtual-scroll', cb: ScrollCallback | VirtualScrollCallback) =>
+      // @ts-ignore
+      lenis.current?.on(event, cb),
     scrollTo: (target: ScrollToTarget, props: ScrollToConfig) => lenis.current?.scrollTo(target, props),
     raf: (time: number) => lenis.current?.raf(time),
     __lenis: lenis.current,
@@ -150,6 +150,7 @@ const SmoothScrollbarImpl = (
         },
         onScroll: (cb: ScrollCallback) => {
           _lenis?.on('scroll', cb)
+          // @ts-ignore
           _lenis?.emit() // send current scroll to new subscriber
           return () => _lenis?.off('scroll', cb)
         },
@@ -161,6 +162,7 @@ const SmoothScrollbarImpl = (
     }
 
     // fire our internal scroll callback to update globalState
+    // @ts-ignore
     _lenis?.emit()
     return () => {
       _lenis?.off('scroll', _onScroll)
