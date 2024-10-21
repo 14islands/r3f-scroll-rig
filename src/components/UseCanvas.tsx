@@ -13,7 +13,7 @@ interface IUseCanvas {
 const UseCanvas = forwardRef(({ children, id, dispose = true, ...props }: IUseCanvas, ref) => {
   if (!children) return null
   // auto update canvas with all props
-  useCanvas(children, { ...props, ref }, { key: id, dispose })
+  useCanvas(children, { ...props, id, ref }, { key: id, dispose })
   return null
 })
 
