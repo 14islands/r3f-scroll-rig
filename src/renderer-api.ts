@@ -61,11 +61,14 @@ export const renderViewport = ({
   gl.setViewport(0, 0, viewportSize.x, viewportSize.y)
 }
 
-export const preloadScene = (scene: Scene, camera: Camera, layer = 0, callback?: () => void) => {
+export const preloadScene = (
+  { scene, camera, layer = 0 }: { scene?: Scene; camera?: Camera; layer?: number },
+  callback?: () => void
+) => {
   config.preloadQueue.push((gl: WebGLRenderer, globalScene: Scene, globalCamera: Camera) => {
     gl.setScissorTest(false)
     setAllCulled(scene || globalScene, false)
-    camera.layers.set(layer)
+    ;(camera || globalCamera).layers.set(layer)
     gl.render(scene || globalScene, camera || globalCamera)
     setAllCulled(scene || globalScene, true)
     callback && callback()
