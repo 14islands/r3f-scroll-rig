@@ -27,7 +27,7 @@ const StickyChild = ({
   useFrame((_, delta) => {
     if (!scrollState.inViewport) return
 
-    const topOffset = (childTop - offsetTop + initialScrollY) / size.height
+    const topOffset = (childTop - offsetTop + initialScrollY + 1) / size.height
     const bottomOffset = (childBottom / parentScale[1]) * scaleMultiplier
 
     //  move to top of sticky area
