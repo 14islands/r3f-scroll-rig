@@ -140,6 +140,7 @@ Learn more about edge cases and solutions in the <a href="#gotchas-">gotchas sec
 - [Load responsive texture from the DOM](https://codesandbox.io/s/load-responsive-picture-from-dom-rgcx4b?file=/src/App.jsx)
 - [HTML parallax with useTracker() and Framer Motion](https://codesandbox.io/s/parallax-with-framer-motion-dx2v1p?file=/src/App.jsx)
 - [A sticky ScrollScene from the powerups samples](https://codesandbox.io/s/r3f-scroll-rig-sticky-box-w5v4u7?file=/src/App.jsx)
+- [A basic Post Processing example](https://codesandbox.io/p/sandbox/hello-scrollscene-forked-cp3n93?file=/src/App.jsx)
 
 # API ⚙️
 
