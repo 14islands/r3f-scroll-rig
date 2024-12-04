@@ -7,6 +7,7 @@ export { useScrollRig } from './hooks/useScrollRig';
 export { useCanvas } from './hooks/useCanvas';
 export { useScrollbar } from './scrollbar/useScrollbar';
 export { useTracker } from './hooks/useTracker';
+export { useWindowSize } from './hooks/useWindowSize';
 export { useImageAsTexture } from './hooks/useImageAsTexture';
 export { default as SmoothScrollbar } from './components/R3FSmoothScrollbar';
 export declare const styles: {
