@@ -1,5 +1,12 @@
 # Changelog
 
+## v8.15.0
+
+- `useWindowSize`
+  - Feat: export added
+- `StickyScrollScene`
+  - Fix: better sticky area calculation when reloading while scrolled down
+
 ## v8.14.0
 
 - `SmoothScrollbar`
