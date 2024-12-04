@@ -60,10 +60,10 @@ const StickyChild = ({
 }
 
 const renderAsSticky = (
-  el: any,
   children: any,
   size: any,
   childStyle: any,
+  parentStyle: any,
   scaleMultiplier: number,
   { stickyLerp, fillViewport }: any
 ) => {
@@ -78,7 +78,7 @@ const renderAsSticky = (
       childBottom = 0
     }
 
-    const offsetTop = useRef(el.current.offsetTop).current
+    const offsetTop = parseFloat(parentStyle.top)
 
     return (
       // @ts-ignore
@@ -110,13 +110,15 @@ export const StickyScrollScene = ({ children, track, stickyLerp, fillViewport, .
 
   // if tracked element is position:sticky, track the parent instead
   // we want to track the progress of the entire sticky area
-  const childStyle = useMemo(() => {
+  const [childStyle, parentStyle] = useMemo(() => {
     const style = getComputedStyle(track.current)
+
+    let parentStyle
     if (style.position === 'sticky') {
       internalRef.current = track.current.parentElement
 
       // make sure parent is relative/absolute so we get accurante offsetTop
-      const parentStyle = getComputedStyle(internalRef.current)
+      parentStyle = getComputedStyle(internalRef.current)
       if (parentStyle.position === 'static') {
         console.error(
           'StickyScrollScene: parent of position:sticky needs to be position:relative or position:absolute (currently set to position:static)'
@@ -125,12 +127,12 @@ export const StickyScrollScene = ({ children, track, stickyLerp, fillViewport, .
     } else {
       console.error('StickyScrollScene: tracked element is not position:sticky')
     }
-    return style
-  }, [track])
+    return [style, parentStyle]
+  }, [track, size])
 
   return (
     <ScrollScene track={internalRef} {...props}>
-      {renderAsSticky(track, children, size, childStyle, scaleMultiplier, {
+      {renderAsSticky(children, size, childStyle, parentStyle, scaleMultiplier, {
         stickyLerp,
         fillViewport,
       })}
