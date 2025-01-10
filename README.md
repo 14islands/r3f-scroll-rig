@@ -391,15 +391,16 @@ Please read the API docs on using [children as a render function](/docs/api.md#c
 # In the wild 🐾
 
 - [14islands.com](https://14islands.com) by [14islands](https://14islands.com)
-- [v2.14islands.com](https://14islands.com) by [14islands](https://14islands.com)
-- [Pluto.app](https://www.pluto.app/) by [14islands](https://14islands.com)
+- [v3.14islands.com](https://v3.14islands.com) by [14islands](https://14islands.com)
+- [Pluto.app](https://pluto-xr.netlify.app/) by [14islands](https://14islands.com)
 - [Myriad.video](https://myriad.video/) by [14islands](https://14islands.com)
 - [Neko Health](https://www.nekohealth.com/) by [14islands](https://14islands.com)
-- [Playgoals.com](https://playgoals.com/) by [14islands](https://14islands.com)
+- ~~[Playgoals.com](https://playgoals.com/) by [14islands](https://14islands.com)~~
 - [Goals studio](https://studio.playgoals.com/) by [14islands](https://14islands.com)
-- [Pluto dev portal](https://dev.pluto.app/) by [14islands](https://14islands.com)
+- ~~[Pluto dev portal](https://dev.pluto.app/) by [14islands](https://14islands.com)~~
 - [Quantum Wallet](https://quantumwallet.tech/) by [14islands](https://14islands.com)
 - [Metamask Learn](https://learn.metamask.io/) by [Antinomy Studio](https://antinomy.studio)
 - [Lynxeye](https://lynxeye.com/) by [14islands](https://14islands.com)
 - [Astra Nova](https://astranova.world/) by [estudio/nk](https://thefwa.com/profiles/estudionk-r) and [@juliperoncini](https://twitter.com/juliperoncini)
 - [Axolot Games](https://www.axolotgames.com/) by [14islands](https://14islands.com)
+- [Cartier 365](https://365ayearof.cartier.com/en/) by [14islands](https://14islands.com)
