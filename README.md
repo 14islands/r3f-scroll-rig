@@ -131,8 +131,12 @@ export const HtmlComponent = () => (
 
 Learn more about edge cases and solutions in the <a href="#gotchas-">gotchas section</a>.
 
-# Examples 🎪
+# Examples & Tutorials 🎪
 
+Tutorials:
+- [Codrops Tutorial](https://tympanus.net/codrops/2023/10/10/progressively-enhanced-webgl-lens-refraction/)
+
+Examples:
 - [ScrollScene basic example](https://codesandbox.io/s/hello-world-ibc8y7?file=/src/App.jsx)
 - [ScrollScene with GLB model & events from both DOM & Canvas](https://codesandbox.io/s/scrollscene-with-glb-6l2fc3?file=/src/App.js)
 - [ViewportScrollScene with custom camera and controls](https://codesandbox.io/s/hello-viewportscrollscene-fu0ky6?file=/src/App.jsx)
